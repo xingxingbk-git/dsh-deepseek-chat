@@ -926,3 +926,27 @@ npm0.2.8公开后，用户明确要求“提交并推送代码”。开工main/H
 用户要求查看新PR。核查唯一开放#4（head f834fec）将zod4.4.3升4.6.6，仅修改package/lock，无CI结果。主Agent核对官方npm：版本存在、integrity与锁一致，SDK typert-protocol rc.3允许^4.4.3；独立子Agent核实CVE/NVD与GHSA记录均真实，但修复范围有差异：CNA/NVD仍将默认无界数组/集合列为<=4.6.7受影响，4.6.6改进仅限显式长度上限；GHSA标4.6.6已修复。不能说CVE伪造、版本不存在或仅升级即可完整消除风险；当前自有src未发现直接z.array/map/set输入，间接SDK路径未确认。
 
 确定阻塞是未重建Git预编译交付：lib/client.js仍包含zod4.4.3，manifest.inputs包含package/lock。用当前可信检查器，在ignored独立fixture中仅覆盖PR两个数据文件，复现预期ERR_ASSERTION陈旧编译产物；未执行PR代码/脚本、未安装依赖。建议请求补类型/现行契约/兼容验证、完整lib/manifest及漏洞适用范围说明，暂不原样合并。未切分支、评论/批准/合并或Git/npm操作，仅内部文档保留审查记录；详细来源见handoff，后续实际修改/发布等待用户指令。
+
+### 0.2.9依赖重编验证 · 2026-10-27
+
+用户先自行提交审查记录、合并PR #4并在VSCode拉取。只读核对本地/远端main=6dc2bb6且工作树干净、package声明zod4.6.6而实际node_modules仍4.4.3；随后用户明确要求重新编译和验证。0.2.8→0.2.9仅递增一次，pnpm10.33.2 frozen安装成功更新根Zod4.6.6且未改合并后的锁。Node24.14.1、SDK rc.3/Cordis4.0.5/React18.3.1；未改src业务/权限/官网逻辑，不强制覆盖宿主SDK依赖。
+
+经确认lib真实绝对路径且非符号链接后release:prepare完整重建27编译文件/manifest。typecheck、分发1惰性注册/4共享模块、18版本×4兼容、现行Node46/46、Chrome156虚构浏览器95项×5视口/DPR（0错误/失败）通过；额外内存构建实际protocol模块，验证metadata/auth/session严格边界、UUID与多余字段拒绝、codec及模型面隔离，值均虚构。新版Zod显式max数组在读取元素前拒绝超限已实测；无界数组仍正常接受，不能宣称升级后自动限制所有输入或完整消除CVE。未运行旧历史全套，也未做Electron/OS/Windows或真实网页登录验收。
+
+[22bac6db010b候选](../artifacts/dsh-deepseek-chat-0.2.9-22bac6db010b.tgz)204610bytes/35文件，SHA256=22bac6db010b1fd617966a5a1b5ee4f4eb52332ca9808be1ac95c1c51405b081；35文件逐项同项目（仅packageManager标准化），包版本0.2.9/root zod4.6.6、无安装构建钩子，Client仅见4.6.6无旧4.4.3模块标记。README只改候选状态/本地包名并保留用户要求的产品概述，名称安装仍指公开0.2.8；内部记录留在docs。未安装/重启DSH、npm公开发布或Git写入，原已安装0.2.8及不可变旧包保留；待用户另行确认安装/验收及后续发布，不能沿用旧授权。
+
+用户随后明确要求“先安装到本机验证一下”。复核22bac6完整SHA后，重新定位当前app官方runtime/cli/bin/dsh载体并静态核查桌面命令转交pnpm契约；帮助查询和首次安装因desktop/package.json.lock位于工作区外被沙箱拒绝。正式安装原命令在一次明确权限批准后执行成功exit0，Node24.21.0/pnpm11.28.5，185项供应链策略通过；既有其他插件deprecation/peer告警不扩大处理。安装版本0.2.8→0.2.9，35/35磁盘文件逐字节同22bac6包，Host实际依赖解析为zod4.6.6，Client仅4.6.6；持久package dependency和锁importer的specifier/version均引用同一候选文件名。没有退出/重启DSH、读取真实凭据/网页数据、发布npm或Git写入。下一步用户保存草稿后自行完整重开，核对0.2.9及CHAT/HARNESS、账号/登录记忆和设置等；安装完成不等于当前进程已加载新版或实机验收通过。
+
+### 0.2.9 npm公开发布 · 2026-10-27
+
+用户再次确认拖动改动只在CHAT挂载、HARNESS原生逻辑不改后，明确要求“发布npm”。本轮发布既有0.2.9，不增号、不改业务/重建/重装重启；未额外收集或虚构原生/Windows验收。仅两份README恢复正式版本和0.2.9名称安装示例，保留DSH桌面及语言/外观/字号产品概述，不添加修复叙述。正式[f760d740456f包](../artifacts/dsh-deepseek-chat-0.2.9-f760d740456f.tgz)204583bytes/35文件，SHA256=f760d740456f0fbe457ed263fbed195d14afacdbaf638657885854777761527d，SHA1=92c8ce95a2078b5e99489196ce98bb5f5912fb70；相对已安装22bac6仅两份README不同，33运行/元数据文件完全一致。类型、27编译文件/4模块分发、18版本×4兼容及diff检查通过。
+
+发布前官方latest0.2.8/精确0.2.9为404。使用0700临时目录、0600独立npmrc/cache完成官方网页登录，whoami为预期发布账号；用户完成此次发布单独验证后，唯一publish返回+dsh-deepseek-chat@0.2.9、NPM_PUBLISH_EXIT=0和processing提示。随后只做匿名公开查询，不重复publish：初始两索引仍0.2.8/精确404，install-v1先更新，最终09:38:36.798Z完整及install-v1 latest均0.2.9、版本存在、精确HTTP200，整个下载包逐字节同f760，SHA256/SHA1/完整SHA512 integrity匹配；依赖zod4.6.6。证据见[公开核验摘要](../artifacts/npm-release-0.2.9-20261027/public-proof.json)。
+
+临时认证已正常logout(exit0)、终端关闭，核对明确绝对路径后删除私有配置/cache，原npm配置不变；无认证链接、验证码或令牌写入项目记录。本轮未Git写入，源码/lib/正式说明及内部记录待另行提交推送；npm0.2.9不可覆盖，新运行修复从0.2.10开始，未来Git/npm操作重新等待当轮明确授权。
+
+### 0.2.9 GitHub完整交付 · 2026-10-27
+
+用户在npm发布后另行明确要求提交推送。基线main/HEAD/origin/main=6dc2bb6，fetch后0/0，暂存区为空；11项已知改动交付正式版本/README、完整预编译lib及内部记录，不增加安装包、依赖目录、凭据或临时认证。35个分发文件逐项匹配公开f760包（仅packageManager标准化），不改已发布运行内容、src/locale或已合并PR锁；本轮不再增号、构建、发布npm、安装或重启DSH。
+
+提交前重新通过typecheck、27编译文件/4模块分发、18版本×4兼容、46项现行Node及diff检查；浏览器与实际协议结果沿用同一产物先前验证，不虚构新增原生/Windows或全套验收。准确提交号以包含本条的Git记录为准，普通推送origin/main后独立核对GitHub main与本地HEAD精确相同、工作树干净。不force、不建tag/PR；未来新运行修复从0.2.10开始，未来Git/npm操作须新明确指令。

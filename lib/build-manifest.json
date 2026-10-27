@@ -1,14 +1,14 @@
 {
   "format": 1,
   "name": "dsh-deepseek-chat",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "inputs": {
     "assets/icon.svg": "8ea4f1d75f655c24e7f42fd5ed76763872d2c2c9d0661e14d64bcbc4dc5f84c8",
     "cordis.patch.yml": "d68da47a95a1800cbc29de786bf910d7327564715c13935760e485ee7408bb51",
     "locale/en.json": "72a9455f33b081289cb63d118ec69a40ec2619867a28eb021f7af53c16c26fe7",
     "locale/zh-CN.json": "9754c418354a67bd510ee00d69a9812ef73b554a3153e74f7da8af3fee923251",
-    "package.json": "956dd6c5a63b809e22cad12da25f64222863550868fdf5b03302ca422d5e59df",
-    "pnpm-lock.yaml": "4975e4ceed8ceff25b6d8dcb65a8402fa2f19b2beefd6a5a4d509772d0fcc3c9",
+    "package.json": "a58dd45e50adcc53152eee8a23032bf3f0a7b7abe0366100b9c72da873bd3ea4",
+    "pnpm-lock.yaml": "43bca5411a4ac7992b092135418bc512ba205854b24bc78aa61deb289bc920b8",
     "scripts/build.mjs": "715879e3c25382c35b06db2065b3b13815d1185aa4b9267b68a6257cacee30ec",
     "scripts/check-artifact.mjs": "6fec38fb74e41dfeacef7147280c69854087d0665747d7d65137cc98f9dc673b",
     "scripts/check-distribution.mjs": "8757f1707ae1c2fd95b6eddfce127b065e36a0bbe31effef107a9b5318c87de7",
@@ -43,7 +43,7 @@
     "tsconfig.json": "1ad0b3b39537564a180dc7f4084ceb3098b567f509320c77d71bc37aaf4f1879"
   },
   "artifacts": {
-    "lib/client.js": "8e01e3dd31f73aaf8409284ee444479ce05bc3c90f425fcd8f4c3ecf65301f19",
+    "lib/client.js": "061a07a84487590265f3c3fe49d5e455ca7d66ddedd6c12e3f92ddca2a07b66b",
     "lib/index.js": "2756960cb2bfae930ce8a7d195c5b28f33dbe83fb3d619e9f6c3c9b09073d8e1",
     "lib/types/authorization.d.ts": "130649eed3635e75c3f50c13de93c52440a27f1b88136ab2297552570c013d49",
     "lib/types/client.d.ts": "a79702d5d86c75e81f1e954b3e9f4a562a6b3082d68d798d6a1b37bd41b908a7",

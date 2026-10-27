@@ -1,4 +1,27 @@
-## PR #4审查（2026-10-27，未合并/评论，未改业务代码）
+## 0.2.9 GitHub main交付（2026-10-27，本轮明确授权）
+
+- 用户在npm0.2.9公开完成后要求“提交并推送一下”。基线main/HEAD/origin/main=6dc2bb6，fetch后0 ahead/0 behind，暂存区为空，无其他未跟踪内容；保持用户确认的本仓库Git身份。不合并其他内容、不force、不建tag/PR，不再次发布、增号、安装或重启DSH。
+- 本次提交11项已知改动：package版本、两份正式README、完整预编译lib及AGENTS/需求/架构/路线/交接/工作记录。源码src/locale未改；PR #4依赖锁已在基线提交，不重复改锁。全部35个发布分发文件与公开f760包逐项一致（仅packageManager标准化），未包含artifacts、tgz、node_modules、凭据或临时认证。未改已发布运行内容，不重新构建。
+- 提交前重新通过typecheck、27编译文件/4共享模块分发、18版本×4兼容、现行Node46/46及diff检查；95项×5浏览器和实际协议边界检查沿用同一产物的编译阶段结果，本次未重跑浏览器、原生或旧历史全套。准确提交号由包含本节的Git记录定位；普通推送origin/main后须独立确认GitHub refs/heads/main与本地HEAD精确一致、工作树干净，不能把命令受理当成完成。
+- 当前0.2.9已公开，不覆盖或重新发布；新运行修复从0.2.10开始，未来Git/npm操作须新一轮用户明确授权。
+
+## 0.2.9 npm已公开发布（2026-10-27，Git同步前记录）
+
+- 用户明确要求“发布npm”，本轮发布已有0.2.9，不再次增号。只将中英文README改为正式产品版本/0.2.9名称安装示例，保留用户要求的DSH桌面及语言/外观/字号概述，不添加修复过程；未改业务、重建或重装/重启DSH，未收集或补造新增原生/Windows验收。
+- 正式包[f760d740456f](../artifacts/dsh-deepseek-chat-0.2.9-f760d740456f.tgz)204583bytes/35文件，SHA256=`f760d740456f0fbe457ed263fbed195d14afacdbaf638657885854777761527d`，SHA1=`92c8ce95a2078b5e99489196ce98bb5f5912fb70`；相对已安装22bac6候选仅两份README不同，其余33运行/元数据文件逐字节相同，35文件同项目（仅packageManager标准化）。类型、27编译文件/4模块分发、18版本×4兼容及diff检查通过，不重复运行旧完整或原生测试。
+- 发布前官方latest0.2.8、0.2.9精确版本404。使用0700私有临时目录/0600独立npmrc/cache，npm11.11.0/Node24.14.1；用户完成官方网页登录及此次发布单独验证，唯一publish返回+dsh-deepseek-chat@0.2.9、NPM_PUBLISH_EXIT=0及processing提示。随后仅匿名核验公开索引/下载，不重复publish；最初仍latest0.2.8/精确404，后install-v1先更新，最终2026-10-27T09:38:36.798Z完整/install-v1索引latest均0.2.9且版本存在，精确版本HTTP200。公开下载整个tgz逐字节同正式f760包，SHA256/SHA1/SHA512 integrity一致，35文件完整相同，根依赖zod4.6.6；[公开核验摘要](../artifacts/npm-release-0.2.9-20261027/public-proof.json)、[npm版本页](https://www.npmjs.com/package/dsh-deepseek-chat/v/0.2.9)。
+- 临时认证已logout(exit0)、终端关闭，核对明确绝对目标后删除隔离配置/cache，原npm配置不变；项目中不记录认证链接、令牌或验证码。此轮不Git写入，后续修改不得覆盖0.2.9，新的运行修复从0.2.10开始；后续Git操作仍需新的明确指令。
+
+## 0.2.9依赖重编候选历史（2026-10-27，已安装，未由Agent重启）
+
+- 用户已自行提交PR审查记录、合并PR #4并拉取main，已确认本地/远端6dc2bb6一致、工作树干净。用户本轮授权重新编译和验证；0.2.8递增为0.2.9一次，保留PR固定zod4.6.6及现有锁，不改src/业务/官网/权限或强制覆盖其他SDK依赖；未安装/重启DSH、公开npm或Git写入。
+- Node24.14.1/pnpm10.33.2，SDK目标rc.3/Cordis4.0.5/React18.3.1。开工node_modules仍zod4.4.3，pnpm install --frozen-lockfile成功更新根依赖为4.6.6，仓库锁文件未额外修改；删除重建前已验证lib为本仓库真实目录、非符号链接。完整release:prepare重建27编译文件和manifest，Client模块路径仅含zod4.6.6，不再有4.4.3内嵌标记；Host保持外部依赖加载。不能据此说宿主/所有SDK依赖都已升级。
+- typecheck、分发1惰性注册/4共享模块、18版本×4兼容、46/46现行Node契约均通过。Chrome156.0.8078.48虚构浏览器95项×5视口/DPR全部通过，0 page errors/失败；覆盖模式生命周期、识别保护/不露原侧栏、同guest与输入遮蔽。额外内存验证实际protocol模块的metadata/auth/session严格schema、长度/UUID/多余字段拒绝、codec与模型面隔离；Zod4.6.6显式max数组在访问元素前拒绝超限，而无界解析仍保留原行为。均使用虚构值，不读实际凭据/网页/对话，不代表Electron/OS或Win实机验收；旧历史完整测试未运行。
+- 候选[22bac6db010b](../artifacts/dsh-deepseek-chat-0.2.9-22bac6db010b.tgz)，204610bytes/35文件，SHA256=`22bac6db010b1fd617966a5a1b5ee4f4eb52332ca9808be1ac95c1c51405b081`。35文件逐项同当前项目（仅pnpm省略packageManager作标准化），版本0.2.9/zod4.6.6、无自动构建安装钩子；[包核验摘要](../artifacts/candidate-0.2.9-zod466/package-proof.json)。README仅候选可用性/本地包名变化，保留用户要求的DSH桌面与语言/外观/字号概述；按名称安装仍指向已发布0.2.8，未添加修复经过。
+- 用户随后明确要求先安装到本机验证。候选全SHA复核后使用当前app官方runtime/cli/bin/dsh桌面carrier执行plugin --profile desktop add <22bac6包> --save-exact；帮助查询和首次安装均在写desktop/package.json.lock时被workspace沙箱拒绝，未尝试读取凭据或改安全策略。安装原命令经一次权限批准扩大访问成功exit0，Node24.21.0/pnpm11.28.5；供应链策略185项通过，其他插件旧deprecation/peer告警未处理。35/35实际安装文件逐字节同包，Host实际解析zod4.6.6、Client仅含4.6.6，持久dependency与锁importer的specifier/version均指向同一22bac6候选；未退出/重启DSH，不把安装成功当运行/原生验收通过。
+- 下一步用户先保存草稿，自行完整退出并重开DSH，确认插件0.2.9，再验证CHAT/HARNESS、账号/登录记忆、设置/菜单等。候选版本/README/完整lib及内部记录仍在本地待提交；未公开npm或Git写入。验收后还需当轮明确指令才能发布0.2.9或Git提交推送，不沿用旧授权。CVE范围差异和SDK间接可利用性仍沿用审查边界，本轮不宣称完整消除CVE。
+
+## PR #4审查历史（2026-10-27，合并前记录）
 
 - 用户要求查看新PR；唯一开放[PR #4](https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/4)由anupamme提出，head=f834fec2ea094b308265cf28f38acb5adc5a3b58，只改package.json和pnpm-lock.yaml，将zod4.4.3升4.6.6，无CI结果。审查时本地HEAD88dd40f、工作区干净；未切分支、安装依赖、执行PR代码、评论/批准/合并或Git/npm写操作，仅在内部文档记录结论。
 - 官方npm确认4.6.6存在、SRI精确匹配PR，latest4.6.7；SDK typert-protocol rc.3的zod范围为^4.4.3，4.6.6未违反该范围。CVE-2023-54404确有公开记录且关联zod，不能误报为伪造；但[官方CVE](https://cveawg.mitre.org/api/cve/CVE-2023-54404)/NVD称无界数组/集合在<=4.6.7仍受影响，4.6.6仅提前检查显式长度上限；[GitHub Advisory](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)标记4.6.6已修复，官方范围有差异。插件自有src未发现显式z.array/map/set入口，未确认SDK内间接可利用路径，不能宣称项目已确诊或完整修复。
