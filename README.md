@@ -10,7 +10,7 @@
 
 DeepSeek Chat 是一款 **DSH 桌面插件**。选择 **CHAT**，即可在 DSH 内使用真实的 [DeepSeek Chat 官网](https://chat.deepseek.com/)；选择 **HARNESS**，随时返回原来的工作区。
 
-当前版本 **0.2.8**。
+当前版本 **0.2.8** · 适配 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
 
 ## 功能预览
 

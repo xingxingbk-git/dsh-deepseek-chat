@@ -10,7 +10,7 @@
 
 DeepSeek Chat is a **DSH Desktop plugin**. Choose **CHAT** to use the real [DeepSeek Chat website](https://chat.deepseek.com/) inside DSH, or choose **HARNESS** to return to your original workspace.
 
-Current version: **0.2.8**.
+Current version: **0.2.8** · Built for **DSH Desktop** · The CHAT website’s language, appearance and text size follow DSH.
 
 ## Features
 
