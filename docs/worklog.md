@@ -920,3 +920,9 @@ npm0.2.8公开后，用户明确要求“提交并推送代码”。开工main/H
 用户随后明确要求将这次文档整理提交并推送。fetch确认HEAD/origin/main=c2389da、0 ahead/0 behind；本次范围仅两份README、AGENTS职责规则及handoff/worklog共5份文档，保留代码、完整lib与0.2.8版本不变，不构建/发布npm或操作DSH。提交前校验本地图片/语言链接、删除内部修复与开发段落、diff及分发契约；准确提交由本条所在Git记录定位，推送完成须独立核对GitHub main等于本地HEAD且工作树干净，不force或建tag/PR。
 
 用户随后指出“当前版本0.2.8 · 适配DSH桌面版 · 语言、外观和字号跟随DSH”的正常产品概述不应删减。承认此前缩为版本号属于整理过度，仅恢复中英文对应这一行，其他产品正文不再改动；不改代码/lib/版本、不自动提交推送或发布npm，恢复状态见handoff。
+
+### PR #4只读审查 · 2026-10-27
+
+用户要求查看新PR。核查唯一开放#4（head f834fec）将zod4.4.3升4.6.6，仅修改package/lock，无CI结果。主Agent核对官方npm：版本存在、integrity与锁一致，SDK typert-protocol rc.3允许^4.4.3；独立子Agent核实CVE/NVD与GHSA记录均真实，但修复范围有差异：CNA/NVD仍将默认无界数组/集合列为<=4.6.7受影响，4.6.6改进仅限显式长度上限；GHSA标4.6.6已修复。不能说CVE伪造、版本不存在或仅升级即可完整消除风险；当前自有src未发现直接z.array/map/set输入，间接SDK路径未确认。
+
+确定阻塞是未重建Git预编译交付：lib/client.js仍包含zod4.4.3，manifest.inputs包含package/lock。用当前可信检查器，在ignored独立fixture中仅覆盖PR两个数据文件，复现预期ERR_ASSERTION陈旧编译产物；未执行PR代码/脚本、未安装依赖。建议请求补类型/现行契约/兼容验证、完整lib/manifest及漏洞适用范围说明，暂不原样合并。未切分支、评论/批准/合并或Git/npm操作，仅内部文档保留审查记录；详细来源见handoff，后续实际修改/发布等待用户指令。

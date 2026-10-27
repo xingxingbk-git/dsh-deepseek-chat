@@ -1,3 +1,9 @@
+## PR #4审查（2026-10-27，未合并/评论，未改业务代码）
+
+- 用户要求查看新PR；唯一开放[PR #4](https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/4)由anupamme提出，head=f834fec2ea094b308265cf28f38acb5adc5a3b58，只改package.json和pnpm-lock.yaml，将zod4.4.3升4.6.6，无CI结果。审查时本地HEAD88dd40f、工作区干净；未切分支、安装依赖、执行PR代码、评论/批准/合并或Git/npm写操作，仅在内部文档记录结论。
+- 官方npm确认4.6.6存在、SRI精确匹配PR，latest4.6.7；SDK typert-protocol rc.3的zod范围为^4.4.3，4.6.6未违反该范围。CVE-2023-54404确有公开记录且关联zod，不能误报为伪造；但[官方CVE](https://cveawg.mitre.org/api/cve/CVE-2023-54404)/NVD称无界数组/集合在<=4.6.7仍受影响，4.6.6仅提前检查显式长度上限；[GitHub Advisory](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)标记4.6.6已修复，官方范围有差异。插件自有src未发现显式z.array/map/set入口，未确认SDK内间接可利用路径，不能宣称项目已确诊或完整修复。
+- 阻塞项：Client已内嵌zod4.4.3，PR未更新lib与build-manifest。以当前可信manifest检查器、仅复制PR两个数据文件的独立fixture复现ERR_ASSERTION“Compiled files are stale or modified”；没有执行PR脚本。建议暂不原样合并，请补依赖升级后的类型/契约/兼容验证、完整预编译lib及manifest，并准确说明漏洞适用范围。后续实现/发布需单独指令，新修复沿用0.2.9规则，不覆盖0.2.8。
+
 ## README产品概述恢复（2026-10-27，仅本地，尚未提交推送）
 
 - 用户指出版本、DSH桌面适配及语言/外观/字号跟随这一句应保留；此前将其缩短为单独版本号属于整理过度。现仅恢复中英文对应的一行，其他产品正文不再改动；不改版本、源码/lib，不自动Git或npm。此前删除范围为红框修复实现/排查段、开发打包段及其余说明的合并精简，封面截图和安装使用入口保留。
