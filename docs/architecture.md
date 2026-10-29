@@ -2,7 +2,10 @@
 
 ## 0.2.10 原生控件精简布局（2026-10-29，音色保持撤回）
 
-- 后续卡片统一参照已实读官方settings-account样式：section上下8px、组间16px，card内12px16px、.5px settings-card-stroke描边及radius-xl；分割线用border-l2，actions gap10。只有填充按用户要求transparent，颜色不写死，提供旧主题token fallback。官网入口为固定首页标准外链、_blank/noopener noreferrer；静态核对本机主窗HTTP/S新窗口转shell.openExternal，无私有API、账号/会话参数或登录同步，实际OS打开仍待验。
+- 切换器文本宽度改用 `Range.getBoundingClientRect()` 的小数宽度（不再临时释放宽度、也不读会被裁剪的 scrollWidth），宽度按小数写入并保留 1px 容差，避免 1px 舍入把本可完整显示的文案切出省略号；改动文案时 layout effect 同步重算。保存流程不做可见状态切换（不换文案、不禁用输入、无 aria-busy），仅内部防重复提交。
+- 切换器采用“CSS分配空间+单次测量”混合：host 占满剩余行宽(justify-end，pill仍按内容收缩)，按钮尺寸由 useLayoutEffect/ResizeObserver 在测量真实文本宽度与容器可用宽度后写成显式像素宽度，并给出四阶段算法：等宽→收短→截断长→等宽截断，下限=图标模式按钮宽度(内边距×2+15px icon)。测量用临时释放宽度后的 scrollWidth，不轮询坐标、不读宿主私有状态；图标模式下完全交给内容自然宽度。SVG 已抽为组件且已换为用户设计的填充路径（仅保留 path、去除白色底板、fill 用 currentColor 跟随主题，viewBox 20/渲染20 不变（图标态最小宽=8px×2+20px；侧栏 PanelIcon 独立保持 18 不受影响）），替换图标不影响布局契约。只在现有严格验证sidebar形态中标记brand为不可收缩，字标102px/原生图标保持尺寸，剩余空间不足仅压缩控件、文本ellipsis/title不变；属性由原adapter生命周期恢复，不改未知结构。
+
+- 后续卡片统一参照已实读官方settings-account样式：section上下8px、组间16px，card内12px16px、.5px settings-card-stroke描边及radius-xl；分割线用border-l2，actions gap10。填充按最新指令分层：账号卡用bg-base恢复原暗色黑底、下方切换卡及其两个输入框transparent（含hover/focus/disabled），描边/圆角和原生焦点不改；颜色不写死，提供旧主题token fallback。退出登录按钮复用侧栏新会话的半透明浮层观感：interactive-bg-active 填充（暗色 #ffffff24）、interactive-bg-hover-accent 悬停（#ffffff3d）、border-l2-darkmode-thin .5px 描边，全部主题 token 不硬编码；曾用 specific-input-major(#2c2c2e) 因与弹窗底色几乎相同而弃用；官网入口为固定首页标准外链、_blank/noopener noreferrer；静态核对本机主窗HTTP/S新窗口转shell.openExternal，无私有API、账号/会话参数或登录同步，实际OS打开仍待验。
 
 - 用户按截图要求删除页内标题/副说明、账号卡标题/独立登录说明、已记住登录说明、按钮样式可见标签、两输入可见标签和失焦说明；账号/退出/登录记忆逻辑不改。标题与下拉同一flex行居中，分割线下为两输入加一个共用保存按钮。
 - 已核对本机官方rc.3公开Menu/Button/Input/下拉图标类型和Button/Input实际转发结构；未发现单独Select导出，生产组合原生Button+Menu（portal/selectedId/原生菜单键盘）及Input，不复制皮肤或私有组件，不再保留自绘select箭头。局部CSS仅布局和框内计数，不覆盖原生按钮字体/焦点样式。

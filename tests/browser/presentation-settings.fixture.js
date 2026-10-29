@@ -1,12 +1,13 @@
 import React from 'react'
 import {createRoot} from 'react-dom/client'
 import {flushSync} from 'react-dom'
-import {DshChatChatSettings,DshChatModeSelector,useDshChat} from '../../src/ui.tsx'
+import {DshChatChatSettings,DshChatModeSelector,DshChatBrandName,useDshChat} from '../../src/ui.tsx'
 import {validSwitchLabel} from '../../src/preferences.ts'
+import {attachSidebarAdapter} from '../../src/sidebar-adapter.ts'
 
 // Production React/CSS with public primitive API stand-ins; no DSH, site or credentials.
 window.fixtureDone=(async()=>{
- const results=[],writes=[],commands=[],listeners=new Set()
+ const results=[],writes=[],commands=[],listeners=new Set(),adapters=new Map()
  const check=(name,passed)=>results.push({name,passed:!!passed})
  const tick=()=>new Promise(resolve=>setTimeout(resolve,0))
  let failNext=false,hold=null
@@ -19,8 +20,11 @@ window.fixtureDone=(async()=>{
   if(failNext){failNext=false;return false}
   update({switchPreferences:{...state.switchPreferences,[field]:value}});return true
  }}
+ bridge.attachSidebar=name=>{let adapter=adapters.get(name);if(!adapter){adapter=attachSidebarAdapter(name,()=>({chat:state.mode==='chat',canCreate:true}),()=>{});if(!adapter)throw Error('invalid synthetic native sidebar');adapters.set(name,adapter)}adapter.sync()}
  const h=React.createElement
- function App(){const snapshot=useDshChat(bridge);return h(React.Fragment,null,h('div',{id:'settings'},h(DshChatChatSettings,{bridge,close:()=>{}})),h(DshChatModeSelector,{bridge,state:snapshot}))}
+ function SidebarFixture({id,width,button=false}){return h('div',{id,className:'fixture-sidebar',style:{width}},
+  h('div',{className:'fixture-logo-row','data-window-drag':true},h(button?'button':'div',{className:'fixture-brand'},h('div',{className:'fixture-brand-identity','aria-hidden':true},h('span',{className:'fixture-brand-icon'},h('svg',{width:24,height:24})),h('span',{className:'fixture-brand-name'},h('span',{'data-slot':'sidebar.brand.name',style:{display:'contents'}},h(DshChatBrandName,{bridge})))))),h('button',null,'Native new session'))}
+ function App(){const snapshot=useDshChat(bridge);return h(React.Fragment,null,h('div',{id:'settings'},h(DshChatChatSettings,{bridge,close:()=>{}})),h(DshChatModeSelector,{bridge,state:snapshot}),h(SidebarFixture,{id:'sidebar-wide',width:420}),h(SidebarFixture,{id:'sidebar-narrow',width:192}),h(SidebarFixture,{id:'sidebar-windows',width:420,button:true}))}
  const root=createRoot(document.querySelector('#fixtures'));flushSync(()=>root.render(h(App)));await tick()
  const card=()=>document.querySelector('.dsh-chat-presentation-settings')
  const input=field=>card().querySelectorAll('input')[field==='chatLabel'?0:1]
@@ -31,10 +35,13 @@ window.fixtureDone=(async()=>{
   check('boxed page title and subtitle are absent',!document.querySelector('.dsh-chat-settings-heading') && !document.querySelector('#settings h2'))
   check('boxed account heading and login explanation are absent',!document.querySelector('.dsh-chat-settings-card-heading') && !document.querySelector('#settings').textContent.includes('独立的'))
   check('saved-login explanatory block is absent without changing account display',!document.querySelector('.dsh-chat-settings-saved') && document.querySelector('#settings').textContent.includes('Fixture account'))
+  const logout=document.querySelector('.dsh-chat-settings-logout'),logoutStyle=getComputedStyle(logout)
+  check('logout matches the sidebar new-session translucent fill with a lighter hover',/^rgba\(255, 255, 255, 0\.1[45]/.test(logoutStyle.backgroundColor) && logoutStyle.borderTopStyle==='solid' && [...document.querySelectorAll('style')].some(style=>{const css=style.textContent;return css.includes('background:var(--dsw-alias-interactive-bg-active,#ffffff26)') && css.includes('.dsh-chat-settings-logout:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover-accent,#ffffff33)}')}))
   const external=document.querySelector('.dsh-chat-settings-external')
   check('website link precedes logout and carries no private or conversation data',external?.getAttribute('href')==='https://chat.deepseek.com/' && external.target==='_blank' && external.rel==='noopener noreferrer' && external.nextElementSibling?.classList.contains('dsh-chat-settings-logout'))
   check('card spacing and stroke use the official account-page values',getComputedStyle(document.querySelector('.dsh-chat-settings')).paddingTop==='8px' && Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>{const css=getComputedStyle(el);return css.paddingTop==='12px' && css.paddingLeft==='16px' && css.marginBottom==='16px' && css.borderTopColor==='rgb(153, 153, 153)'}))
-  check('both settings cards are transparent and retain their borders',Array.from(document.querySelectorAll('.dsh-chat-settings-card')).length===2 && Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>{const css=getComputedStyle(el);return css.backgroundColor==='rgba(0, 0, 0, 0)' && css.borderTopWidth==='1px' && css.borderTopStyle==='solid'}))
+  check('both settings cards keep transparent fill and their border',Array.from(document.querySelectorAll('.dsh-chat-settings-card')).length===2 && Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>{const css=getComputedStyle(el);return css.backgroundColor==='rgba(0, 0, 0, 0)' && css.borderTopStyle==='solid'}))
+  check('both label input wrappers and inputs remain transparent',Array.from(card().querySelectorAll('.dsh-chat-label-input,input')).every(el=>getComputedStyle(el).backgroundColor==='rgba(0, 0, 0, 0)'))
   check('no visible field labels or validation prose',!card().querySelector('label,small') && !card().textContent.includes('失焦') && !card().textContent.includes('请输入'))
   check('native public Button and Menu compose the style control',!!card().querySelector('.dsh-chat-style-trigger[data-native-button="outline"]') && !card().querySelector('select'))
   check('native Input and Button render label editors and save',card().querySelectorAll('[data-native-input]').length===2 && save().dataset.nativeButton==='primary')
@@ -68,7 +75,7 @@ window.fixtureDone=(async()=>{
   check('write failure preserves editable draft and retry',input('chatLabel').value==='RETRY' && !save().disabled && !!card().querySelector('[role="alert"]'))
   save().click();await tick();check('retry saves retained draft',state.switchPreferences.chatLabel==='RETRY' && save().disabled)
   await setInput('chatLabel','WAIT');let release;hold=new Promise(resolve=>{release=resolve});save().click();await tick();const count=writes.length;save().click();await tick()
-  check('pending save disables inputs and duplicate submission',save().disabled && input('chatLabel').disabled && writes.length===count)
+  check('pending save is visually silent and blocks duplicate submission',save().textContent==='保存' && !input('chatLabel').disabled && !card().querySelector('[aria-busy="true"]') && writes.length===count)
   release();hold=null;await tick();await tick()
   check('pending save settles to clean disabled state',state.switchPreferences.chatLabel==='WAIT' && save().disabled)
   update({language:'en'});await tick()
@@ -76,7 +83,82 @@ window.fixtureDone=(async()=>{
   document.querySelector('#settings').style.width='240px';await tick()
   check('narrow layout keeps inputs and save within card',Array.from(card().querySelectorAll('input,.dsh-chat-label-save,.dsh-chat-style-trigger')).every(el=>el.getBoundingClientRect().right<=card().getBoundingClientRect().right+1))
   check('UI editing never changes website or canonical mode',commands.length===0 && state.mode==='harness')
-  flushSync(()=>root.unmount());check('cleanup removes subscriptions',listeners.size===0)
+  const wide=document.querySelector('#sidebar-wide'),narrow=document.querySelector('#sidebar-narrow'),windows=document.querySelector('#sidebar-windows')
+  const host=el=>el.querySelector('.dsh-chat-brand-control-host'),buttons=el=>Array.from(el.querySelectorAll('.dsh-chat-brand-control .dsh-chat-modes button'))
+  const widthOf=el=>el.getBoundingClientRect().width
+  const textWidth=(button,text)=>{const css=getComputedStyle(button),probe=document.createElement('span');Object.assign(probe.style,{position:'absolute',visibility:'hidden',whiteSpace:'nowrap',font:css.font,fontSize:css.fontSize,fontFamily:css.fontFamily,fontWeight:css.fontWeight,letterSpacing:css.letterSpacing,lineHeight:css.lineHeight});probe.textContent=text;document.body.appendChild(probe);const got=probe.getBoundingClientRect().width;probe.remove();return Math.ceil(got)}
+  const padOf=el=>Math.ceil(parseFloat(getComputedStyle(buttons(el)[0]).paddingLeft)+parseFloat(getComputedStyle(buttons(el)[0]).paddingRight))
+  const natural=async(el,index)=>{const labels=['CHAT','HARNESS'];return padOf(el)+textWidth(buttons(el)[index],labels[index])}
+  const setHostWidth=async target=>{let lo=60,hi=1000;for(let step=0;step<46;step++){const mid=(lo+hi)/2;narrow.style.width=mid+'px';await tick();const got=widthOf(host(narrow));if(got<target-0.4)lo=mid;else hi=mid}narrow.style.width=hi+'px';await tick();return widthOf(host(narrow))}
+  update({switchPreferences:{...state.switchPreferences,switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS'}});await tick()
+  wide.style.width='900px';await tick()
+  const wideButtons=buttons(wide),padText=parseFloat(getComputedStyle(wideButtons[0]).paddingLeft)
+  check('increased horizontal padding applies to text buttons',padText===8 && parseFloat(getComputedStyle(wideButtons[1]).paddingRight)===8)
+  const chatNatural=await natural(wide,0),harnessNatural=await natural(wide,1)
+  check('ample space gives both buttons the longer label width',Math.abs(widthOf(wideButtons[0])-widthOf(wideButtons[1]))<=0.5 && Math.abs(widthOf(wideButtons[0])-Math.max(chatNatural,harnessNatural))<=1)
+  check('ample-space buttons fully show both texts',wideButtons.every(button=>button.querySelector('.dsh-chat-mode-label').scrollWidth<=button.querySelector('.dsh-chat-mode-label').clientWidth+1))
+  await choose('icon');const iconWidth=widthOf(buttons(document.querySelector('#sidebar-wide'))[0]),padIcon=parseFloat(getComputedStyle(buttons(wide)[0]).paddingLeft),iconArtwork=widthOf(wide.querySelector('.dsh-chat-modes svg'))
+  check('icon buttons keep the same padding and equal widths',padIcon===padText && Math.abs(widthOf(buttons(wide)[0])-widthOf(buttons(wide)[1]))<=0.5)
+  await choose('text');await tick()
+  const gap=Math.ceil(parseFloat(getComputedStyle(document.querySelector('#sidebar-narrow .dsh-chat-modes')).columnGap)||0)
+  const equal=Math.max(chatNatural,harnessNatural,iconWidth),shortNat=Math.min(chatNatural,harnessNatural),longNat=equal
+  check('icon-mode width sets the absolute minimum for every stage',iconWidth>=padText*2+20-0.5 && equal>=iconWidth && Math.abs(iconArtwork-20)<=0.5)
+  const fieldset=narrow.querySelector('.dsh-chat-modes')
+  const inlinePad=Math.ceil((parseFloat(getComputedStyle(fieldset).paddingLeft)||0)+(parseFloat(getComputedStyle(fieldset).paddingRight)||0))
+  const textRect=el=>{const range=document.createRange();range.selectNodeContents(el);const got=range.getBoundingClientRect().width;range.detach();return got}
+  const fullyShown=el=>textRect(el)<=el.getBoundingClientRect().width+0.05
+  const toHost=available=>Math.max(1,available+inlinePad)
+  let got=await setHostWidth(toHost(equal+shortNat+2))
+  let current=buttons(narrow)
+  const shortLabel0=current[0].querySelector('.dsh-chat-mode-label'),longLabel0=current[1].querySelector('.dsh-chat-mode-label')
+  check('stage two shrinks only the shorter button while both texts stay complete',widthOf(current[0])>=shortNat-1 && widthOf(current[0])<widthOf(current[1]) && Math.abs(widthOf(current[1])-equal)<=1.5 && fullyShown(shortLabel0) && fullyShown(longLabel0))
+  got=await setHostWidth(toHost(equal+shortNat-10));current=buttons(narrow)
+  const longLabel=current[1].querySelector('.dsh-chat-mode-label'),shortLabel=current[0].querySelector('.dsh-chat-mode-label')
+  check('stage three truncates only the longer label and keeps the shorter at its own width',Math.abs(widthOf(current[0])-shortNat)<=1.5 && longLabel.scrollWidth>longLabel.clientWidth+1 && shortLabel.scrollWidth<=shortLabel.clientWidth+1)
+  got=await setHostWidth(toHost(2*shortNat-14));current=buttons(narrow)
+  check('stage four makes both buttons equal, truncated and never below icon width',Math.abs(widthOf(current[0])-widthOf(current[1]))<=1 && current.every(button=>{const label=button.querySelector('.dsh-chat-mode-label');return label.scrollWidth>label.clientWidth+1 && widthOf(button)>=iconWidth-0.5}))
+  got=await setHostWidth(toHost(16));current=buttons(narrow)
+  check('extreme narrowing still clamps buttons to the icon-mode minimum',current.every(button=>widthOf(button)>=iconWidth-0.5))
+  wide.style.width='900px';await tick()
+  update({switchPreferences:{...state.switchPreferences,chatLabel:'代码',harnessLabel:'HARNESS'}});await tick()
+  wide.style.width='900px';await tick()
+  const codeNatural=await natural(wide,0),harnessNatural2=await natural(wide,1)
+  got=await setHostWidth(toHost(Math.max(codeNatural,harnessNatural2)+Math.min(codeNatural,harnessNatural2)+2))
+  current=buttons(narrow)
+  check('short-side staging follows actual text widths, not a fixed column',widthOf(current[0])>=Math.min(codeNatural,harnessNatural2)-1 && widthOf(current[1])>widthOf(current[0]) && Math.abs(widthOf(current[1])-Math.max(codeNatural,harnessNatural2))<=1.5)
+  wide.style.width='420px';narrow.style.width='192px';await tick()
+  check('wide and Windows rows keep the native mark and wordmark sizes',[wide,windows].every(el=>widthOf(el.querySelector('.fixture-brand-icon'))===24 && widthOf(el.querySelector('.dsh-chat-brand-wordmark'))===102))
+  check('narrow sidebar preserves brand sizes and keeps switcher inside the row',widthOf(narrow.querySelector('.fixture-brand-icon'))===24 && widthOf(narrow.querySelector('.dsh-chat-brand-wordmark'))===102 && host(narrow).getBoundingClientRect().right<=narrow.getBoundingClientRect().right+1)
+  check('narrow label keeps complete tooltip for truncation',buttons(narrow)[0].title.includes('代码') || buttons(narrow)[0].title.includes('CHAT'))
+  await setHostWidth(96)
+  update({switchPreferences:{...state.switchPreferences,chatLabel:'CHAT',harnessLabel:'HARNESS'}});await tick()
+  const wasTruncated=buttons(narrow).map(button=>!fullyShown(button.querySelector('.dsh-chat-mode-label')))
+  update({switchPreferences:{...state.switchPreferences,chatLabel:'CHAT',harnessLabel:'CODE'}});await tick()
+  const relabelled=buttons(narrow)
+  check('relabelling a truncated longer label to an equally short one re-measures and clears truncation',wasTruncated[1]===true && Math.abs(widthOf(relabelled[0])-widthOf(relabelled[1]))<=0.6 && relabelled.every(button=>fullyShown(button.querySelector('.dsh-chat-mode-label'))))
+  await setHostWidth(90);await tick()
+  const tight=buttons(narrow)
+  const tightNatural=Math.max(textRect(tight[0].querySelector('.dsh-chat-mode-label')),textRect(tight[1].querySelector('.dsh-chat-mode-label')))+padOf(narrow)
+  check('marginal width still fits an equal pair without any ellipsis',Math.abs(widthOf(tight[0])-widthOf(tight[1]))<=0.6 && tight.every(button=>fullyShown(button.querySelector('.dsh-chat-mode-label'))) && widthOf(tight[0])>=tightNatural-1)
+  await setHostWidth(70);await tick()
+  const squeezed=buttons(narrow)
+  check('a genuinely too-narrow switcher truncates both labels symmetrically',Math.abs(widthOf(squeezed[0])-widthOf(squeezed[1]))<=0.6 && squeezed.every(button=>!fullyShown(button.querySelector('.dsh-chat-mode-label'))))
+  document.body.classList.add('dark');await tick()
+  check('transparent cards and inputs also stay transparent in dark theme',Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>getComputedStyle(el).backgroundColor==='rgba(0, 0, 0, 0)') && Array.from(card().querySelectorAll('.dsh-chat-label-input,input')).every(el=>getComputedStyle(el).backgroundColor==='rgba(0, 0, 0, 0)'))
+  document.body.classList.remove('dark')
+  const originalNavigation=state.websiteNavigation
+  update({websiteNavigation:{...originalNavigation,authenticated:null,identityUnconfirmed:true,error:'暂未识别官网账号区域'}});await tick()
+  const recognitionAlert=document.querySelector('.dsh-chat-account-settings>.dsh-chat-settings-error'),recognitionStyle=getComputedStyle(recognitionAlert)
+  check('standalone unrecognized-account alert has no top divider or empty spacing',recognitionStyle.borderTopWidth==='0px' && recognitionStyle.paddingTop==='0px' && recognitionStyle.marginTop==='0px' && Boolean(recognitionAlert.querySelector('button')))
+  recognitionAlert.querySelector('button').click()
+  check('recognition retry keeps the existing snapshot command',commands.at(-1)?.type==='snapshot' && commands.at(-1)?.showOriginal===false)
+  update({websiteNavigation:originalNavigation,websiteSessionError:'连接失败'});await tick()
+  check('error below a visible account row retains its existing separator',parseFloat(getComputedStyle(document.querySelector('.dsh-chat-account-settings>.dsh-chat-settings-error')).borderTopWidth)>0)
+  update({websiteSessionError:null});await tick()
+  const nativeBrands=Array.from(document.querySelectorAll('[data-dsh-chat-brand-fill="brand"]'))
+  flushSync(()=>root.unmount());for(const adapter of adapters.values())adapter.dispose()
+  check('disposing layout restores native brand attributes',nativeBrands.length===3 && nativeBrands.every(el=>!el.hasAttribute('data-dsh-chat-brand-fill')))
+  check('cleanup removes subscriptions',listeners.size===0)
  }catch(error){results.push({name:String(error.stack??error),passed:false})}
  document.querySelector('#results').textContent=JSON.stringify(results,null,2);return results
 })()

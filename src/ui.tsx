@@ -116,6 +116,18 @@ function DshChatWordmark() {
   </svg>
 }
 
+/** Icon-mode artwork; swap either SVG to restyle the switcher without touching layout. */
+function DshChatModeChatIcon() {
+  return <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15.4517 8.08872C16.4818 8.79713 17.15 9.85628 17.15 11.0517C17.15 12.2185 16.5171 13.2571 15.5269 13.965C15.5238 13.9672 15.5108 13.979 15.4929 14.0132C15.4756 14.0462 15.458 14.0916 15.4411 14.1504C15.4074 14.2682 15.3811 14.4236 15.3614 14.6034C15.3219 14.9619 15.3108 15.3965 15.3108 15.7762C15.3117 15.8495 15.2983 15.9222 15.2714 15.9904C15.2442 16.0593 15.2038 16.1222 15.1523 16.1754C15.1008 16.2287 15.0393 16.2713 14.9713 16.3008C14.9033 16.3303 14.8302 16.3462 14.7561 16.3474L14.7519 16.3475L14.7477 16.3473C14.6313 16.3427 14.5194 16.3015 14.4279 16.2295C14.1356 16.0036 13.7822 15.7409 13.44 15.5112C13.0949 15.2796 12.7712 15.0886 12.5358 14.9992L12.5325 14.998L12.5294 14.9966C12.4617 14.9673 12.3891 14.9507 12.3154 14.948C11.0561 14.9471 9.90221 14.5545 9.03821 13.9088C9.62451 13.8917 10.1932 13.813 10.734 13.6806C11.217 13.8478 11.754 13.9415 12.3199 13.9415H12.3236C12.5158 13.9462 12.7056 13.9855 12.8839 14.0577L12.8869 14.0588L12.8898 14.0602C13.3975 14.2911 13.8797 14.5738 14.329 14.9035C14.3908 13.8318 14.5776 13.4003 14.9423 13.1481C15.7121 12.5967 16.148 11.8288 16.148 11.0517C16.148 10.4164 15.8747 9.82351 15.4026 9.33989C15.4506 9.08064 15.4754 8.81513 15.4754 8.54468C15.4754 8.39102 15.4674 8.23894 15.4517 8.08872Z" fill="currentColor"/><path d="M8.96956 3.7062C12.1861 3.7492 14.8391 5.86194 14.8391 8.50103C14.8391 11.1664 12.1328 13.295 8.87307 13.2965C8.76928 13.3003 8.6671 13.3234 8.5718 13.3647L8.56965 13.3657L8.5675 13.3665C8.26206 13.4824 7.84905 13.727 7.41575 14.0178C6.98432 14.3074 6.53936 14.6383 6.172 14.9222L6.1719 14.9221C6.07161 15.0012 5.94893 15.0466 5.82131 15.0516L5.81848 15.0517L5.81575 15.0516C5.7344 15.0502 5.65405 15.0328 5.57942 15.0004C5.50483 14.9681 5.43731 14.9213 5.38079 14.8628C5.32425 14.8044 5.27968 14.7352 5.24983 14.6595C5.22 14.5839 5.20539 14.503 5.20676 14.4217C5.20673 13.9449 5.19276 13.3967 5.1428 12.9427C5.11776 12.7152 5.08402 12.5148 5.03977 12.3602C5.01765 12.283 4.99357 12.2197 4.96819 12.1713C4.94235 12.1221 4.91824 12.0942 4.89905 12.0804C3.67527 11.2057 2.90004 9.92754 2.90002 8.4981C2.90003 5.82873 5.60825 3.70239 8.86956 3.70239H8.96956V3.7062ZM8.86956 4.78296C7.51466 4.78296 6.28916 5.20387 5.40452 5.87983C4.51998 6.55574 3.9805 7.48232 3.98049 8.4981C3.98051 9.50695 4.546 10.4945 5.52932 11.199C5.96817 11.5017 6.2027 12.0325 6.27034 13.498C6.75777 13.128 7.27777 12.8031 7.82385 12.5276C7.94507 12.4664 8.06762 12.4077 8.19133 12.3514L8.19319 12.3505L8.19524 12.3498C8.30865 12.3039 8.42596 12.269 8.54553 12.2456C8.65132 12.2248 8.75891 12.2131 8.86711 12.2104H8.86956C10.2244 12.2104 11.4499 11.7888 12.3346 11.1125C13.2192 10.4362 13.7586 9.50945 13.7586 8.49517C13.7586 8.30638 13.74 8.12083 13.704 7.9396C13.6458 7.6465 13.5422 7.36402 13.3985 7.09663C12.6732 5.74741 10.9234 4.78003 8.86956 4.78003V4.78296Z" fillRule="evenodd" fill="currentColor"/></svg>
+}
+
+function DshChatModeHarnessIcon() {
+  return <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6.94081 5.95034C6.86877 5.89258 6.78602 5.84964 6.69732 5.824C6.60861 5.79836 6.51571 5.79051 6.42397 5.80092C6.33222 5.81134 6.24344 5.83979 6.16274 5.88466C6.08204 5.92953 6.01101 5.98991 5.95375 6.06235L3.15357 9.56256C3.05416 9.68673 3 9.84104 3 10.0001C3 10.1591 3.05416 10.3135 3.15357 10.4376L5.95375 13.9378C6.07185 14.0762 6.23915 14.1631 6.42022 14.1802C6.60129 14.1973 6.78192 14.1433 6.92385 14.0296C7.06579 13.9158 7.15789 13.7513 7.18065 13.5709C7.20342 13.3904 7.15506 13.2082 7.04582 13.0628L4.59566 9.99659L7.04582 6.9304C7.16107 6.7862 7.2147 6.60231 7.19503 6.41876C7.17537 6.23521 7.084 6.06685 6.94081 5.95034ZM16.8464 9.56256L14.0463 6.06235C13.9281 5.92403 13.7608 5.83711 13.5798 5.82C13.3987 5.80288 13.2181 5.8569 13.0761 5.97063C12.9342 6.08436 12.8421 6.24887 12.8193 6.42931C12.7966 6.60976 12.8449 6.79199 12.9542 6.9374L15.4043 9.99659L12.9542 13.0628C12.8449 13.2082 12.7966 13.3904 12.8193 13.5709C12.8421 13.7513 12.9342 13.9158 13.0761 14.0296C13.2181 14.1433 13.3987 14.1973 13.5798 14.1802C13.7608 14.1631 13.9281 14.0762 14.0463 13.9378L16.8464 10.4376C16.9458 10.3135 17 10.1591 17 10.0001C17 9.84104 16.9458 9.68673 16.8464 9.56256ZM11.1971 4.39624C11.107 4.37672 11.0139 4.37519 10.9232 4.39174C10.8325 4.40829 10.746 4.44259 10.6686 4.49268C10.5912 4.54276 10.5244 4.60765 10.4721 4.6836C10.4199 4.75955 10.3831 4.84508 10.364 4.93528L8.26389 14.7359C8.24014 14.8279 8.23538 14.9238 8.24991 15.0178C8.26443 15.1117 8.29793 15.2017 8.34837 15.2823C8.3988 15.3628 8.46512 15.4323 8.54327 15.4864C8.62141 15.5405 8.70976 15.5781 8.80293 15.5969H8.94993C9.11273 15.6006 9.27169 15.5473 9.39946 15.4464C9.52724 15.3454 9.61582 15.2031 9.64998 15.0439L11.7501 5.2433C11.7716 5.15123 11.7742 5.05578 11.7577 4.96269C11.7413 4.8696 11.7062 4.7808 11.6545 4.70164C11.6028 4.62249 11.5357 4.55462 11.457 4.50213C11.3784 4.44965 11.29 4.41362 11.1971 4.39624Z" fill="currentColor"/></svg>
+}
+
+/** Icon-mode control width, measured from the live buttons so CSS stays authoritative. */
+const MODE_ICON_SIZE = 20
+
 export function DshChatModeSelector({ bridge, state, compact = false }: DshChatBridgeProps & {
   readonly state: DshChatViewState
   readonly compact?: boolean
@@ -124,14 +136,88 @@ export function DshChatModeSelector({ bridge, state, compact = false }: DshChatB
   const t = (text: string | null | undefined) => translate(state.language, text)
   const preferences = state.switchPreferences ?? DEFAULT_SWITCH_PREFERENCES
   const icon = preferences.switchStyle === 'icon'
-  return <div className={compact ? 'dsh-chat-mode-compact' : 'dsh-chat-mode-wrap'}>
-    <fieldset className="dsh-chat-modes" data-switch-style={preferences.switchStyle} data-custom-labels={preferences.chatLabel!=='CHAT' || preferences.harnessLabel!=='HARNESS'} disabled={!state.modeEnabled} aria-describedby={description}>
+  const wrap = useRef<HTMLDivElement>(null)
+  const group = useRef<HTMLFieldSetElement>(null)
+  const firstButton = useRef<HTMLButtonElement>(null), secondButton = useRef<HTMLButtonElement>(null)
+  const firstLabel = useRef<HTMLSpanElement>(null), secondLabel = useRef<HTMLSpanElement>(null)
+  // Fixed-width labels only after the browser has measured real content and
+  // available space; nothing here polls coordinates or touches the host shell.
+  useLayoutEffect(() => {
+    const host = wrap.current, fieldset = group.current
+    const firstEl = firstButton.current, secondEl = secondButton.current
+    if (compact || !host || !fieldset || !firstEl || !secondEl) return
+    const buttons: readonly [HTMLButtonElement, HTMLButtonElement] = [firstEl, secondEl]
+    let frame = 0
+    const release = () => { for (const button of buttons) button.style.width = '' }
+    // A text node's own layout rect reports fractional width even while the
+    // label is clipped, so no temporary auto-width pass is needed.
+    const textWidth = (label: HTMLElement) => {
+      const range = document.createRange()
+      range.selectNodeContents(label)
+      const width = range.getBoundingClientRect().width
+      range.detach()
+      return width
+    }
+    const apply = () => {
+      frame = 0
+      if (icon) { release(); return }
+      const labels = [firstLabel.current, secondLabel.current]
+      if (!labels[0] || !labels[1]) { release(); return }
+      const style = window.getComputedStyle(buttons[0])
+      const padding = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0)
+      const fieldStyle = window.getComputedStyle(fieldset)
+      const inline = (parseFloat(fieldStyle.paddingLeft) || 0) + (parseFloat(fieldStyle.paddingRight) || 0)
+      const gap = parseFloat(fieldStyle.columnGap) || 0
+      // Fractional text metrics never round a fitting pair into an ellipsis:
+      // one pixel of slack is clipped by the pill instead of cutting the label.
+      const capacity = Math.floor(host.clientWidth - inline) + 1
+      if (capacity <= 0) return
+      const iconWidth = Math.ceil(padding + MODE_ICON_SIZE)
+      const natural: [number, number] = [textWidth(labels[0]) + padding, textWidth(labels[1]) + padding]
+      if (!(natural[0] > 0) || !(natural[1] > 0)) { release(); return }
+      const shortIndex = natural[0] <= natural[1] ? 0 : 1
+      const shortNatural = Math.max(natural[shortIndex], iconWidth)
+      const longNatural = Math.max(natural[1 - shortIndex], shortNatural)
+      let widths: [number, number]
+      if (capacity >= 2 * longNatural + gap) widths = [longNatural, longNatural]
+      else if (capacity >= longNatural + shortNatural + gap) {
+        // Shrink only the shorter label; the longer one keeps the shared width.
+        const short = Math.max(iconWidth, capacity - gap - longNatural)
+        widths = shortIndex === 0 ? [short, longNatural] : [longNatural, short]
+      } else if (capacity >= 2 * shortNatural + gap) {
+        // Then truncate the longer label while the shorter keeps its own width.
+        const long = Math.max(shortNatural, capacity - gap - shortNatural)
+        widths = shortIndex === 0 ? [shortNatural, long] : [long, shortNatural]
+      } else {
+        // Last resort: both equal and both truncated, never below icon-mode width.
+        const average = Math.max(iconWidth, (capacity - gap) / 2)
+        widths = [average, average]
+      }
+      for (const [index, button] of buttons.entries()) {
+        if (Math.abs(button.getBoundingClientRect().width - widths[index]!) < 0.01) continue
+        button.style.width = `${Math.round(widths[index]! * 100) / 100}px`
+      }
+    }
+    const schedule = () => { if (!frame) frame = window.requestAnimationFrame(apply) }
+    apply()
+    const observer = new ResizeObserver(schedule)
+    observer.observe(host)
+    const fonts = document.fonts
+    void fonts?.ready.then(schedule)
+    return () => {
+      observer.disconnect()
+      if (frame) window.cancelAnimationFrame(frame)
+      release()
+    }
+  }, [bridge, compact, icon, preferences.chatLabel, preferences.harnessLabel, state.language])
+  return <div ref={wrap} className={compact ? 'dsh-chat-mode-compact' : 'dsh-chat-mode-wrap'}>
+    <fieldset ref={group} className="dsh-chat-modes" data-switch-style={preferences.switchStyle} data-custom-labels={preferences.chatLabel!=='CHAT' || preferences.harnessLabel!=='HARNESS'} disabled={!state.modeEnabled} aria-describedby={description}>
       <legend className="dsh-chat-sr-only">{t("工作模式")}</legend>
-      <button type="button" aria-label={t("CHAT 官网聊天模式")} aria-pressed={state.mode === 'chat'} onClick={() => bridge.selectMode('chat')} title={`${preferences.chatLabel} · ${t('CHAT 官网聊天模式')}`}>
-        {icon ? <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 3.5h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9l-4 3v-3a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg> : <span className="dsh-chat-mode-label">{preferences.chatLabel}</span>}
+      <button ref={firstButton} type="button" aria-label={t("CHAT 官网聊天模式")} aria-pressed={state.mode === 'chat'} onClick={() => bridge.selectMode('chat')} title={`${preferences.chatLabel} · ${t('CHAT 官网聊天模式')}`}>
+        {icon ? <DshChatModeChatIcon/> : <span ref={firstLabel} className="dsh-chat-mode-label">{preferences.chatLabel}</span>}
       </button>
-      <button type="button" aria-label={t("HARNESS 工作区模式")} aria-pressed={state.mode === 'harness'} onClick={() => bridge.selectMode('harness')} title={`${preferences.harnessLabel} · ${t('HARNESS 工作区模式')}`}>
-        {icon ? <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 5-4 5 4 5m8-10 4 5-4 5m-3-12-2 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span className="dsh-chat-mode-label">{preferences.harnessLabel}</span>}
+      <button ref={secondButton} type="button" aria-label={t("HARNESS 工作区模式")} aria-pressed={state.mode === 'harness'} onClick={() => bridge.selectMode('harness')} title={`${preferences.harnessLabel} · ${t('HARNESS 工作区模式')}`}>
+        {icon ? <DshChatModeHarnessIcon/> : <span ref={secondLabel} className="dsh-chat-mode-label">{preferences.harnessLabel}</span>}
       </button>
     </fieldset>
     <span id={description} className="dsh-chat-sr-only">{t(state.availabilityMessage || '选择 CHAT 或 HARNESS 工作模式。')}</span>
@@ -437,11 +523,11 @@ function ChatPresentationSettings({bridge,state}: {bridge:DshChatUIBridge;state:
     </div>
     {preferences.switchStyle==='text' && <>
       <hr className="dsh-chat-preference-divider"/>
-      <form className="dsh-chat-preference-labels" aria-busy={busy} onSubmit={event=>{event.preventDefault();void save()}}>
+      <form className="dsh-chat-preference-labels" onSubmit={event=>{event.preventDefault();void save()}}>
         {(['chatLabel','harnessLabel'] as const).map(field=><div key={field} className="dsh-chat-label-editor" data-invalid={!validSwitchLabel(draft[field])}>
           <Input className="dsh-chat-label-input" type="text" value={draft[field]} maxLength={40} style={{paddingInlineEnd:52}}
             aria-label={t(field==='chatLabel' ? 'CHAT 按钮文案' : 'HARNESS 按钮文案')} aria-invalid={!validSwitchLabel(draft[field])}
-            disabled={!enabled || busy} onChange={event=>{const value=event.target.value;setDraft(current=>({...current,[field]:value}))}}
+            disabled={!enabled} onChange={event=>{const value=event.target.value;setDraft(current=>({...current,[field]:value}))}}
             onCompositionStart={()=>{composing.current=true}} onCompositionEnd={()=>{composing.current=false}}
             onKeyDown={event=>{
               if(event.key==='Enter' && (event.nativeEvent.isComposing || composing.current))event.preventDefault()
@@ -449,7 +535,7 @@ function ChatPresentationSettings({bridge,state}: {bridge:DshChatUIBridge;state:
             }}/>
           <span className="dsh-chat-label-count" aria-hidden="true">{switchLabelWidth(draft[field])}/{SWITCH_LABEL_LIMIT}</span>
         </div>)}
-        <Button className="dsh-chat-label-save" variant="primary" type="submit" disabled={!enabled || busy || !dirty || !valid}>{t(busy ? '正在保存…' : '保存')}</Button>
+        <Button className="dsh-chat-label-save" variant="primary" type="submit" disabled={!enabled || busy || !dirty || !valid}>{t('保存')}</Button>
       </form>
     </>}
     {error && <p className="dsh-chat-settings-error" role="alert">{t(error)}</p>}
@@ -482,7 +568,7 @@ export function DshChatChatSettings({bridge,close}: PropsRuntime<'settings.secti
   const accountBusy = enabled && !accountError && !recognitionError && ['loading','signing-out'].includes(state.websiteAuthenticationStatus)
   return <section className="dsh-chat-settings">
     <DshChatStyles/>
-    <section className="dsh-chat-settings-card" aria-label={t("DeepSeek 官网账号")}>
+    <section className="dsh-chat-settings-card dsh-chat-account-settings" aria-label={t("DeepSeek 官网账号")}>
       {showAccount ? <>
         <div className="dsh-chat-settings-account" role="group" aria-label={t("DeepSeek 官网账号")}>
           <div className="dsh-chat-settings-identity"><strong title={accountName}>{accountName}</strong><span className="dsh-chat-settings-badge">{t("已登录")}</span></div>

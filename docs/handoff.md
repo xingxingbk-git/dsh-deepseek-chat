@@ -1,4 +1,83 @@
-## 0.2.10 透明卡片/官网入口/原生间距候选5b178e已安装（2026-10-29）
+## 0.2.10 未识别账号提示去掉顶部分割线 226c59（当前基准）
+
+- 用户要求去掉账号未识别提示上方的分割线。只对账号卡中作为首个元素的错误块清除 border-top、padding-top、margin-top；保留提示、重新识别命令以及账号行下错误的原有分隔，不动识别/认证逻辑或其它样式。
+- 类型检查、UI 合成58/58（新增无分割线/留白、重试 snapshot 命令、账号行下错误保留分隔）、29编译文件/4共享模块与 diff 检查通过。首次新增断言误用中文按钮文字，英文状态下失败，改为检查按钮存在及实际命令后通过；非原生实机验收。
+- 包 `artifacts/dsh-deepseek-chat-0.2.10-226c59de6852.tgz`，213675 bytes / 37文件，SHA256=226c59de6852070c39006e39833b4b5efe9ad567136f0733ae42d9c4d7b37d3f。官方 desktop 安装先受沙箱拒绝，原命令获批重试退出0；安装字节和持久来源核验见本轮记录。仍0.2.10，不重启、不发布npm、不Git写入。
+
+## 0.2.10 退出登录改新会话同款半透明灰 e40903（2026-10-29，历史基准）
+
+- 用户反馈上一版“没变化”，改回统一成侧栏“新会话”按钮的底色。原因已定位：`--dsw-specific-input-major` 暗色为 #2c2c2e，与设置弹窗底色几乎同值，视觉上看不出填充。
+- 现在用官方“新会话”浮层那套半透明白：底色 `--dsw-alias-interactive-bg-active`（暗色 #ffffff24，与官网新会话 #ffffff26 基本一致），悬停 `--dsw-alias-interactive-bg-hover-accent`（暗色 #ffffff3d，对应新会话 #fff3 的轻提亮）；继续保留 .5px 细描边与 label-primary 文字色，禁用态保留底色并降透明度。全部走主题 token，不硬编码。
+- 生成本地对比预览 artifacts/logout-fill-preview-0210.png（正常/悬停/旧值 #2c2c2e 三态），新底色在暗色弹窗上明显可见，旧值几乎与背景同色；该图是合成渲染，不是 DSH 实机截图。
+- 验证：typecheck、窗口46/46、标题38/38、UI合成55/55（断言底色为 15% 白、样式含 interactive-bg-active 与 hover-accent 规则）、29编译文件/4共享模块与diff通过；安装后 client.js 含两个 interactive-bg token 且不再用 specific-input-major 作底色。
+- 当前包[e409035cc754](../artifacts/dsh-deepseek-chat-0.2.10-e409035cc754.tgz)，213641bytes/37文件，SHA256=e409035cc7543dfa708b0f53b2ac680dc717253740c112b63757f2a178a0f05b；官方desktop安装一次权限批准exit0，37/37实装同包、持久dependency/lock 均指 e40903。仍 0.2.10，不增号、不重启/npm/Git。
+
+## 0.2.10 退出登录按钮浮层底色 7b38c6（2026-10-29，当前基准）
+
+- 用户要求“退出登录”加底色，先提议参照侧栏“新会话”的淡灰，随后改为“用关闭按钮这个统一”，即 DSH 自带图片查看器右上角关闭按钮的浮层样式。
+- 只读核对本机 rc.3 参考样式后按原实现取值：查看器关闭按钮 `. _close_19zw2_37` 用 `background:var(--dsw-specific-input-major)` + `.5px solid var(--dsw-alias-border-l2-darkmode-thin)` + `color:var(--dsw-alias-label-primary)`；暗色 token 解析为 #2c2c2e 填充、#ffffff0f 描边。悬停用同族的 `--dsw-alias-button-floating-hover`（暗色 #353638），与原生浮层按钮一致；禁用时保留底色并降透明度。形状仍按文字按钮保持圆角矩形，不改成关闭按钮的圆形。
+- 验证：typecheck、窗口46/46、标题38/38、UI合成55/55（新增断言：底色=token 解出的 rgb(44,44,46)、细描边颜色 rgba(255,255,255,0.06)、注入样式含 .5px 描边与 hover 规则）、29编译文件/4共享模块与diff通过；安装后 client.js 含三个 token。普通 Chrome 合成验证，不是原生实机。
+- 当前包[7b38c631897b](../artifacts/dsh-deepseek-chat-0.2.10-7b38c631897b.tgz)，213666bytes/37文件，SHA256=7b38c631897b0197e8e69cb3933443a4091bbc546dd8d560fe415b09eaee3227；官方desktop安装一次权限批准exit0，37/37实装同包、持久dependency/lock 均指 7b38c6。仍 0.2.10，不增号、不重启/npm/Git。
+
+## 0.2.10 改文案后仍截断与保存闪烁修复 7eeee8（2026-10-29，当前基准）
+
+- 用户报两问题：①把 HARNESS 改成等长的 CODE 后按钮仍只截断 CODE，怀疑没有重新计算；②Chat 设置保存文案时闪过加载效果。
+- ①根因不是没重算（实测 label 变化后 layout effect 确实重跑），而是**整数舍入**：旧实现用 `scrollWidth` 取整后把文本宽向上取整到 43px，而等宽阶段宽度用 `floor(available/2)`=42px，导致只差 1px 也触发省略号；两段文案差 1px 时就出现“CHAT 正常、CODE 变 CO…”。修复：改用 `Range.getBoundingClientRect()` 读取文本节点的**小数宽度**（无需临时释放宽度、也不再依赖被裁剪后的 scrollWidth），宽度按小数写入；并给可用空间 +1px 容差，落在胶囊 1px padding 内被裁剪而不是切字。实测同一 host 下 HARNESS→CODE 会立即重排为等宽且两侧完整显示。
+- ②保存时不再切换按钮文案（固定“保存”）、不再禁用两个输入框、不再设置 aria-busy，恢复“点一下即静默保存”；仅保留保存中禁用提交与重复提交防护。
+- 验证：typecheck、窗口46/46、标题38/38、UI合成54/54（新增：改文案后立即清除截断且等宽；临界宽度不再出现省略号；确实过窄时两侧对称截断；保存中按钮文案仍为“保存”、输入框仍可用、无 aria-busy）、29编译文件/4共享模块与diff通过。仍为普通 Chrome 合成验证，不是原生实机。
+- 当前包[7eeee831f549](../artifacts/dsh-deepseek-chat-0.2.10-7eeee831f549.tgz)，213573bytes/37文件，SHA256=7eeee831f549772ee7379314eb982881ee8c9a8d01697fd29548a02788e47971；官方desktop安装一次权限批准exit0，37/37实装同包、持久dependency与lock均指7eeee8；安装后确认 client.js 含 createRange 且无“正在保存”。仍 0.2.10，不增号、不重启/npm/Git。
+
+## 0.2.10 图标最终 20×20 候选97d79b已安装（2026-10-29，当前基准）
+
+- 尺寸最终确定为 20×20（用户比较 15/20/16/18 后决定改回 20）。当前：两枚模式图标 SVG width/height=20、`MODE_ICON_SIZE`=20，图标态最小按钮宽=8×2+20=36px；viewBox 仍 20×20、图样/currentColor/主题跟随不变；按钮21px、胶囊23px、品牌行24px 与文字四阶段公式（仅下限）未改。
+- 重新构建结果与早前 20px 包字节相同（确定性构建），SHA256/体积完全一致，因此直接复用同一 artifact 并重新安装回本机；当前 desktop 已从 18px 版本切回 97d79b。
+- 验证：typecheck、窗口46/46、UI合成51/51（svg 实测20、下限=padding×2+20）、标题38/38、29编译文件/4共享模块、diff 与 check:distribution 通过；安装后 client.js 中 2 处 `width: "20"` + 1 处 `width: "18"`（18 为未改动的 PanelIcon）符合预期；37/37 文件与持久 dependency/lock 均指 97d79b。
+- 预览 artifacts/icon-preview-0210.png 已按 20px 重新生成（含 64px 放大）。仍 0.2.10，不增号、不重启/npm/Git；16px(37ad0b)/18px(3f1fa2)/20px 先前包均保留作历史，当前交付以本条为准，等用户完整重开验收。
+
+## 0.2.10 图标定为18px候选3f1fa2已安装（2026-10-29）
+
+- 用户在 15→20→16 后继续试 18×18。当前值：两枚模式图标 SVG width/height=18、`MODE_ICON_SIZE`=18，图标态最小按钮宽=8px×2+18=34px；viewBox 仍 20×20、图样/currentColor/主题跟随不变；按钮21px、胶囊23px、品牌行24px 与文字模式四阶段公式（仅下限随常量）均未改。
+- 注意：`PanelIcon()`（侧栏面板图标）本来就是 18×18，批量替换时先误命中导致一次断言失败、文件未写入；改为按 path 前缀精确定位两枚模式图标后完成，PanelIcon 未被改动（安装后 client.js 共 3 处 `18` 属预期）。
+- 预览 artifacts/icon-preview-0210.png 重新按 18px 生成（21px 按钮内、明暗/选中态、64px 放大），18px 上下各约 1.5px 留白且未触边；本地合成渲染，不是实机截图。
+- 验证：typecheck、窗口46/46、UI合成51/51（svg 实测18、图标态下限=padding×2+18）、标题38/38、29编译文件/4共享模块与diff通过。
+- 当前包[3f1fa22eb77e](../artifacts/dsh-deepseek-chat-0.2.10-3f1fa22eb77e.tgz)，213455bytes/37文件，SHA256=3f1fa22eb77e9a362bc97487d875442a5fcc19a7f554b6b49d47300a74eac3c7；官方desktop安装一次权限批准exit0，37/37实装同包、持久dependency与lock均指3f1fa2。仍0.2.10，不增号、不重启/npm/Git；如仍在 16/18/20 之间比较，以本条为当前基准。
+
+## 0.2.10 图标定为16px候选37ad0b已安装（2026-10-29）
+
+- 用户依次尝试 15→20→16，最终“16×16试试”。当前值：SVG width/height 16、`MODE_ICON_SIZE`=16，图标态按钮最小宽=8px×2+16=32px；viewBox 仍 20×20、图样/currentColor/主题跟随不变，按钮高21px、胶囊23px、品牌行24px与文字模式四阶段公式（仅下限随常量）都未改。20px 版本(97d79b)未获确认即被本次替换，仅留作历史。
+- 重新生成 16px 预览 artifacts/icon-preview-0210.png（21px 按钮内 16px、明暗/选中态、64px 放大），图标上下留白约 2.5px，无触边或白底；本地合成渲染，不是实机截图。
+- 验证：typecheck、窗口46/46、UI合成51/51（断言 svg 实测 16px、图标态下限=padding×2+16）、标题38/38、29编译文件/4共享模块与diff通过；安装后 lib/client.js 两处 `width: "16", height: "16"`。
+- 当前包[37ad0b7d953f](../artifacts/dsh-deepseek-chat-0.2.10-37ad0b7d953f.tgz)，213459bytes/37文件，SHA256=37ad0b7d953fb7f552f337c9390c3d4ba915fb1420bbcdf0be7e4280f81e6230；官方desktop安装一次权限批准exit0，37/37实装同包、持久dependency与lock均指37ad0b。仍0.2.10，不增号、不重启/npm/Git；等用户重开对比观感，如需在15/16/18/20之间再定即以本条为基准替换。
+
+## 0.2.10 图标放大至20px候选97d79b已安装（2026-10-29）
+
+- 用户反馈图标偏小，要求 20×20。仅改图标渲染尺寸与图标态最小宽度：SVG width/height 15→20、`MODE_ICON_SIZE` 15→20（按钮最小宽=8px×2 内边距+20=36px）；画布仍 viewBox 20×20，图样/填充/currentColor/主题跟随不变，按钮高度仍 21px、pill 23px、品牌行 24px 未动，文字模式四阶段算法只随最小值变化。
+- 重新生成 20px 预览 artifacts/icon-preview-0210.png（21px 按钮内 20px 图标、明暗/选中态、64px 放大），图标未触边、无白底；本地合成渲染，不是实机截图。
+- 验证：typecheck、窗口46/46、UI合成51/51（新增断言 svg 实际 20px、图标态最小宽≥padding×2+20）、标题38/38、29编译文件/4共享模块与diff通过；安装后 lib/client.js 两处 `width: "20", height: "20"` 确认。
+- 当前包[97d79b57b766](../artifacts/dsh-deepseek-chat-0.2.10-97d79b57b766.tgz)，213461bytes/37文件，SHA256=97d79b57b7660363685aa0095be9ab81b6dabb0f0b42aef4ad8ddee9f1c6097d；官方desktop安装一次权限批准exit0，37/37实装同包、持久dependency与lock均指97d79b。仍0.2.10，不增号、不重启/npm/Git；若 20px 在小 pill 里显得过满，可再讨论把按钮/胶囊一并加高。
+
+## 0.2.10 新图标候选ac5d5a已安装（2026-10-29）
+
+- 用户提供 Downloads/mode-chat 1.svg、mode-harness 1.svg 要求替换图标。两者为**填充路径**（原为描边），且各含一层 `rect width=20 height=20 fill=white` 底板；只取 `<path>` 的 d/fill-rule，丢弃白色底板，运行时 fill 由固定 #1F2229 改为 `currentColor` 以继续跟随明暗主题；viewBox 20×20、渲染 15×15、按钮内边距 8px 与图标态最小宽度逻辑全部不变。
+- 同步更新仓库内可下载源文件 design/mode-icons/mode-chat.svg、mode-harness.svg（去掉底板、保留 #1F2229 便于 Figma 编辑）。用一次性 headless Chrome 渲染两张图标在 15px/60px、浅色/暗色的对比图 artifacts/icon-preview-0210.png，未发现白底残留、图标在 15px 仍可辨；该图为本地合成预览，不是 DSH 实机截图。
+- 验证：typecheck、窗口契约46/46、UI合成51/51（含图标态等宽/内边距/下限）、标题38/38、29编译文件/4共享模块与diff通过；安装后 lib/client.js 确认含两条新路径与 currentColor。
+- 当前包[ac5d5a62f968](../artifacts/dsh-deepseek-chat-0.2.10-ac5d5a62f968.tgz)，213458bytes/37文件，SHA256=ac5d5a62f968000ff6f20e832558681c588337cd0466d8eadea34c2d2977b6de；官方desktop安装首次被workspace拒绝，同命令一次权限批准后exit0，37/37实装同包、持久dependency与lock importer均指ac5d5a。仍0.2.10，不增号、不改依赖锁、不重启/npm/Git；等用户重开看真实观感，如需微调图标或尺寸再改。
+
+## 0.2.10 四阶段切换器/透明卡片候选80535f已安装（2026-10-29）
+
+- 用户最终口径（覆盖此前两条）：两张卡片都恢复透明背景保留描边；按钮左右内边距略增且文字/图标一致(8px)；切换器四阶段压缩——空间足够时两按钮等宽并取较长文案宽度、不足先收短按钮、再收窄并截断长文案、最后等宽双截断，且任何时候不小于图标模式宽度；窄栏仍保品牌图标/字标原尺寸。图标为SVG组件，用户询问替换方式，本轮未改图样。
+- 实现：host 改为占满剩余行宽并右对齐（pill仍内容收缩），按钮尺寸由 useLayoutEffect + ResizeObserver 测量真实文本宽度与可用宽度后写成显式px；图标模式不写宽度、完全内容自适应，其自然宽度即下限。原先 max-content/等分/112-144-60/58% 规则全部移除；品牌区仍由可撤回 data 属性固定不收缩，字标102px、原生mark24px。未加坐标轮询、未读私有状态、未改未知布局；解绑恢复所有属性。
+- 验证：类型、窗口46/46、标题38/38、29编译文件/4共享模块、diff、无音色残留扫描通过；React/CSS合成UI 51/51，新增四阶段边界（等宽、只缩短、只截长、等宽双截断）、图标下限、极端18px仍clamp、文字/图标padding一致、真实BrandName/adapter/Windows button形态、dispose还原、暗色下两卡与输入透明。原生primitives仍为公开契约stand-in，未跑旧大矩阵，不等于原生/Win实机。
+- 当前包[80535f31fb4c](../artifacts/dsh-deepseek-chat-0.2.10-80535f31fb4c.tgz)，210993bytes/37文件，SHA256=80535f31fb4c1783ac756de5419ab7cb03eb2a0fe42f3766264341669e0a53c9；全部同项目。官方desktop安装首次被workspace拒绝，同命令一次权限批准后exit0，37/37实际同包，持久dependency及lock importer均指80535f；图标组件已确认进入lib/client.js。仍同轮0.2.10，不增号、不改依赖锁、不重启/npm/Git；等用户重开验收视觉与压缩顺序，若要换图标需其提供SVG或风格说明。
+
+## 0.2.10 f79e8d历史：自适应切换器/分层背景
+
+- 用户最新两轮：切换器按文字自然宽度，窄栏固定左侧品牌图标大小而压缩切换器、文本省略号；随后澄清仅上方账号卡恢复原主题底色（暗色黑底），下方卡片仍透明描边，两个输入框去背景。此条替代旧两卡全透明/临时两卡都恢复的理解；官网入口、间距/描边、保存/计数/校验保留。
+- 切换器删除112/144/60px及58%上限的分支宽度，host max-content/flex-shrink、按钮按各自内容自然宽度而非等分；溢出保持ellipsis及完整title/规范操作名称。已严格确认的native brand通过可撤回data标记不收缩，自有wordmark保持102px、原生mark保持自身尺寸，压缩只落在切换器。未加宽度轮询/JS测字，既有独立样式恢复保留；解绑恢复属性，不改未知布局/核心状态。
+- 定向检查：类型、窗口46/46、29编译文件/4共享模块、diff通过；React/CSS合成45/45（新增真实BrandName/portal/adapter+虚构原生sidebar形态，Darwin和Windows button-brand、长短字宽、192/174窄栏、图标24/wordmark102、title/ellipsis、主题分层底色、输入透明及dispose属性还原）。仅原生primitives为契约stand-in，不等于真实原生/Win实机；未盲跑大矩阵。账号/登录、网页设置、模式业务、标题逻辑不改，音色不恢复。
+- 当前包[f79e8d4e0736](../artifacts/dsh-deepseek-chat-0.2.10-f79e8d4e0736.tgz)，210169bytes/37文件，SHA256=f79e8d4e0736ffa42744ff3e8290747493f434be3c46ced9155209957365a3cd；全部同项目。官方desktop安装workspace拒绝后原命令一次权限批准exit0，37/37实际同包、持久dependency与lock importer均指f79e8d；仍同轮0.2.10，不重复增号、不自动重启/npm/Git。交用户完整重开复验视觉与窄栏，等待新反馈。
+
+## 0.2.10 5b178e历史：透明卡片/官网入口/原生间距
 
 - 用户连续追加：两卡片去背景保留描边；退出登录左边新增“打开网页端 ↗”；顶部不再紧贴工具栏，参照账号与余额统一间距/描边。保留原生组件、显式保存/计数/校验，音色仍删除，不改标题或登录逻辑。
 - 已只读核对本机app.asar内官方settings-account客户端：section padding8px 0/gap16px，card padding12px 16px、.5px settings-card-stroke描边、radius-xl，divider .5px border-l2、actions gap10。自身采用这些公开样式值/主题变量（含旧主题fallback），但遵循用户去填充要求保持transparent；不是靠猜固定灰色。顶部新增8px留白，卡片间16px。轻量外链固定https://chat.deepseek.com/、target=_blank、rel=noopener noreferrer，不传账号/对话/登录信息、不触发网站设置或重登；本机主窗HTTP/S新窗口转shell.openExternal策略已静态确认，未实际打开用户浏览器验收。

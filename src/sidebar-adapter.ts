@@ -53,6 +53,7 @@ export function attachSidebarAdapter(
     if (!originals.has(key)) originals.set(key, element.getAttribute(key))
     if (element.getAttribute(key) !== value) element.setAttribute(key, value)
   }
+  mark(brand, 'data-dsh-chat-brand-fill', 'brand')
   mark(identity, 'data-dsh-chat-brand-fill', 'identity')
   mark(nameSeat, 'data-dsh-chat-brand-fill', 'name')
   mark(newButton, 'data-dsh-chat-new-session', 'true')
@@ -70,6 +71,7 @@ export function attachSidebarAdapter(
   const sync = () => {
     if (disposed) return
     const state = read()
+    mark(brand, 'data-dsh-chat-brand-fill', 'brand')
     mark(identity, 'data-dsh-chat-brand-fill', 'identity')
     mark(nameSeat, 'data-dsh-chat-brand-fill', 'name')
     mark(root, 'data-dsh-chat-sidebar-mode', state.chat ? 'chat' : 'harness')

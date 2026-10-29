@@ -984,3 +984,78 @@ npm0.2.8公开后，用户明确要求“提交并推送代码”。开工main/H
 用户连续要求两卡片透明保描边、退出左侧加轻量“打开网页端↗”、参照账号与余额补顶部留白/统一边框。只读解析本机app.asar官方静态包核对account CSS（section8px0/gap16、card12px16/.5px settings-card-stroke/radius-xl、divider .5px border-l2、actions10）；采用相同样式值与主题变量但保留透明背景。标准anchor固定官网首页、_blank/noopener noreferrer、无账号/对话/认证参数；静态确认主窗HTTP/S窗口请求交shell.openExternal，不读私有状态，也不冒充实际OS点击。首次查询错误地查desktop-host/lib/main.js，按应用入口lib/main.js及settings-account模块定位后核对，未改宿主文件。保存/计数/校验/标题/登录保持，音色不恢复。
 
 类型、UI合成35/35、29编译文件/4共享模块与diff通过，不运行大矩阵、不视为原生验收。透明-only8dcf只打包未装，后续合并至5b178e9fe3f8，210169bytes/37文件，SHA256=5b178e9fe3f8c80bf634adba1c939d9493401fe30dca187b28cb4410ff020b7e；逐项同项目。最终官方CLI安装被workspace拒绝后原命令一次权限批准exit0，37/37实装同包、持久dependency/lock均指5b178e。仍本轮0.2.10，不重启、不npm/Git；用户自行重开验收。
+
+### 0.2.10 分层底色与切换器内容自适应 · 2026-10-29
+
+用户要求自然文字宽度，窄栏固定左侧图标、压缩切换器并ellipsis；随后澄清上卡才恢复黑底，下卡仍透明描边、输入框去背景。仅上卡加专属类使用主题bg-base；下卡/两输入含交互态透明，边框/焦点/保存逻辑保持。删除112/144/60px和58%宽度规则，host用max-content且可收缩，按钮按内容非等分；在既有严格侧栏形态中给brand追加可撤回属性固定品牌区域，自有wordmark102px不缩放，native mark维持24px，模式规范名称/完整title/ellipsis保持。不使用新宽度轮询、不改未知布局或核心状态。
+
+类型、窗口46/46、29文件/4模块及diff通过；45项合成UI包含真实BrandName/portal/adapter与虚构官方sidebar样式形态，验证长短标签、Win按钮品牌、192/174窄栏、品牌大小、溢出/提示、分层主题底色、透明输入与dispose还原；不是实机原生/Win验收，未跑旧大矩阵。最终f79e8d4e0736包210169bytes/37文件，SHA256=f79e8d4e0736ffa42744ff3e8290747493f434be3c46ced9155209957365a3cd；逐项同项目，官方CLI经原命令一次权限批准后exit0，实际37/37及持久dependency/lock一致。仍本轮0.2.10、不自动重启/npm/Git，交用户重开验收；账号、官网入口/设置、标题、模式业务及音色撤回不变。
+
+
+### 0.2.10 四阶段压缩与透明卡片 · 2026-10-29
+
+用户推翻“上卡恢复黑底”，要求两卡都透明；按钮左右边距略增且图标同值；给出切换器四阶段规则，并要求按钮不小于图标态宽度、窄栏保住品牌区；并询问图标能否替换。实现上把 host 改为占满剩余行宽右对齐以便测量，pill 仍内容收缩；用 useLayoutEffect+ResizeObserver 测量文本/可用宽度后写显式像素宽，四阶段公式写入代码注释与文档，图标模式不写宽即自然下限；移除旧 fixed width 规则。图标抽成 DshChatModeChatIcon/DshChatModeHarnessIcon 两个组件便于替换，未改图样。
+
+过程中发现问题：host 若用 max-content，其内容尺寸依赖自身写入的宽度，导致永远测不到真实可用空间、四阶段退化为等宽；改 host 占满行宽后修复。测试侧也修正两次：文本自然宽必须用同字体探针量（固定宽度下 scrollWidth 会返回 clientWidth），四阶段断言需按“可用宽度=host-内边距”换算精确目标宽度。
+
+类型、窗口46、标题38、UI合成51、29文件分发与diff通过；未跑旧大矩阵，原生仍stand-in。最终80535f31fb4c，210993bytes/37文件，SHA256=80535f31fb4c1783ac756de5419ab7cb03eb2a0fe42f3766264341669e0a53c9，逐项同项目；官方CLI一次权限批准exit0，37/37及持久dependency/lock一致。仍0.2.10，不重启/npm/Git；图标替换等用户提供素材。
+
+
+### 0.2.10 替换用户设计的两枚模式图标 · 2026-10-29
+
+用户先在 Figma 改图并回传 mode-chat/mode-harness 1.svg。新图与原图标结构不同：为填充路径而非描边，且带 20×20 白色底板 rect。替换时只保留 path（含 fill-rule），删除底板，把 fill 由 #1F2229 改为 currentColor 以继续跟随主题；尺寸/内边距/四阶段宽度算法与图标态最小宽度不变（图标态按钮宽仍=16px padding+15px 图标）。同时更新设计源文件 design/mode-icons/*.svg（去底板、保留 #1F2229 供 Figma 编辑）。用一次性 headless Chrome 生成 15px/60px、明暗对比预览 artifacts/icon-preview-0210.png 核对无白底、小尺寸可辨；这是本地合成渲染，不是 DSH 实机。
+
+typecheck、窗口46、UI51、标题38、29文件分发与diff通过，安装后确认 lib/client.js 含新路径与 currentColor。最终ac5d5a62f968包213458bytes/37文件，SHA256=ac5d5a62f968000ff6f20e832558681c588337cd0466d8eadea34c2d2977b6de，逐项同项目；官方CLI一次权限批准exit0，37/37及持久dependency/lock一致。仍0.2.10，不重启/npm/Git。
+
+
+### 0.2.10 图标渲染尺寸 15→20px · 2026-10-29
+
+用户反馈新图标偏小。将两个 SVG 组件 width/height 改为 20，MODE_ICON_SIZE 常量同步 20（图标态按钮最小宽度=16+20=36px），viewBox 仍 20×20、填充仍 currentColor；未改按钮高度/胶囊高度/品牌行高度与文字模式四阶段公式（只是下限变大）。测试新增 svg 实测 20px 与下限公式断言，并修正在文字模式读取已卸载 svg 导致一次空引用失败（改为在图标模式下先取值）。重新用 headless Chrome 生成 20px 明暗/选中态/64px 预览，无触边或白底。
+
+typecheck、窗口46、UI51、标题38、29文件分发与diff通过。最终97d79b57b766包213461bytes/37文件，SHA256=97d79b57b7660363685aa0095be9ab81b6dabb0f0b42aef4ad8ddee9f1c6097d，逐项同项目；官方CLI一次权限批准exit0，37/37及持久dependency/lock一致；安装后确认两处编译为 20×20。仍0.2.10，未重启/npm/Git。
+
+
+### 0.2.10 图标尺寸 20→16px · 2026-10-29
+
+用户先要求 20×20，随后改为“16×16试试”。仅改 SVG width/height 与 MODE_ICON_SIZE（20→16，图标态最小宽 40→32px），其余（viewBox、currentColor、按钮/胶囊/品牌行高度、四阶段公式）不动；测试断言同步 16 并保持通过。重新生成 16px 明暗/选中态/64px 预览，21px 按钮内上下各约 2.5px 留白，观感比 20px 舒展。
+
+typecheck、窗口46、UI51、标题38、29文件分发与diff通过。最终37ad0b7d953f包213459bytes/37文件，SHA256=37ad0b7d953fb7f552f337c9390c3d4ba915fb1420bbcdf0be7e4280f81e6230，逐项同项目；官方CLI一次权限批准exit0，37/37及持久dependency/lock一致，安装后确认两处编译为16×16。仍0.2.10，未重启/npm/Git。
+
+
+### 0.2.10 图标尺寸 16→18px · 2026-10-29
+
+用户继续要求“18×18试试”。批量替换 `width="16"` 时先把尚未修改的 `PanelIcon()`（本来就是18）一起算入，导致 18 的计数断言失败、未写入文件；核对后按 path 前缀（M15.4517/M6.94081）只改两枚模式图标，PanelIcon 保持原样。MODE_ICON_SIZE 同步 18（图标态最小宽 34px），其余布局未改。测试断言改为 18，重新生成 18px 预览（21px 按钮内上下各约1.5px 留白）。
+
+typecheck、窗口46、UI51、标题38、29文件分发与diff通过。最终3f1fa22eb77e包213455bytes/37文件，SHA256=3f1fa22eb77e9a362bc97487d875442a5fcc19a7f554b6b49d47300a74eac3c7，逐项同项目；官方CLI一次权限批准exit0，37/37及持久dependency/lock一致；安装后 client.js 3 处 18px（含未改动的 PanelIcon）符合预期。仍0.2.10，未重启/npm/Git。
+
+
+### 0.2.10 图标尺寸最终回到20px · 2026-10-29
+
+用户在 20→16→18 比较后决定改回 20×20。按 path 前缀精确改两枚模式图标 width/height 20、MODE_ICON_SIZE 20（图标态最小宽 36px），PanelIcon 仍 18；测试断言同步 20 并通过。重新构建得到的包与早前 20px 包字节完全相同（同样的 SHA256 与 213461 bytes），故复用既有 artifact 并重新安装回本机，替换掉 18px 版本。
+
+typecheck、窗口46、UI51、标题38、29文件分发、diff 均通过；安装后 client.js 2×20px + 1×18px(PanelIcon) 符合预期，37/37 与持久 dependency/lock 指向 97d79b。仍 0.2.10，未重启/npm/Git。后续如需再调尺寸以此为准。
+
+
+### 0.2.10 改文案后仍截断 + 保存闪烁 · 2026-10-29
+
+用户反馈把 HARNESS 改成等长 CODE 后仍只截断 CODE，以及保存时闪过加载效果。先做宽度扫描复现：改文案后 effect 确实重跑并重排，因此不是“没重新渲染”，而是整数舍入问题——旧实现用 scrollWidth（整数，向上取整）得 natural=43，而等宽阶段用 floor(available/2)=42，1px 差就触发省略号；两段文案相差约 0.6px 时表现为 CHAT 完整、CODE 变 CO…。改为 Range 文本矩形的小数宽度（也不再临时释放宽度）、宽度以小数落盘、可用空间 +1px 容差（溢出落在胶囊 padding 内被裁剪）。保存侧：去掉“正在保存…”文案替换、输入框禁用与 aria-busy，保持静默保存，仅保留防重复提交与失败提示。
+
+调试期间曾在组件内临时写 dataset 观测离散步进，确认后已移除；测试新增 4 项：重命名后立即等宽且无截断、临界宽度无省略号、确实过窄时对称截断、保存中 UI 不变。typecheck、窗口46、标题38、UI54、29文件分发与diff通过；最终7eeee831f549包213573bytes/37文件，SHA256=7eeee831f549772ee7379314eb982881ee8c9a8d01697fd29548a02788e47971，逐项同项目，官方CLI一次权限批准exit0，37/37及持久dependency/lock一致。仍0.2.10，未重启/npm/Git。
+
+
+### 0.2.10 退出登录按钮改用浮层底色 · 2026-10-29
+
+用户先要求退出登录加底色、参照侧栏新会话的淡灰与悬停，随后确定“用关闭按钮这个统一”，即 DSH 图片查看器关闭按钮样式。查 rc.3 参考 CSS 后按其实现取值：填充 var(--dsw-specific-input-major)（暗色 #2c2c2e）、细描边 var(--dsw-alias-border-l2-darkmode-thin)（暗色 #ffffff0f）、文字色 label-primary；悬停用同族 var(--dsw-alias-button-floating-hover)（暗色 #353638），禁用保留底色+降透明度，形状保持文字按钮圆角矩形。未硬编码具体色值，全部走主题 token，并写旧主题 fallback。
+
+typecheck、窗口46、标题38、UI55（新增底色/描边色/hover 规则断言）、29文件分发与diff通过；安装后确认 client.js 含三个 token。最终7b38c631897b包213666bytes/37文件，SHA256=7b38c631897b0197e8e69cb3933443a4091bbc546dd8d560fe415b09eaee3227，逐项同项目；官方CLI一次权限批准exit0，37/37及持久dependency/lock一致。仍0.2.10，未重启/npm/Git。
+
+
+### 0.2.10 退出登录改用新会话半透明底 · 2026-10-29
+
+上一版用 `--dsw-specific-input-major`(#2c2c2e) 与弹窗底色几乎相同，用户看不出变化。改回用户最初提议的“侧栏新会话”观感：底色 `--dsw-alias-interactive-bg-active`(#ffffff24，贴近官网新会话 #ffffff26)、悬停 `--dsw-alias-interactive-bg-hover-accent`(#ffffff3d，对应 #fff3)，保留 .5px 细描边与 label-primary 文字，禁用保底色降透明；仍全部走主题 token。用合成对比图确认新底色在暗色弹窗上清晰可见、旧值几乎隐形（图非实机）。
+
+typecheck、窗口46、标题38、UI55、29文件分发与diff通过；安装后 client.js 含两个 interactive-bg token。最终e409035cc754包213641bytes/37文件，SHA256=e409035cc7543dfa708b0f53b2ac680dc717253740c112b63757f2a178a0f05b，逐项同项目；官方CLI一次权限批准exit0，37/37及持久dependency/lock一致。仍0.2.10，未重启/npm/Git。
+
+### 0.2.10 未识别账号提示去掉顶部分割线
+
+用户标注未识别提示上方多余的分割线。新增仅限账号卡首个错误块的 CSS 覆盖，清除顶边框及顶部留白；不改账号识别、重试和已有账号行下的错误分隔。UI 合成新增3项（无分割线和留白、snapshot 重试命令、账号行下保留分隔），58/58通过；首次断言因英文状态误查中文文案失败，修正为结构和命令断言。类型、29编译文件/4模块分发、diff通过。包226c59de6852，213675bytes/37文件，SHA256=226c59de6852070c39006e39833b4b5efe9ad567136f0733ae42d9c4d7b37d3f；官方CLI沙箱拒绝后原命令获批重试成功。仍0.2.10，未重启/npm/Git；非原生视觉验收。
