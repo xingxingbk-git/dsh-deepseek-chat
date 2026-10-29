@@ -1,8 +1,10 @@
-## 0.2.10 npm发布准备（2026-10-29，等待本次认证）
+## 0.2.10 npm已公开发布（2026-10-29，Git同步前）
 
 - 用户明确要求“发布npm”，本轮仅授权0.2.10公开发布，不授权Git提交/推送。版本不再次递增，正式中英文README及安装示例更新0.2.10。
 - 类型、29编译文件/4共享模块分发、18版本×4兼容、窗口46/46、UI58/58、标题38/38及diff检查通过。正式包 `artifacts/dsh-deepseek-chat-0.2.10-98870f7d6ff2.tgz`，214036bytes/37文件，SHA256=98870f7d6ff219026ac85c49f46e7c105bd7e7f1f9c81b71e8e1b2f4f5b825e3，逐项同项目（package.json按既有规则忽略packageManager）。源码/lib与本机候选226c59不变，仅README变化；未重新安装或重启。
-- npm公开latest当前仍0.2.9；whoami返回E401，已在独立临时npm配置启动官方网页登录，等待用户完成。尚未执行publish，不得视为已发布。登录与发布在终端pty-1继续，完成后必须核对公开latest/精确版本和包字节，清理本次临时认证；不修改用户原npm配置。
+- 用户完成本次登录及单独发布网页验证；唯一一次 `npm publish` 正式98870f包（public/latest）返回 `+ dsh-deepseek-chat@0.2.10`，PUBLISH_EXIT=0。npm处理期间匿名latest一度仍0.2.9，只读等待后第4次检查完整/install-v1索引latest均0.2.10，精确版本HTTP200；公开tarball与正式98870f包逐字节完全一致，214036bytes / 37文件，SHA256同上。发布完成，不再执行publish。
+- 正式包与本机安装226c59比较仅中英文README两文件不同，其余35个运行/元数据文件相同，无需重装。未来新运行修复从0.2.11开始；Git同步仍需本轮另行明确授权，当前未stage/commit/push。
+- 独立临时npm认证已logout退出0；验证绝对目录 /private/tmp/dsh-chat-npm-0210.o5mNni 后删除临时npmrc和空目录，终端pty-1已关闭；未修改用户原npm配置，未Git或重新安装/重启DSH。
 
 ## README 文字/图标样式实机配图（2026-10-29）
 
