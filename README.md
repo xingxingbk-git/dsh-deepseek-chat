@@ -10,7 +10,7 @@
 
 DeepSeek Chat 是一款 **DSH 桌面插件**。选择 **CHAT**，即可在 DSH 内使用真实的 [DeepSeek Chat 官网](https://chat.deepseek.com/)；选择 **HARNESS**，随时返回原来的工作区。
 
-当前版本 **0.2.9**· 适配 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
+当前发布版 **0.2.10** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
 
 ## 功能预览
 
@@ -26,15 +26,23 @@ DeepSeek Chat 是一款 **DSH 桌面插件**。选择 **CHAT**，即可在 DSH �
 
 ### 随时切回 HARNESS
 
-![品牌行中的 CHAT 与 HARNESS 模式切换器](<docs/images/mode-switch.png>)
-
 通过左上角 DeepSeek 品牌旁的 **CHAT / HARNESS** 切换器选择模式。切回 HARNESS 会恢复之前的主面板，再进入 CHAT 时回到刚才的网页。
+
+**文字样式**
+
+![文字样式：CHAT 与 HARNESS 模式切换按钮](<docs/images/mode-switch-text.webp>)
+
+**图标样式**：聊天气泡代表 CHAT，代码符号代表 HARNESS。
+
+![图标样式：聊天气泡与代码符号切换按钮](<docs/images/mode-switch-icons.webp>)
+
+可在 **设置 → Chat 设置 → 切换按钮** 中选择这两种样式。文字样式下，**CHAT 和 HARNESS 两个按钮的文案都可以自定义**，例如把 HARNESS 改为 CODE，修改后点击 **保存** 即可。侧栏较窄时文案会自动截断，悬停可查看完整内容。
 
 ### 独立的官网登录与登录记忆
 
-在 **设置 → Chat 设置** 中查看官网账号、登录记忆或退出登录。CHAT 使用独立的网页登录，不与其他浏览器或 DSH 平台账号共享登录状态。
+在 **设置 → Chat 设置** 中查看官网账号、登录状态或退出登录。CHAT 使用独立的网页登录，不与其他浏览器或 DSH 平台账号共享登录状态。
 
-正常登录后，设置页出现 **“已记住网页登录”**，表示本次授权已保存。重开同一个 DSH 配置环境时，插件会尝试恢复；官网授权过期后仍需重新登录。
+正常登录后，插件会尝试保存网页登录授权，并在重开同一个 DSH 配置环境时恢复；官网授权过期后仍需重新登录。
 
 ## 安装
 
@@ -43,13 +51,13 @@ DeepSeek Chat 是一款 **DSH 桌面插件**。选择 **CHAT**，即可在 DSH �
 在 DSH 插件安装输入框中输入：
 
 ```text
-dsh-deepseek-chat@0.2.9
+dsh-deepseek-chat@0.2.10
 ```
 
 也可以使用命令行：
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.9
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.10
 ```
 
 首次安装和更新已有插件均可使用。刚发布的版本若被 DSH 的发布时间策略暂时拦截，可稍后重试。
@@ -75,7 +83,7 @@ dsh plugin --profile desktop add https://github.com/xingxingbk-git/dsh-deepseek-
 将 `.tgz` 安装包交给 DSH 插件管理器，或使用命令行：
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.9.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.10.tgz
 ```
 
 将路径替换为实际安装包位置。
@@ -85,7 +93,7 @@ dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.9.tgz
 ## 开始使用
 
 1. 选择 **CHAT**，点击 **登录 DeepSeek**，在插件内的官网页面正常登录。
-2. 登录后，账号和对话列表会自动同步；可在 **设置 → Chat 设置** 查看登录记忆状态。
+2. 登录后，账号和对话列表会自动同步；可在 **设置 → Chat 设置** 查看当前官网账号与登录状态。
 3. 在 **DSH 设置 → 通用设置** 调整语言、外观和字号，CHAT 会自动跟随。
 4. 需要返回原工作区时，切换到 **HARNESS**。退出官网账号可在 **Chat 设置** 中操作。
 

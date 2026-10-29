@@ -10,7 +10,7 @@
 
 DeepSeek Chat is a **DSH Desktop plugin**. Choose **CHAT** to use the real [DeepSeek Chat website](https://chat.deepseek.com/) inside DSH, or choose **HARNESS** to return to your original workspace.
 
-Current version: **0.2.9** · Built for **DSH Desktop** · The CHAT website’s language, appearance and text size follow DSH.
+Published release: **0.2.10** · Built for **DSH Desktop** · The CHAT website’s language, appearance and text size follow DSH.
 
 ## Features
 
@@ -26,15 +26,23 @@ Current version: **0.2.9** · Built for **DSH Desktop** · The CHAT website’s 
 
 ### Switch back to HARNESS
 
-![The CHAT and HARNESS switch beside the DeepSeek brand](<docs/images/mode-switch.png>)
-
 Use the **CHAT / HARNESS** switch beside the DeepSeek brand at the top left. Returning to HARNESS restores the previous main panel; switching back to CHAT returns to the retained website page.
+
+**Text style**
+
+![Text buttons for CHAT and HARNESS](<docs/images/mode-switch-text.webp>)
+
+**Icon style**: a chat bubble represents CHAT, and a code symbol represents HARNESS.
+
+![Icon buttons with a chat bubble and a code symbol](<docs/images/mode-switch-icons.webp>)
+
+Choose either style in **Settings → Chat settings → Mode switch**. In text mode, **both the CHAT and HARNESS button labels are customizable**—for example, rename HARNESS to CODE, then click **Save**. Labels truncate automatically in a narrow sidebar; hover to see the full text.
 
 ### Separate website sign-in and login memory
 
-Open **Settings → Chat settings** to view your website account, check login memory or sign out. CHAT has its own website session, separate from other browsers and the DSH platform account.
+Open **Settings → Chat settings** to view your website account and sign-in status, or sign out. CHAT has its own website session, separate from other browsers and the DSH platform account.
 
-After signing in normally, **Website login saved** confirms that the grant has been saved. The plugin attempts to restore it when you reopen the same DSH profile. An expired website grant still requires a new sign-in.
+After a normal sign-in, the plugin attempts to save the website grant and restore it when you reopen the same DSH profile. An expired website grant still requires a new sign-in.
 
 ## Installation
 
@@ -43,13 +51,13 @@ After signing in normally, **Website login saved** confirms that the grant has b
 Enter this in the DSH plugin installer:
 
 ```text
-dsh-deepseek-chat@0.2.9
+dsh-deepseek-chat@0.2.10
 ```
 
 Or use the CLI:
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.9
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.10
 ```
 
 Use the same method for a first installation or an update. If DSH’s release age policy temporarily blocks a newly published version, retry later.
@@ -75,7 +83,7 @@ This installs the version already pushed to the repository, with no manual build
 Give the `.tgz` package to the DSH plugin manager, or run:
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.9.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.10.tgz
 ```
 
 Replace the path with your package location.
@@ -85,7 +93,7 @@ Replace the path with your package location.
 ## Getting started
 
 1. Choose **CHAT**, click **Sign in to DeepSeek**, and sign in normally on the website inside the plugin.
-2. Your account and conversation list update automatically. Check login memory in **Settings → Chat settings**.
+2. Your account and conversation list update automatically. View your current website account and sign-in status in **Settings → Chat settings**.
 3. Adjust language, appearance and text size in **DSH Settings → General**; CHAT follows automatically.
 4. Switch to **HARNESS** whenever you need your original workspace. To sign out of the website, use **Chat settings**.
 
