@@ -60,7 +60,7 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
   const conversationError = '该对话不在当前官网列表，请刷新列表。'
   const styleId = 'dsh-chat-website-navigation-style'
   const preparingStyleId = 'dsh-chat-website-preparing-style'
-  const owned = [marker, presentedMarker, missingSidebarMarker, fallbackMarker, fallbackErrorMarker, profileMarker, profileProofMarker, profileAvatarMarker, missingProfileMarker, navigationWidthMarker, expandingMarker, compactToggleMarker, 'data-dsh-chat-native-collapse-attempt', 'data-dsh-chat-action-menu', 'data-dsh-chat-conversation-error', 'data-dsh-chat-layout', 'data-dsh-chat-content', 'data-dsh-chat-web-chrome', 'data-dsh-chat-settings-dialog', 'data-dsh-chat-settings-host', 'data-dsh-chat-settings-tabs', 'data-dsh-chat-settings-pane', 'data-dsh-chat-settings-layout', 'data-dsh-chat-settings-chrome', 'data-dsh-chat-settings-appearance', 'data-dsh-chat-header-row', 'data-dsh-chat-header-title', 'data-dsh-chat-header-share', 'data-dsh-chat-header-title-host', 'data-dsh-chat-header-editor', 'data-dsh-chat-header-native-depth']
+  const owned = [marker, presentedMarker, missingSidebarMarker, fallbackMarker, fallbackErrorMarker, profileMarker, profileProofMarker, profileAvatarMarker, missingProfileMarker, navigationWidthMarker, expandingMarker, compactToggleMarker, 'data-dsh-chat-native-collapse-attempt', 'data-dsh-chat-action-menu', 'data-dsh-chat-conversation-error', 'data-dsh-chat-layout', 'data-dsh-chat-content', 'data-dsh-chat-web-chrome', 'data-dsh-chat-settings-dialog', 'data-dsh-chat-settings-host', 'data-dsh-chat-settings-tabs', 'data-dsh-chat-settings-pane', 'data-dsh-chat-settings-layout', 'data-dsh-chat-settings-chrome', 'data-dsh-chat-settings-appearance', 'data-dsh-chat-header-row', 'data-dsh-chat-header-title', 'data-dsh-chat-header-share', 'data-dsh-chat-header-title-host', 'data-dsh-chat-header-editor', 'data-dsh-chat-header-native-depth', 'data-dsh-chat-header-motion-until', 'data-dsh-chat-header-motion-complete']
   const empty = (status: WebsiteNavigation['status']): WebsiteNavigation => ({ status, ...(status === 'sign-in' ? { authenticated: false } : {}), conversations: [], selectedHref: null, canCreate: false, error: null })
   const clearSettings = (preserveConfirmedSettings = false) => {
     const confirmed = ['data-dsh-chat-language', 'data-dsh-chat-language-complete', 'data-dsh-chat-settings-language-target', 'data-dsh-chat-theme', 'data-dsh-chat-theme-complete', 'data-dsh-chat-settings-theme-target']
@@ -76,7 +76,6 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
     doc.documentElement.style.removeProperty('--dsh-chat-title-inset')
     doc.getElementById(preparingStyleId)?.remove()
     doc.getElementById('dsh-chat-settings-view-style')?.remove()
-    doc.documentElement.removeAttribute('data-dsh-chat-voice')
     doc.documentElement.removeAttribute('data-dsh-chat-preparing')
     owned.forEach(attr => {
       if (preserveCompactAttempt && (attr === expandingMarker || attr === compactToggleMarker)) return
@@ -479,6 +478,7 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
       && /auto|scroll/.test(getComputedStyle(element).overflowY))
     scrollable?.scrollTo({ top: scrollable.scrollHeight, behavior: 'instant' })
   }
+  const selected = conversations.find(item => item.href === safeHref(page.pathname))
   if (command.type === 'snapshot' && command.showOriginal) restore()
   else {
     if (trackRect.width >= 160 && trackRect.width <= 480) track.setAttribute(navigationWidthMarker, String(trackRect.width))
@@ -506,11 +506,11 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
     let style=doc.getElementById(styleId)
     if(!style){style=doc.createElement('style');style.id=styleId;doc.head.append(style)}
     if(style.textContent!==styleText) style.textContent=styleText
+    // Lock the verified title host before the site's first native collapse can start a positional transition.
+    adaptWebsiteHeader(doc, content, selected?.title ?? null, command.type === 'snapshot' ? command.headerInset ?? (Number.parseInt(settingsRoot.style.getPropertyValue('--dsh-chat-title-inset')) || 24) : Number.parseInt(settingsRoot.style.getPropertyValue('--dsh-chat-title-inset')) || 24)
     if(authenticated===true && command.type==='snapshot' && !command.showOriginal) collapseWebsiteSidebar(doc,track)
 
   }
-  const selected = conversations.find(item => item.href === safeHref(page.pathname))
-  if (!(command.type === 'snapshot' && command.showOriginal)) adaptWebsiteHeader(doc, content, selected?.title ?? null, command.type === 'snapshot' ? command.headerInset ?? (Number.parseInt(settingsRoot.style.getPropertyValue('--dsh-chat-title-inset')) || 24) : Number.parseInt(settingsRoot.style.getPropertyValue('--dsh-chat-title-inset')) || 24)
   // A failed appearance sync must reveal the legitimate website and its own
   // environment/security notices. Keep the error retryable; do not claim an unverified theme.
   const ready = authenticated !== true || (settingsRoot.getAttribute('data-dsh-chat-theme-complete') === (settingsRoot.getAttribute('data-dsh-chat-host-theme') === 'light' ? 'light' : 'dark') && (!settingsRoot.hasAttribute('data-dsh-chat-host-language') || settingsRoot.getAttribute('data-dsh-chat-language-complete') === settingsRoot.getAttribute('data-dsh-chat-host-language'))) || Boolean(settings?.error) || (command.type==='snapshot' && command.showOriginal)

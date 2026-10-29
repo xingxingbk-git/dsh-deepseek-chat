@@ -69,6 +69,9 @@ export function adaptWebsiteHeader(doc: Document, content: HTMLElement | undefin
     const labelSelector = withNative(titleMarker, ' > .the-header > ._9fcbeda > .afa34042')
     const shareSelector = withNative(shareMarker, ' > ._57370c5')
     const editorSelector = `${scope} [${editorMarker}],${hostSelector} :is(${editors})`
+    // Native left/transform transitions can outrank even important target
+    // positions while active. Lock only the verified title host, including its
+    // replacement branch; leave skeleton, share and unrelated animations alone.
     // Text uses a 20px line box centered in the 48px row. An editor has a
     // matching content box: 28px minus two 1px borders and two 3px paddings.
     // Its outside edge extends 9px left, so the text keeps the display inset.
@@ -77,7 +80,7 @@ export function adaptWebsiteHeader(doc: Document, content: HTMLElement | undefin
     const styleText = `
       ${nativeRowSelector ? `${scope} ${nativeRowSelector} > ._1aa2651.the-header{display:none!important}` : ''}
       ${rowSelector}{position:relative!important;box-sizing:border-box!important;height:48px!important;min-height:48px!important;max-height:48px!important;flex-shrink:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}
-      ${hostSelector}{position:fixed!important;top:0!important;right:auto!important;bottom:auto!important;left:var(--dsh-chat-title-inset,24px)!important;box-sizing:border-box!important;height:48px!important;min-height:0!important;max-height:48px!important;width:auto!important;max-width:calc(100% - var(--dsh-chat-title-inset,24px) - 64px)!important;min-width:0!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;font-family:inherit!important;font-size:inherit!important;font-weight:inherit!important;font-style:inherit!important;letter-spacing:inherit!important;line-height:20px!important;flex:none!important;text-align:left!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;outline:0!important;box-shadow:none!important;transform:none!important;white-space:nowrap!important;z-index:10!important}
+      ${hostSelector}{position:fixed!important;top:0!important;right:auto!important;bottom:auto!important;left:var(--dsh-chat-title-inset,24px)!important;box-sizing:border-box!important;height:48px!important;min-height:0!important;max-height:48px!important;width:auto!important;max-width:calc(100% - var(--dsh-chat-title-inset,24px) - 64px)!important;min-width:0!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;font-family:inherit!important;font-size:inherit!important;font-weight:inherit!important;font-style:inherit!important;letter-spacing:inherit!important;line-height:20px!important;flex:none!important;text-align:left!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;outline:0!important;box-shadow:none!important;transform:none!important;transition:none!important;white-space:nowrap!important;z-index:10!important}
       ${hostSelector} :is(div,span,label):not([contenteditable],.ds-skeleton,.ds-skeleton *,.ds-input__mirror,.ds-input__mirror *){position:static!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;box-sizing:border-box!important;height:auto!important;min-height:0!important;max-height:28px!important;width:auto!important;min-width:0!important;max-width:100%!important;font-family:inherit!important;font-size:inherit!important;font-weight:inherit!important;font-style:inherit!important;letter-spacing:inherit!important;line-height:20px!important;flex:0 1 auto!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;outline:0!important;box-shadow:none!important;text-align:left!important;transform:none!important}
       ${hostSelector} .ds-input::before,${hostSelector} .ds-input::after{border:0!important;background:transparent!important;outline:0!important;box-shadow:none!important}
       ${labelSelector}:not([${hostMarker}]){position:static!important;height:20px!important;min-height:20px!important;max-height:20px!important;width:auto!important;max-width:100%!important;min-width:0!important;display:block!important;font-family:inherit!important;font-size:inherit!important;font-weight:inherit!important;font-style:inherit!important;letter-spacing:inherit!important;line-height:20px!important;flex:0 1 auto!important;margin:0!important;padding:0!important;text-align:left!important;text-overflow:ellipsis!important;white-space:nowrap!important;overflow:hidden!important}
@@ -145,6 +148,38 @@ export function adaptWebsiteHeader(doc: Document, content: HTMLElement | undefin
     if (!inTopRow(parent) || (share && parent.contains(share)) || parent.querySelector('button,[role="button"],textarea,pre,code,p')) break
     if ([...parent.querySelectorAll(editors)].some(el => el !== editor)) break
     host = parent
+  }
+  // Fixed positioning is still relative to a transformed ancestor. The first
+  // native sidebar collapse can animate that ancestor after the title itself
+  // is locked. Finish only finite positional motion on this verified header
+  // path during its first appearance; never disable page-wide animations.
+  const root = doc.documentElement
+  const motionUntil = 'data-dsh-chat-header-motion-until'
+  const motionComplete = 'data-dsh-chat-header-motion-complete'
+  if (typeof host.getAnimations === 'function' && !root.hasAttribute(motionComplete)) {
+    const first = !root.hasAttribute(motionUntil)
+    if (first) root.setAttribute(motionUntil, String(Date.now() + 1200))
+    const ownedStyle = doc.getElementById('dsh-chat-header-style')
+    const deadline = root.getAttribute(motionUntil)
+    const settle = () => {
+      if (!host.isConnected || !content.isConnected || !ownedStyle || doc.getElementById('dsh-chat-header-style') !== ownedStyle || root.getAttribute(motionUntil) !== deadline || root.hasAttribute('data-dsh-chat-settings-view')) return
+      if (Date.now() > Number(root.getAttribute(motionUntil))) { root.setAttribute(motionComplete, ''); root.removeAttribute(motionUntil); return }
+      const elements = [host, ...host.querySelectorAll<HTMLElement>('div,span,label,input')].filter(el => !el.closest('.ds-skeleton,.ds-input__mirror')).slice(0, 32)
+      for (let parent = host.parentElement, depth = 0; parent && depth < 12; parent = parent.parentElement, depth++) {
+        elements.push(parent)
+        if (parent === content) break
+      }
+      const positional = new Set(['transform','translate','left','right','insetInlineStart','marginLeft','marginRight','marginInlineStart','width','maxWidth','minWidth'])
+      for (const element of elements) for (const animation of element.getAnimations()) {
+        const effect = animation.effect
+        if (!effect || !('getKeyframes' in effect) || !('target' in effect) || effect.target !== element || effect.getTiming().iterations === Infinity) continue
+        const frames = (effect as KeyframeEffect).getKeyframes()
+        if (!frames.some(frame => Object.keys(frame).some(key => positional.has(key)))) continue
+        try { animation.finish() } catch { /* An unfinishable site animation is not ours to cancel. */ }
+      }
+    }
+    settle()
+    if (first) doc.defaultView?.requestAnimationFrame(() => { settle(); doc.defaultView?.requestAnimationFrame(settle) })
   }
   const targets: (HTMLElement | undefined)[] = [row, label, share, host, editor]
   markers.forEach((marker, index) => {

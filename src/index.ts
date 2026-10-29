@@ -1,10 +1,10 @@
-import schema from '@deepseek-ai/schemastery'
+import { SwitchPreferencesConfig } from './preferences-schema.js'
 import type {} from '@deepseek-ai/dsh-settings'
 import type { Context } from '@deepseek-ai/cordis'
 import { DshChatController } from './server.js'
 
-// No plugin-owned interface preferences. DSH is the only language source.
-export const Config = schema.object({})
+// Only switch presentation is plugin-owned. Language/theme still follow DSH.
+export const Config = SwitchPreferencesConfig
 
 export const name = 'dsh-deepseek-chat'
 

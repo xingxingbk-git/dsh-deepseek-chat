@@ -8,7 +8,7 @@ const visualPrimitives=[
   'BrandWordmark','IconSearchOutlineRegular','IconCloseFillRegular','IconNewChatOutlineRegular',
   'IconPanelLeftOutlineRegular','IconRefreshOutlineRegular','IconLoadingOutlineRegular','IconEllipsisOutlineRegular',
   'IconEditOutlineRegular','IconPinOutlineRegular','IconShareOutlineRegular','IconTrashOutlineRegular',
-  'Menu','Modal','Button','Tooltip',
+  'Menu','Modal','Button','Input','IconChevronDownOutlineRegular','Tooltip',
 ]
 const visualSdkFixture={name:'window-contracts-visual-sdk',setup(plugin){
   plugin.onResolve({filter:/^@deepseek-ai\/dsh-client-ui-primitives$/},()=>({path:'visual-primitives',namespace:'window-contracts-fixture'}))

@@ -92,9 +92,27 @@ function harness(options:{pendingMount?:boolean;desktop?:boolean;originalPanel?:
   }
   const notify=(name:string)=>{for(const listener of slotListeners.get(name) ?? [])listener()}
   const unmount=()=>{order.push('remote:unmount')}
+  // Fictional volatile preference form: models only the public ConfigForms read/write face.
+  const preferenceListeners=new Set<()=>void>()
+  const preferenceValue={switchStyle:'text' as 'text'|'icon',chatLabel:'CHAT',harnessLabel:'HARNESS'}
+  let preferenceSnapshot={status:'ready' as const,value:{...preferenceValue},base:undefined,user:undefined,revision:1,writable:true}
+  const preferenceForm={
+    getSnapshot:()=>preferenceSnapshot,
+    subscribe(listener:()=>void){preferenceListeners.add(listener);return ()=>{preferenceListeners.delete(listener)}},
+    async set(field:string,value:unknown){
+      Object.assign(preferenceValue,{[field]:value})
+      preferenceSnapshot={...preferenceSnapshot,value:{...preferenceValue},revision:preferenceSnapshot.revision+1}
+      for(const listener of preferenceListeners)listener()
+      return true
+    },
+  }
   const ctx={
     effect,
     inject(dependencies:string[],callback:(ctx:unknown)=>unknown) {
+      if(dependencies.length===1 && dependencies[0]==='configForms') {
+        const dispose=effect(()=>callback({...ctx,configForms:{get:()=>preferenceForm}}))
+        return {dispose,then:dispose.then}
+      }
       assert.deepEqual(dependencies,['remote','remote.dshDeepseekChat'])
       const dispose=effect(()=>callback(ctx))
       return {dispose,then:dispose.then}

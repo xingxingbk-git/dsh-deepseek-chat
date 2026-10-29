@@ -4,6 +4,7 @@ import type { WebsiteCommand, WebsiteNavigation } from './website-navigation.js'
 import type { ChatLanguage } from './website-settings.js';
 import type { WebsiteSession } from './protocol.js';
 import type { WindowDragRegion } from './window-drag.js';
+import { type SwitchPreferences } from './preferences.js';
 export type DshChatMode = 'chat' | 'harness';
 export interface DshChatViewportRect {
     readonly left: number;
@@ -38,6 +39,10 @@ export interface DshChatViewState {
     readonly websiteNavigationRefreshing: boolean;
     readonly websiteNavigationRefreshError: string | null;
     readonly showWebsiteNavigation: boolean;
+    readonly switchPreferences?: SwitchPreferences;
+    readonly switchPreferencesStatus?: 'loading' | 'ready' | 'unavailable';
+    readonly switchPreferencesPending?: boolean;
+    readonly switchPreferencesError?: string | null;
 }
 export interface DshChatUIBridge {
     getSnapshot(): DshChatViewState;
@@ -71,6 +76,7 @@ export interface DshChatUIBridge {
     renameWebsiteConversation(href: string, title: string): Promise<void>;
     toggleWebsiteNavigation(): void;
     setSettingsOpen(open: boolean): void;
+    setSwitchPreference?(field: keyof SwitchPreferences, value: string): Promise<boolean>;
     logoutWebsite(): void;
     loadWebsiteSession(generation: number): Promise<WebsiteSession | null>;
     saveWebsiteSession(generation: number, session: WebsiteSession): Promise<boolean>;

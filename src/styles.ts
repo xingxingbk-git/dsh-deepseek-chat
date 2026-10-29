@@ -6,8 +6,9 @@ export const chatStyles = String.raw`
 .dsh-chat-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 .dsh-chat-navigation,.dsh-chat-brand-control,.dsh-chat-brand-name,.dsh-chat-main-anchor,.dsh-chat-web-surface{font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);color:var(--dsw-alias-label-primary,#22242a);box-sizing:border-box;font-size:14px}
 .dsh-chat-navigation *,.dsh-chat-brand-control *,.dsh-chat-brand-name *,.dsh-chat-main-anchor *,.dsh-chat-web-surface *,.dsh-chat-settings *{box-sizing:border-box}
-.dsh-chat-navigation button,.dsh-chat-brand-control button,.dsh-chat-main-anchor button,.dsh-chat-web-surface button,.dsh-chat-settings button{font:inherit;-webkit-app-region:no-drag}
-.dsh-chat-navigation button:focus-visible,.dsh-chat-brand-control button:focus-visible,.dsh-chat-main-anchor button:focus-visible,.dsh-chat-web-surface button:focus-visible,.dsh-chat-settings button:focus-visible{outline:2px solid #4d6bfe;outline-offset:3px}
+.dsh-chat-navigation button,.dsh-chat-brand-control button,.dsh-chat-main-anchor button,.dsh-chat-web-surface button{font:inherit;-webkit-app-region:no-drag}
+.dsh-chat-settings button{-webkit-app-region:no-drag}
+.dsh-chat-navigation button:focus-visible,.dsh-chat-brand-control button:focus-visible,.dsh-chat-main-anchor button:focus-visible,.dsh-chat-web-surface button:focus-visible{outline:2px solid #4d6bfe;outline-offset:3px}
 .dsh-chat-modes{display:flex;align-items:center;gap:2px;border:0;padding:3px;margin:0;border-radius:9px;background:var(--dsw-alias-interactive-bg-hover,#e7e9ed);min-width:0;width:max-content}
 .dsh-chat-modes button{padding:6px 9px;border:0;background:transparent;border-radius:6px;color:inherit;font-size:10px;font-weight:650;letter-spacing:.35px;white-space:nowrap;cursor:pointer;min-height:27px}
 .dsh-chat-modes button[aria-pressed="true"]{background:#fff;color:#242832;box-shadow:0 1px 3px #151e2f15}
@@ -20,11 +21,27 @@ export const chatStyles = String.raw`
 .dsh-chat-brand-name{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:100%;flex:1;width:100%}
 .dsh-chat-brand-wordmark{display:block;flex:0 1 102px;min-width:0;width:102px;height:24px;overflow:hidden}
 .dsh-chat-brand-wordmark svg{display:block;width:156px;max-width:none;height:24px}
-.dsh-chat-brand-control-host{display:flex;align-items:center;width:112px;height:24px;flex:none;margin-left:auto;-webkit-app-region:no-drag}
+.dsh-chat-brand-control-host{display:flex;align-items:center;width:112px;min-width:0;max-width:58%;height:24px;flex:0 1 112px;margin-left:auto;-webkit-app-region:no-drag}
+.dsh-chat-brand-control-host:has([data-custom-labels="true"]){width:144px;flex-basis:144px}
+.dsh-chat-brand-control-host:has([data-switch-style="icon"]){width:60px;flex-basis:60px}
 .dsh-chat-brand-control{position:relative;width:100%;height:24px;pointer-events:auto;display:flex;align-items:center;-webkit-app-region:no-drag}
 .dsh-chat-brand-control .dsh-chat-modes{height:23px;min-height:23px;max-height:23px;padding:1px;border-radius:5px;gap:0;overflow:hidden}
 .dsh-chat-brand-control .dsh-chat-mode-wrap,.dsh-chat-brand-control .dsh-chat-modes{width:100%}
-.dsh-chat-brand-control .dsh-chat-modes button{flex:1}
+.dsh-chat-brand-control .dsh-chat-modes button{flex:1 1 0;min-width:0;overflow:hidden}
+.dsh-chat-mode-label{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsh-chat-modes svg{flex:none}
+.dsh-chat-preference-row{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:36px}
+.dsh-chat-presentation-settings h3{font-size:15px;line-height:1.4;margin:0;font-weight:600}
+.dsh-chat-preference-select{width:200px;min-width:0;flex:0 1 200px}
+.dsh-chat-style-menu{display:block;width:100%}.dsh-chat-style-trigger{width:100%;justify-content:space-between;text-align:start;gap:12px}
+.dsh-chat-style-trigger>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dsh-chat-style-trigger>svg{flex:none}
+.dsh-chat-preference-divider{border:0;border-top:.5px solid var(--dsw-alias-border-l2,var(--dsw-alias-border-l3));margin:16px 0}
+.dsh-chat-preference-labels{display:flex;align-items:center;flex-wrap:wrap;gap:12px;min-width:0}
+.dsh-chat-label-editor{position:relative;flex:1 1 160px;min-width:0;max-width:100%}.dsh-chat-label-input{display:flex;width:100%;min-width:0}.dsh-chat-label-input input{min-width:0;width:100%}
+.dsh-chat-label-count{position:absolute;inset-inline-end:12px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--dsw-alias-label-tertiary,var(--dsw-alias-label-secondary));pointer-events:none;font-variant-numeric:tabular-nums}
+.dsh-chat-label-editor[data-invalid="true"] .dsh-chat-label-count{color:var(--dsw-alias-state-error-primary,#ef5350)}
+.dsh-chat-label-save{flex:none;margin-inline-start:auto}
+.dsh-chat-preference-note{font-size:12px;color:var(--dsw-alias-label-secondary,inherit);line-height:1.6}
 .dsh-chat-brand-control .dsh-chat-modes button{display:inline-flex;align-items:center;justify-content:center;font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);padding:0 6px;height:21px;min-height:21px;max-height:21px;font-size:9px;line-height:13px;letter-spacing:.2px;border-radius:4px}
 .dsh-chat-brand-control .dsh-chat-modes button[aria-pressed="true"]{box-shadow:none}
 .dsh-chat-brand-control .dsh-chat-modes button:focus-visible{outline-offset:-2px}
@@ -86,11 +103,13 @@ html[data-fullscreen="true"] .dsh-chat-window-drag-row{display:none}
 .dsh-chat-leading{display:flex;align-items:center;gap:8px}
 .dsh-chat-leading button{flex:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border:0;border-radius:var(--dsw-radius-sm,6px);background:transparent;color:var(--dsw-alias-label-secondary);cursor:pointer;-webkit-app-region:no-drag}
 .dsh-chat-leading button:hover{background:var(--dsw-alias-interactive-bg-hover)}.dsh-chat-leading button:disabled{opacity:.4;cursor:default}
- .dsh-chat-settings{font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);color:var(--dsw-alias-label-primary,inherit);font-size:14px;line-height:1.5;min-width:0;max-width:720px;width:100%;box-sizing:border-box;padding:0 0 24px}
-.dsh-chat-settings-heading{margin:0 0 24px}.dsh-chat-settings-heading h2{font-size:22px;line-height:1.35;font-weight:600;margin:0 0 8px}.dsh-chat-settings p{margin:0;overflow-wrap:anywhere}.dsh-chat-settings-heading p,.dsh-chat-settings-card-heading p{color:var(--dsw-alias-label-secondary,inherit);font-size:13px;line-height:1.6}
-.dsh-chat-settings-card{background:var(--dsw-alias-bg-base);border:1px solid var(--dsw-alias-border-l3);border-radius:16px;padding:20px;margin:0 0 16px;min-width:0;box-sizing:border-box}.dsh-chat-settings-card-heading{margin:0 0 16px}.dsh-chat-settings-card-heading h3{font-size:15px;line-height:1.4;font-weight:600;margin:0 0 5px}
+ .dsh-chat-settings{font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);color:var(--dsw-alias-label-primary,inherit);font-size:14px;line-height:1.5;min-width:0;max-width:720px;width:100%;box-sizing:border-box;padding:8px 0}
+.dsh-chat-settings p{margin:0;overflow-wrap:anywhere}
+.dsh-chat-settings-card{background:transparent;border:.5px solid var(--dsw-alias-settings-card-stroke,var(--dsw-alias-border-l3));border-radius:var(--dsw-radius-xl,16px);padding:12px 16px;margin:0 0 16px;min-width:0;box-sizing:border-box}
 .dsh-chat-settings-account{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;min-width:0}.dsh-chat-settings-identity{display:flex;flex-direction:column;gap:4px;flex:1 1 160px;min-width:0}.dsh-chat-settings-identity strong{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dsh-chat-settings-badge{font-size:12px;color:var(--dsw-alias-label-secondary,inherit);display:flex;align-items:center;gap:6px}.dsh-chat-settings-badge:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-success-primary,#20a66a);flex:none}.dsh-chat-settings-logout{flex-shrink:0;white-space:normal;max-width:100%}
-.dsh-chat-settings-saved{margin-top:16px;padding-top:16px;border-top:1px solid var(--dsw-alias-border-l3);font-size:12px;color:var(--dsw-alias-label-secondary,inherit)}.dsh-chat-settings-saved strong{display:block;color:var(--dsw-alias-label-primary,inherit);font-size:13px;font-weight:500;margin-bottom:4px}
+.dsh-chat-settings-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;max-width:100%;margin-inline-start:auto}
+.dsh-chat-settings-external{display:inline-flex;align-items:center;gap:2px;min-height:36px;color:var(--dsw-alias-label-primary,inherit);text-decoration:none;white-space:nowrap;font-size:13px;line-height:22px}
+.dsh-chat-settings-external:hover{color:var(--dsw-alias-label-primary,inherit);text-decoration:underline}.dsh-chat-settings-external:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:4px}
 .dsh-chat-settings-loading{display:flex;align-items:center;gap:6px;min-height:36px;color:var(--dsw-alias-label-secondary,inherit);font-size:14px;line-height:22px}.dsh-chat-settings-loading svg{flex:none}
 .dsh-chat-settings-error{margin-top:16px;padding-top:14px;border-top:1px solid var(--dsw-alias-border-l3);color:var(--dsw-alias-state-error-primary,#ef5350);font-size:13px;line-height:1.6;display:flex;flex-wrap:wrap;align-items:center;gap:12px}.dsh-chat-settings-error p{flex:1 1 220px;min-width:0}.dsh-chat-settings-error button{flex-shrink:0;max-width:100%;white-space:normal}
 `

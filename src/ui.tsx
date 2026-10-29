@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { createElement, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { BrandWordmark, IconSearchOutlineRegular, IconCloseFillRegular, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, IconRefreshOutlineRegular, IconLoadingOutlineRegular, IconEllipsisOutlineRegular, IconEditOutlineRegular, IconPinOutlineRegular, IconShareOutlineRegular, IconTrashOutlineRegular, Menu, Modal, Button, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+import { BrandWordmark, IconSearchOutlineRegular, IconCloseFillRegular, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, IconRefreshOutlineRegular, IconLoadingOutlineRegular, IconEllipsisOutlineRegular, IconEditOutlineRegular, IconPinOutlineRegular, IconShareOutlineRegular, IconTrashOutlineRegular, Menu, Modal, Button, Input, IconChevronDownOutlineRegular, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ComponentType } from 'react'
 import type { StoredEntry } from '@deepseek-ai/dsh-client-ui-slots'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
@@ -13,6 +13,7 @@ import type { WebsiteCommand, WebsiteNavigation } from './website-navigation.js'
 import type { ChatLanguage } from './website-settings.js'
 import type { WebsiteSession } from './protocol.js'
 import type { WindowDragRegion } from './window-drag.js'
+import { DEFAULT_SWITCH_PREFERENCES, SWITCH_LABEL_LIMIT, switchLabelWidth, validSwitchLabel, type SwitchPreferences } from './preferences.js'
 
 export type DshChatMode = 'chat' | 'harness'
 
@@ -50,6 +51,10 @@ export interface DshChatViewState {
   readonly websiteNavigationRefreshing: boolean
   readonly websiteNavigationRefreshError: string | null
   readonly showWebsiteNavigation: boolean
+  readonly switchPreferences?: SwitchPreferences
+  readonly switchPreferencesStatus?: 'loading' | 'ready' | 'unavailable'
+  readonly switchPreferencesPending?: boolean
+  readonly switchPreferencesError?: string | null
 }
 
 export interface DshChatUIBridge {
@@ -77,6 +82,7 @@ export interface DshChatUIBridge {
   renameWebsiteConversation(href: string, title: string): Promise<void>
   toggleWebsiteNavigation(): void
   setSettingsOpen(open: boolean): void
+  setSwitchPreference?(field: keyof SwitchPreferences, value: string): Promise<boolean>
   logoutWebsite(): void
   loadWebsiteSession(generation: number): Promise<WebsiteSession | null>
   saveWebsiteSession(generation: number, session: WebsiteSession): Promise<boolean>
@@ -116,11 +122,17 @@ export function DshChatModeSelector({ bridge, state, compact = false }: DshChatB
 }) {
   const description = useId()
   const t = (text: string | null | undefined) => translate(state.language, text)
+  const preferences = state.switchPreferences ?? DEFAULT_SWITCH_PREFERENCES
+  const icon = preferences.switchStyle === 'icon'
   return <div className={compact ? 'dsh-chat-mode-compact' : 'dsh-chat-mode-wrap'}>
-    <fieldset className="dsh-chat-modes" disabled={!state.modeEnabled} aria-describedby={description}>
+    <fieldset className="dsh-chat-modes" data-switch-style={preferences.switchStyle} data-custom-labels={preferences.chatLabel!=='CHAT' || preferences.harnessLabel!=='HARNESS'} disabled={!state.modeEnabled} aria-describedby={description}>
       <legend className="dsh-chat-sr-only">{t("工作模式")}</legend>
-      <button type="button" aria-label={t("CHAT 官网聊天模式")} aria-pressed={state.mode === 'chat'} onClick={() => bridge.selectMode('chat')} title={t(state.availabilityMessage)}>{compact ? 'C' : 'CHAT'}</button>
-      <button type="button" aria-label={t("HARNESS 工作区模式")} aria-pressed={state.mode === 'harness'} onClick={() => bridge.selectMode('harness')} title={t(state.availabilityMessage)}>{compact ? 'H' : 'HARNESS'}</button>
+      <button type="button" aria-label={t("CHAT 官网聊天模式")} aria-pressed={state.mode === 'chat'} onClick={() => bridge.selectMode('chat')} title={`${preferences.chatLabel} · ${t('CHAT 官网聊天模式')}`}>
+        {icon ? <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 3.5h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9l-4 3v-3a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg> : <span className="dsh-chat-mode-label">{preferences.chatLabel}</span>}
+      </button>
+      <button type="button" aria-label={t("HARNESS 工作区模式")} aria-pressed={state.mode === 'harness'} onClick={() => bridge.selectMode('harness')} title={`${preferences.harnessLabel} · ${t('HARNESS 工作区模式')}`}>
+        {icon ? <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 5-4 5 4 5m8-10 4 5-4 5m-3-12-2 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg> : <span className="dsh-chat-mode-label">{preferences.harnessLabel}</span>}
+      </button>
     </fieldset>
     <span id={description} className="dsh-chat-sr-only">{t(state.availabilityMessage || '选择 CHAT 或 HARNESS 工作模式。')}</span>
   </div>
@@ -377,10 +389,77 @@ export function DshChatLeadingControls({bridge}: PropsRuntime<'shell.leading'> &
   </div>
 }
 
+function ChatPresentationSettings({bridge,state}: {bridge:DshChatUIBridge;state:DshChatViewState}) {
+  const t=(text:string)=>translate(state.language,text)
+  const preferences=state.switchPreferences ?? DEFAULT_SWITCH_PREFERENCES
+  const enabled=state.switchPreferencesStatus==='ready' && Boolean(bridge.setSwitchPreference)
+  const [draft,setDraft]=useState({chatLabel:preferences.chatLabel,harnessLabel:preferences.harnessLabel})
+  const previous=useRef({chatLabel:preferences.chatLabel,harnessLabel:preferences.harnessLabel})
+  const [menuOpen,setMenuOpen]=useState(false), [saving,setSaving]=useState(false), [saveError,setSaveError]=useState<string|null>(null)
+  const savingNow=useRef(false), composing=useRef(false), mounted=useRef(true)
+  const headingId=useId()
+  const busy=saving || Boolean(state.switchPreferencesPending)
+  const dirty=draft.chatLabel!==preferences.chatLabel || draft.harnessLabel!==preferences.harnessLabel
+  const valid=validSwitchLabel(draft.chatLabel) && validSwitchLabel(draft.harnessLabel)
+  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false}},[])
+  useEffect(()=>{
+    const old=previous.current
+    setDraft(current=>({chatLabel:current.chatLabel===old.chatLabel ? preferences.chatLabel : current.chatLabel,harnessLabel:current.harnessLabel===old.harnessLabel ? preferences.harnessLabel : current.harnessLabel}))
+    previous.current={chatLabel:preferences.chatLabel,harnessLabel:preferences.harnessLabel}
+  },[preferences.chatLabel,preferences.harnessLabel])
+  useEffect(()=>{if(!enabled || busy)setMenuOpen(false)},[enabled,busy])
+  useEffect(()=>{if(preferences.switchStyle!=='text')composing.current=false},[preferences.switchStyle])
+  const save=async()=>{
+    if(!enabled || busy || savingNow.current || composing.current || !dirty || !valid || !bridge.setSwitchPreference)return
+    savingNow.current=true;setSaving(true);setSaveError(null)
+    try {
+      for(const field of ['chatLabel','harnessLabel'] as const) {
+        if(draft[field]===preferences[field])continue
+        if(!await bridge.setSwitchPreference(field,draft[field]))throw new Error('save failed')
+      }
+    } catch {if(mounted.current)setSaveError('切换按钮设置保存失败，请重试。')}
+    finally {savingNow.current=false;if(mounted.current)setSaving(false)}
+  }
+  const error=saveError || state.switchPreferencesError
+  return <section className="dsh-chat-settings-card dsh-chat-presentation-settings" aria-labelledby={headingId}>
+    <div className="dsh-chat-preference-row">
+      <h3 id={headingId}>{t('切换按钮')}</h3>
+      <div className="dsh-chat-preference-select">
+        <Menu open={menuOpen && enabled && !busy} portal minWidthFromAnchor autoFocus align="end"
+          className="dsh-chat-style-menu" selectedId={preferences.switchStyle}
+          items={[{id:'text',label:t('文字样式')},{id:'icon',label:t('图标样式')}]}
+          onClose={()=>setMenuOpen(false)} onSelect={value=>{setMenuOpen(false);if(enabled && !busy && (value==='text' || value==='icon'))void bridge.setSwitchPreference?.('switchStyle',value)}}
+          anchor={<Button className="dsh-chat-style-trigger" variant="outline" disabled={!enabled || busy} aria-label={t('按钮样式')} aria-haspopup="menu" aria-expanded={menuOpen && enabled && !busy}
+            onClick={()=>setMenuOpen(open=>!open)} onKeyDown={event=>{if(event.key==='ArrowDown' || event.key==='ArrowUp'){event.preventDefault();setMenuOpen(true)}}}>
+            <span>{t(preferences.switchStyle==='text' ? '文字样式' : '图标样式')}</span><IconChevronDownOutlineRegular size={16}/>
+          </Button>}/>
+      </div>
+    </div>
+    {preferences.switchStyle==='text' && <>
+      <hr className="dsh-chat-preference-divider"/>
+      <form className="dsh-chat-preference-labels" aria-busy={busy} onSubmit={event=>{event.preventDefault();void save()}}>
+        {(['chatLabel','harnessLabel'] as const).map(field=><div key={field} className="dsh-chat-label-editor" data-invalid={!validSwitchLabel(draft[field])}>
+          <Input className="dsh-chat-label-input" type="text" value={draft[field]} maxLength={40} style={{paddingInlineEnd:52}}
+            aria-label={t(field==='chatLabel' ? 'CHAT 按钮文案' : 'HARNESS 按钮文案')} aria-invalid={!validSwitchLabel(draft[field])}
+            disabled={!enabled || busy} onChange={event=>{const value=event.target.value;setDraft(current=>({...current,[field]:value}))}}
+            onCompositionStart={()=>{composing.current=true}} onCompositionEnd={()=>{composing.current=false}}
+            onKeyDown={event=>{
+              if(event.key==='Enter' && (event.nativeEvent.isComposing || composing.current))event.preventDefault()
+              if(event.key==='Escape'){event.preventDefault();setDraft(current=>({...current,[field]:preferences[field]}))}
+            }}/>
+          <span className="dsh-chat-label-count" aria-hidden="true">{switchLabelWidth(draft[field])}/{SWITCH_LABEL_LIMIT}</span>
+        </div>)}
+        <Button className="dsh-chat-label-save" variant="primary" type="submit" disabled={!enabled || busy || !dirty || !valid}>{t(busy ? '正在保存…' : '保存')}</Button>
+      </form>
+    </>}
+    {error && <p className="dsh-chat-settings-error" role="alert">{t(error)}</p>}
+    {!enabled && <p className="dsh-chat-preference-note">{t('设置服务尚未就绪，请重启 DSH 后重试。')}</p>}
+  </section>
+}
+
 export function DshChatChatSettings({bridge,close}: PropsRuntime<'settings.section'> & DshChatBridgeProps) {
   const state = useDshChat(bridge)
   const t = (text: string | null | undefined) => translate(state.language, text)
-  const accountHeading = useId()
   const enabled = state.desktopAvailable
   useLayoutEffect(() => {
     if (!enabled) { bridge.setSettingsOpen(false); return }
@@ -403,15 +482,15 @@ export function DshChatChatSettings({bridge,close}: PropsRuntime<'settings.secti
   const accountBusy = enabled && !accountError && !recognitionError && ['loading','signing-out'].includes(state.websiteAuthenticationStatus)
   return <section className="dsh-chat-settings">
     <DshChatStyles/>
-    <header className="dsh-chat-settings-heading"><h2>{t("Chat 设置")}</h2><p>{t("管理 DeepSeek 官网账号和登录状态。")}</p></header>
-    <section className="dsh-chat-settings-card" aria-labelledby={accountHeading}>
-      <header className="dsh-chat-settings-card-heading"><h3 id={accountHeading}>{t("官网账号")}</h3><p>{t("CHAT 使用独立的 DeepSeek 官网登录。")}</p></header>
+    <section className="dsh-chat-settings-card" aria-label={t("DeepSeek 官网账号")}>
       {showAccount ? <>
         <div className="dsh-chat-settings-account" role="group" aria-label={t("DeepSeek 官网账号")}>
           <div className="dsh-chat-settings-identity"><strong title={accountName}>{accountName}</strong><span className="dsh-chat-settings-badge">{t("已登录")}</span></div>
-          <Button className="dsh-chat-settings-logout" variant="outline" disabled={!logoutError && (navigation.status!=='ready' || settings?.pending)} onClick={()=>bridge.logoutWebsite()}>{t(logoutError ? "重试退出登录" : "退出登录")}</Button>
+          <div className="dsh-chat-settings-actions">
+            <a className="dsh-chat-settings-external" href="https://chat.deepseek.com/" target="_blank" rel="noopener noreferrer">{t('打开网页端')} <span aria-hidden="true">↗</span></a>
+            <Button className="dsh-chat-settings-logout" variant="outline" disabled={!logoutError && (navigation.status!=='ready' || settings?.pending)} onClick={()=>bridge.logoutWebsite()}>{t(logoutError ? "重试退出登录" : "退出登录")}</Button>
+          </div>
         </div>
-        {state.websiteSessionStatus==='saved' && <div className="dsh-chat-settings-saved" role="status"><strong>{t("已记住网页登录")}</strong><p>{t("重启后由官网验证并恢复；登录失效时需重新登录。")}</p></div>}
       </> : showSignIn ? <Button variant="primary" onClick={signIn}>{t(state.websiteAuthenticationStatus==='signing-in' ? "继续登录" : "登录 DeepSeek")}</Button> : accountBusy ? <div className="dsh-chat-settings-loading" role="status" aria-busy="true">
         <span>{t(state.websiteAuthenticationStatus==='signing-out' ? "正在退出登录" : "加载中")}</span><IconLoadingOutlineRegular size={14} className="dsh-chat-refreshing"/>
       </div> : null}
@@ -421,5 +500,6 @@ export function DshChatChatSettings({bridge,close}: PropsRuntime<'settings.secti
       {!accountError && recognitionError && <div className="dsh-chat-settings-error" role="alert"><p>{t(recognitionError)}</p><Button variant="outline" onClick={()=>bridge.commandWebsite({type:'snapshot',showOriginal:false})}>{t("重新识别")}</Button></div>}
       {enabled && showAccount && settings?.error && <div className="dsh-chat-settings-error" role="alert"><p>{t(settings.error)}</p><Button variant="outline" disabled={Boolean(settings.pending)} onClick={()=>bridge.commandWebsite({type:'settings-retry'})}>{t("重试同步")}</Button></div>}
     </section>
+    <ChatPresentationSettings bridge={bridge} state={state}/>
   </section>
 }

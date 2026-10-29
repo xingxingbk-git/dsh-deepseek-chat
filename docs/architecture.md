@@ -1,5 +1,19 @@
 # 架构与可行性
 
+## 0.2.10 原生控件精简布局（2026-10-29，音色保持撤回）
+
+- 后续卡片统一参照已实读官方settings-account样式：section上下8px、组间16px，card内12px16px、.5px settings-card-stroke描边及radius-xl；分割线用border-l2，actions gap10。只有填充按用户要求transparent，颜色不写死，提供旧主题token fallback。官网入口为固定首页标准外链、_blank/noopener noreferrer；静态核对本机主窗HTTP/S新窗口转shell.openExternal，无私有API、账号/会话参数或登录同步，实际OS打开仍待验。
+
+- 用户按截图要求删除页内标题/副说明、账号卡标题/独立登录说明、已记住登录说明、按钮样式可见标签、两输入可见标签和失焦说明；账号/退出/登录记忆逻辑不改。标题与下拉同一flex行居中，分割线下为两输入加一个共用保存按钮。
+- 已核对本机官方rc.3公开Menu/Button/Input/下拉图标类型和Button/Input实际转发结构；未发现单独Select导出，生产组合原生Button+Menu（portal/selectedId/原生菜单键盘）及Input，不复制皮肤或私有组件，不再保留自绘select箭头。局部CSS仅布局和框内计数，不覆盖原生按钮字体/焦点样式。
+- 草稿由表单父组件持有，切换样式不丢未存值，外部更新只覆盖未修改字段；只显式提交串行保存变更字段，未改/非法/忙时禁用，失败保留草稿可重试、阻止重复提交，IME确认不触发保存。保留原10单位与服务端校验，仅显示计数/颜色，不加校验说明。保存不改网站设置、模式或登录。
+
+## 0.2.10 切换器偏好与标题适配（保留实现）
+
+- 切换按钮偏好使用官方Config+Schemastery volatile字段，Client经`configForms.get(HOST_ENTRY_ID)`读写，命名空间与cordis.patch.yml条目一致；宽度规则为ASCII计1、其它Unicode码点计2累计≤10，正则与服务端schema双重约束，避免绕过UI写入超限值。
+- 首候选仅屏蔽标题宿主过渡，用户实测未通过。续修补固定元素仍受祖先transform影响的反例：标题首现1200ms内，仅遍历已确认标题子树及到content的祖先路径，finish有限位置动画，保留原CSS声明、颜色/opacity、无限动画与无关内容；原style节点/截止标记防迟到回调，restore清理。配合原有标题先定位后原生收起，未触及HARNESS/原生拖窗。不把合成反例认作已证实的真实站点唯一根因。
+- 音色模块已按用户指令整体撤回：无UI/命令/返回状态/序列化helper/后台调度/locale或相关fixture，官网通用设置恢复本轮前HEAD的语言/主题/退出代码；展示偏好只保留switchStyle/chatLabel/harnessLabel。设置开关只更新自身状态，不再触发额外网页配置动作。
+
 ## 0.2.9 Zod与预编译交付（2026-10-27）
 
 PR #4更新依赖与锁后，旧Client仍内嵌4.4.3，触发输入哈希不一致。本轮frozen安装根zod4.6.6，完整重建27编译文件/manifest；Client只保留4.6.6模块标记，Host继续外部加载依赖，不强制改变宿主SDK的其他版本。类型/实际协议严格校验、现行46项Node和95项×5虚构浏览器回归通过；显式max数组可提前拒绝超限，但无界输入仍需应用自身约束，不宣称完整消除CVE。候选与安装/发布边界以handoff为准。

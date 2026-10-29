@@ -19,6 +19,9 @@ import type { WindowDragRegion } from './window-drag.js'
 import { emptyNavigation, parseWebsiteNavigation, type WebsiteCommand } from './website-navigation.js'
 import { createSidebarBinding } from './sidebar-adapter.js'
 import { bindChatSettingsIcon } from './settings-icon.js'
+import { HOST_ENTRY_ID } from './identity.js'
+import { DEFAULT_SWITCH_PREFERENCES, parseSwitchPreferences, validSwitchLabel, type SwitchPreferences } from './preferences.js'
+import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client'
 
 export const name = 'dsh-deepseek-chat'
 export const inject = ['slots', 'layout', 'remote']
@@ -78,6 +81,11 @@ export function apply(ctx: Context): void {
   let navigationHandler: ((command: WebsiteCommand) => Promise<void>) | null = null
   let windowDragSampler: { generation: number; handler: (viewport: DshChatViewportRect) => Promise<readonly WindowDragRegion[]> } | null = null
   let windowDragEpoch = 0
+  let switchPreferences = DEFAULT_SWITCH_PREFERENCES
+  let switchPreferencesStatus: 'loading'|'ready'|'unavailable' = 'loading'
+  let switchPreferencesError: string|null = null
+  let preferenceWrites = 0
+  let preferencesForm: ConfigForm<SwitchPreferences>|null = null
   let bridge: DshChatUIBridge
   let cached: DshChatViewState
   let sidebar: ReturnType<typeof createSidebarBinding> | undefined
@@ -127,6 +135,7 @@ export function apply(ctx: Context): void {
       accountStorageKey: state.authorization.status === 'authorized' && state.authorization.accountId
         ? `dsh-deepseek-chat:website:${state.authorization.accountId}` : null,
       authorizationGeneration, websiteReloadRevision, websiteNavigationRefreshing, websiteNavigationRefreshError, websiteNavigation, showWebsiteNavigation,
+      switchPreferences, switchPreferencesStatus, switchPreferencesError, switchPreferencesPending:preferenceWrites>0,
     }
     sidebar?.sync()
     for (const listener of listeners) listener()
@@ -472,6 +481,24 @@ export function apply(ctx: Context): void {
       if (settingsOpen === next) return
       settingsOpen=next;publish()
     },
+    setSwitchPreference: async (field,value) => {
+      if(disposed || !['switchStyle','chatLabel','harnessLabel'].includes(field))return false
+      if(field==='switchStyle' ? !['text','icon'].includes(value) : !validSwitchLabel(value))return false
+      const form=preferencesForm
+      if(!form || switchPreferencesStatus!=='ready' || !form.getSnapshot().writable) {
+        switchPreferencesError='设置服务尚未就绪，请重启 DSH 后重试。';publish();return false
+      }
+      preferenceWrites++;switchPreferencesError=null;publish()
+      try {
+        const accepted=await form.set(field,value)
+        if(!disposed && preferencesForm===form) {
+          switchPreferences=parseSwitchPreferences(form.getSnapshot().value)
+          switchPreferencesError=accepted ? null : '切换按钮设置保存失败，请重试。'
+        }
+        return accepted
+      } catch {if(!disposed && preferencesForm===form)switchPreferencesError='切换按钮设置保存失败，请重试。';return false}
+      finally {preferenceWrites--;publish()}
+    },
     logoutWebsite: () => {
       if (logoutRequested || !navigationHandler || (!websiteHadSession && !logoutFailed)) return
       if (!logoutFailed && websiteNavigation.status!=='ready') return
@@ -564,6 +591,21 @@ export function apply(ctx: Context): void {
     if (sidebarAdapted !== ready) { sidebarAdapted = ready; publish() }
   })
   publish()
+  ctx.inject(['configForms'], child => {
+    child.effect(() => {
+      const form=child.configForms.get<SwitchPreferences>(HOST_ENTRY_ID)
+      preferencesForm=form
+      const sync=()=>{
+        if(disposed || preferencesForm!==form)return
+        const snapshot=form.getSnapshot()
+        switchPreferencesStatus=snapshot.status==='ready' && snapshot.writable ? 'ready' : snapshot.status==='loading' ? 'loading' : 'unavailable'
+        if(snapshot.value)switchPreferences=parseSwitchPreferences(snapshot.value)
+        publish()
+      }
+      const stop=form.subscribe(sync);sync()
+      return ()=>{stop();if(preferencesForm===form){preferencesForm=null;switchPreferencesStatus='unavailable';publish()}}
+    })
+  })
   // The enclosing effect's final cleanup restores navigation before registered main keys disappear.
   ctx.effect(() => {
     const guardedEntries = new Map<ReturnType<typeof ctx.slots.entries>[number], () => void>()
