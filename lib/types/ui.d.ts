@@ -11,6 +11,8 @@ export interface DshChatViewportRect {
     readonly top: number;
     readonly width: number;
     readonly height: number;
+    /** Host main-content clip, projected locally; never website or account data. */
+    readonly borderRadius?: string;
 }
 /** Only in-memory navigation metadata; never message bodies or account secrets. */
 export interface DshChatViewState {

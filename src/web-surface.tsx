@@ -450,6 +450,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
   const activeReservation = reservation !== null && reservation.generation === state.authorizationGeneration
     && reservation.storageKey === state.accountStorageKey ? reservation : null
   const clearance = 0
+  const borderRadius = rect?.borderRadius ?? '0px'
   const logoutError=state.websiteAuthenticationStatus==='error' && /退出/.test(state.websiteSessionError ?? '')
   const projectionError=state.websiteNavigation.status==='unsupported' && state.websiteNavigation.layoutReady!==true ? state.websiteNavigation.error || '暂未识别官网界面，请稍后重新识别。' : null
   const guestUsable=presentationReady && !projectionError && state.websiteAuthenticationStatus!=='signed-out' && state.websiteAuthenticationStatus!=='signing-out' && !logoutError
@@ -465,7 +466,8 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     top: (rect?.top ?? 0) + clearance,
     width: rect?.width ?? 0,
     height: Math.max(0,(rect?.height ?? 0) - clearance),
-    borderRadius: 0, overflow: 'hidden',
+    borderRadius, overflow: 'hidden',
+    clipPath: borderRadius==='0px' ? undefined : `inset(0 round ${borderRadius})`,
   }}>
     <DshChatStyles />
     {state.websiteSessionStatus==='saved' && <span className="dsh-chat-sr-only" role="status" aria-label={t("CHAT 网页登录状态已保存")}>{t("CHAT 网页登录状态已保存")}</span>}

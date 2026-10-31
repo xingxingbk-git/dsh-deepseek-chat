@@ -1,4 +1,49 @@
-## 0.2.10 npm已公开发布（2026-10-29，Git同步前）
+## 0.2.11 已公开发布 npm（2026-10-31，Git 同步前）
+
+- 用户明确要求“现在把这个插件发布npm”，本轮仅授权 0.2.11 的 npm 公开发布，不授权 Git 提交/推送。发布前把中英 README 的发布版说明与三处安装示例由 0.2.10 更新为 0.2.11；版本不再次递增。
+- 发布前检查：类型、30 编译文件/4 共享模块分发、18 版本×4 兼容、窗口契约、UI 69/69、标题 38/38、跨平台裁剪 116×5 全通过；`git diff --check` 干净。其中裁剪套件在首次整轮的第 5 组（1440×900 @2）出现过 1 项 `focused header editing pauses the actual native row` 失败，立即整轮重跑后五组全部通过，判定为该焦点时序合成用例的偶发不稳定，非本轮样式改动引入；发布前证据以通过后的整轮为准，后续若要彻底消除可单独加固该用例。
+- 正式包 `artifacts/npm-release-0211/dsh-deepseek-chat-0.2.11.tgz`，215061bytes/38 文件，SHA256=41930ae01fbf68f50032dea79cebdba4a33db3421c2c965f57d029e01e5e7c5e；同项目逐项一致（package.json 按既有规则忽略 packageManager），并冻结同名 hash 副本 `artifacts/dsh-deepseek-chat-0.2.11-41930ae01fbf.tgz`。
+- 发布过程：npm 旧凭据已失效（whoami E401），改用独立临时 npm 配置 `--auth-type=web` 完成官方登录与本次单独发布验证，唯一一次 `npm publish`（public/latest）返回 `+ dsh-deepseek-chat@0.2.11`。发布后首次查询 latest 仍为 0.2.10（处理中），等待后完整/install-v1 索引 latest 均为 **0.2.11**、精确版本 HTTP200，公开 tarball 与本正式包逐字节一致（215061bytes，SHA256 同上）。
+- 清理：临时 `--userconfig` 会话已 logout（退出 0），核实绝对路径 /private/tmp/dsh-chat-npm-0211.Ae9brE 后删除临时 npmrc 与空目录，终端会话已关闭；未改动用户原 npm 配置。
+- 与已安装候选 90dd86e2a70d 比较：仅中英 README 两份不同，其余 36 个运行/元数据文件一致，因此**未重装、未重启 DSH**。后续新修复从 0.2.12 开始；Git 同步仍需另行明确授权，当前未 stage/commit/push。
+
+## 0.2.11 下拉收窄与原生填充样式（2026-10-31，当前本机候选90dd86）
+
+- 用户否定上一轮“把公共列宽加到240px”的做法：列宽变宽、间距没有被自适应填充。已改回公共列宽200px（下拉也回到200），actions恢复`gap:0`+space-between让两元素之间剩余空间自适应；链接只保留与下拉一致的左侧14px内边距（`padding:0 0 0 14px`），右侧不再加内边距，既让链接文字与下拉内文字同起点，也让中英文都在200px内单行不换行。英文“Open website + Sign out”在200px下实测可容纳（合成检查证明）。
+- 用户同时要求下拉的填充/描边与原生统一。举证方式：对用户提供的实机截图采样——卡片底色#2c2c2e、下拉内部#353638、上下边缘无更亮描边线；对照主题表 `--dsw-specific-selector` 暗色= `--dsw-static-neutral-bluish-800` = #353638、亮色=neutral-bluish-60，即原生选择器就是该token填充且无描边。据此把`.dsh-chat-style-trigger`改为`background:var(--dsw-specific-selector);border:0`，悬停用`--dsw-alias-interactive-bg-hover-solid`（同为原生token，缺省回退selector），不再使用outline描边。未改高度/圆角/字体，仍为原生Button。
+- 测试：fixture补`--dsw-specific-selector`与`--dsw-alias-interactive-bg-hover-solid`亮暗两套token；新增“下拉使用selector填充且无描边”“亮/暗两色填充值”“填充来自token而非硬编码”“链接文字与下拉文字同起点”断言，并把列宽断言改回200。UI 69/69、窗口Node47/47、标题38/38、类型、18版本×4兼容、30编译文件/4模块分发及diff通过；116项×5裁剪回归沿用上一候选结论（本轮未改裁剪代码）。
+- 当前候选 `artifacts/dsh-deepseek-chat-0.2.11-90dd86e2a70d.tgz`，215062bytes/38文件，SHA256=90dd86e2a70d507c65fd8d74dfc0fe36328b782e42e9df08d0f7a9a7533d8317；逐项同项目，官方desktop安装退出0，38/38安装字节同包、版本0.2.11、持久dependency/lock均同hash，安装Client含200px列宽、`--dsw-specific-selector`填充与`padding:0 0 0 14px`。仍未发布0.2.11，未重启/npm/Git。待用户完整重开确认下拉宽度与填充是否符合原生观感。
+
+## 0.2.11 网页端链接内边距（2026-10-31，已被90dd86修正的前一候选e309e5）
+
+- 用户最后一次反馈：“打开网页端”的文字应与下方下拉框**内部文字**左对齐，而不是与下拉外框左边缘对齐；要求给该链接加与下拉内部一致的左右内边距。已实现：链接 `padding:0 14px`（与已核实rc.3原生Button md的`padding:0 14px`同值），操作的公共列宽200→240px以容纳加宽后的链接并保持中英文单行不换行；actions的gap改为0，剩余空间由space-between自动填充，视觉间隔由链接右侧14px内边距形成。两行仍等宽、外边缘对齐，未缩小下拉列。
+- 合成Button stand-in补充`boxSizing:border-box;padding:0 14px`，与公开Button.module.css一致，使内边距断言有真实契约依据；UI 66/66（新增“链接文字与下拉文字同起点”断言，正常/280px窄窗/英文均单行对齐不换行）、窗口Node47/47、标题38/38、116项×5窗口/DPI裁剪回归、类型/18版本×4兼容/30编译文件/4模块分发及diff通过。
+- 当前候选 `artifacts/dsh-deepseek-chat-0.2.11-e309e580d2c9.tgz`，215031bytes/38文件，SHA256=e309e580d2c97b96bb2eb1fc1e515e22f9b892d61dd88238cd0cd0ecccd4734c；逐项同项目，官方desktop安装退出0，38/38安装字节同包、版本0.2.11、持久dependency/lock均同hash，安装Client含240px列宽与链接padding。仍同一未发布0.2.11，不加号；未重启DSH/npm发布/Git写入。待用户完整重开查看链接文字是否与下拉文字齐平。
+- 此前的统一宿主主区域裁剪实现（fdfbc1）仍然有效且未改动，本轮只调整账号操作区CSS与测试契约。
+
+## 0.2.11 统一宿主主区域裁剪（2026-10-31，前一候选fdfbc1）
+
+- 用户在Windows圆角调查后授权实施，并两次强调用统一区域裁剪而非两套Win/Mac逻辑。已撤回临时Windows-marker/16px CSS分支（未安装此分支候选）。最终读取实际宿主main槽同边界裁剪祖先的computed圆角并随本地viewport投影；Mac原生0→CHAT0、当前Win16px左上→CHAT同值，椭圆/自定义半径同一路径；不硬编码OS/16px。
+- 新增surface-clip.ts只读最多12层祖先的数值几何/样式，排除不同矩形、装饰性radius、body/html外窗；保留原body portal与webview key/lease。Panel观察自身及祖先Resize/class/style等变化，销毁断开；Client允许仅圆角变化发布。Surface统一borderRadius+overflow，非0时clip-path inset round；视口数值、guest、登录、草稿与拖拽算法不改。现行native只有一个匹配内容clip；多层不同半径精确交集、外部强制reparent、纯CSS半径动画逐帧跟随不是本轮支持范围。
+- 类型、窗口Node47/47（新增实际Client圆角单独变化发布/保几何/不申请guest）、UI65/65、标题38/38、18版本×4兼容、30编译文件/4共享模块分发及diff通过；真实Panel+Surface+drag组件的116项虚构浏览器回归×5窗口/DPI全过，包含隐藏/可见DOM guest角落命中、同实例模式往返、形状/窗口动态变化及observer清理。不是Windows Electron原生webview合成/拖窗验收，不宣称任意环境“完美”。独立只读审查无现行结构阻断项，已记录条件边界。
+- 补齐旧window fixture的Input/下拉图标公开stand-in导出并新增headless自动跑法；首轮测试计数漏掉3个loop断言已更正。统一投影首轮runner超时已取消；补齐closeAllConnections防止关闭连接挂起及超时/进度诊断后，快速和完整五组重跑均通过，未保留后台服务/Chrome。Windows硬编码中间分支110×5的通过记录不作为最终统一方案证据。
+- 当前候选 `artifacts/dsh-deepseek-chat-0.2.11-fdfbc12e7b79.tgz`，215021bytes/38文件，SHA256=fdfbc12e7b798618efcb6bee384dbcc3cef6624e32074f226ae0c5d102cfb72d。正式文件逐项同项目，官方desktop安装退出0，38/38实际安装字节同包、版本0.2.11、持久dependency/lock的specifier与version均同hash；仍同一未发布0.2.11，不加号。未重启DSH/npm发布/Git写入。下一步用户完整重开检查Mac未变，并在Windows正常/最大化/全屏与侧栏收展复验真实圆角/拖动。
+
+## 0.2.11 操作区对齐续调与Windows圆角调查（2026-10-31，前一候选）
+
+- 用户要求账号操作区与下方下拉等宽左对齐、两个动作间距自动填充。自有设置CSS统一200px宽度变量，actions space-between、最小gap10，select/actions两边对齐；窄窗允许换行而不是单列收窄。红色退出样式及14px标题继续保留，同一未发布0.2.11不再增号。
+- Windows只读调查由独立子agent执行、无写文件。官方ui-layout rc.3/本机rc.5均明确Windows-titlebar marker下主区左上16px圆角；插件web-surface.tsx:458–499却body portal+fixed，:468显式borderRadius:0，绕过宿主centerCol overflow裁剪链。解释有静态依据；DOM webview实际圆角裁剪仍需Windows Electron实机，不声称CSS无法裁guest。本轮未改web-surface/ui/client/viewport/拖拽或Mac网页外观，Windows修复待实机核实；下一步可在Windows仅marker下用宿主半径验证，并比较Mac不启用该规则。
+- 类型、UI65/65（新增正常/280px窄窗/英文操作区等宽同边与间距）、窗口46/46、标题38/38、29编译文件/4模块分发及diff通过。已有62项保持。普通Chrome合成不是原生Mac/Win视觉验收。
+- 新候选 `artifacts/dsh-deepseek-chat-0.2.11-bf90c459e834.tgz`，214057bytes/37文件，SHA256=bf90c459e834c37fa415621432d0e21dea043c24062ed96b44c969993736943e；官方desktop安装退出0，37/37同包、持久dependency与lock均同hash，版本仍0.2.11。仅4处设置布局CSS相对60de37改变，web-surface.tsx/ui.tsx/client.ts/window-drag.ts与Git基线一致。未重启、npm发布或Git写入；请用户重开验收设置对齐，Windows结论是诊断不是已修复。
+
+## 0.2.11 Chat 设置样式优化（2026-10-31，前一候选）
+
+- 用户现明确要求实施此前对话中两项优化：退出登录改红字红边，默认透明、悬停半透明红底、禁用降透明度；“切换按钮”标题字号15→14px对齐右侧原生普通Button，保留600字重。只改自有CSS，不改退出/认证、保存或切换器逻辑。
+- 基线main=0425e9c，开工干净，fetch后与origin/main为0/0；Node24.14.1、pnpm10.33.2、SDK rc.3。核对公开Button不提供danger variant，现用state-error-primary/currentColor与interactive-bg-hover-danger做限定覆盖；字号来自本机公开Button.module.css。版本仅递增一次0.2.10→0.2.11，公开README仍描述已发布0.2.10，不擅自发布。
+- 类型、UI合成62/62（公开primitive stand-in；增加红字红边/透明底、danger-hover规则、明暗token、禁用态、标题同字号且保字重）、窗口46/46、标题38/38、18版本×4兼容、29编译文件/4模块分发及diff通过；不是原生实机视觉验收。
+- 候选 `artifacts/dsh-deepseek-chat-0.2.11-60de37a2e26a.tgz`，214019bytes/37文件，SHA256=60de37a2e26a2d39c9caf646fb6707c4e7f3c6394cb13d806636328ac4afc822；打包文件逐项同项目（packageManager按既有规则忽略）。官方desktop CLI安装退出0，37/37实际安装文件逐字节同包、版本0.2.11、持久dependency与lock的specifier/version均指60de37a2e26a；已确认安装Client含14px标题与红字红边规则。未重启DSH、npm发布或Git写入，等用户完整重开看原生视觉。
+
+## 0.2.10 npm已公开发布（2026-10-29，历史）
 
 - 用户明确要求“发布npm”，本轮仅授权0.2.10公开发布，不授权Git提交/推送。版本不再次递增，正式中英文README及安装示例更新0.2.10。
 - 类型、29编译文件/4共享模块分发、18版本×4兼容、窗口46/46、UI58/58、标题38/38及diff检查通过。正式包 `artifacts/dsh-deepseek-chat-0.2.10-98870f7d6ff2.tgz`，214036bytes/37文件，SHA256=98870f7d6ff219026ac85c49f46e7c105bd7e7f1f9c81b71e8e1b2f4f5b825e3，逐项同项目（package.json按既有规则忽略packageManager）。源码/lib与本机候选226c59不变，仅README变化；未重新安装或重启。

@@ -1,6 +1,6 @@
 {
   "name": "dsh-deepseek-chat",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "CHAT / HARNESS mode switcher for DeepSeek Harness",
   "repository": {
     "type": "git",

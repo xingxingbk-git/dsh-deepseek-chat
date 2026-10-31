@@ -231,6 +231,30 @@ async function readyChat(h:ReturnType<typeof harness>) {
   await h.ready();const generation=readyWebsite(h);h.bridge.selectMode('chat');return generation
 }
 
+test('actual client publishes host clip-only changes without changing viewport geometry or acquiring a guest',async()=>{
+  const h=harness()
+  let stop=()=>{}
+  try {
+    await h.ready()
+    let updates=0
+    stop=h.bridge.subscribe(()=>updates++)
+    h.bridge.updateViewport({...rect,borderRadius:'0px'})
+    const square=h.bridge.getSnapshot().viewport
+    assert.equal(updates,1)
+    h.bridge.updateViewport({...rect,borderRadius:'0px'})
+    assert.strictEqual(h.bridge.getSnapshot().viewport,square)
+    assert.equal(updates,1)
+    h.bridge.updateViewport({...rect,borderRadius:'16px 0px 0px'})
+    assert.equal(updates,2)
+    assert.equal(h.bridge.getSnapshot().viewport?.borderRadius,'16px 0px 0px')
+    for(const key of ['left','top','width','height'] as const)assert.equal(h.bridge.getSnapshot().viewport?.[key],rect[key])
+    assert.equal(h.nativeCalls(),0)
+    h.bridge.updateViewport({...rect,borderRadius:'0px'})
+    assert.equal(updates,3)
+    assert.equal(h.bridge.getSnapshot().viewport?.borderRadius,'0px')
+  } finally {stop();await h.dispose()}
+})
+
 test('actual client registers drag only in CHAT, aborts before release and preserves the retained website',async()=>{
   const h=harness({pendingMount:true})
   try {

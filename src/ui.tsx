@@ -9,6 +9,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import { acquireChatStyles, ensureChatStyles } from './styles.js'
 import { translate } from './i18n.js'
+import { readSurfaceBorderRadius } from './surface-clip.js'
 import type { WebsiteCommand, WebsiteNavigation } from './website-navigation.js'
 import type { ChatLanguage } from './website-settings.js'
 import type { WebsiteSession } from './protocol.js'
@@ -22,6 +23,8 @@ export interface DshChatViewportRect {
   readonly top: number
   readonly width: number
   readonly height: number
+  /** Host main-content clip, projected locally; never website or account data. */
+  readonly borderRadius?: string
 }
 
 /** Only in-memory navigation metadata; never message bodies or account secrets. */
@@ -446,14 +449,22 @@ export function DshChatChatPanel({ bridge }: PropsRuntime<'main'> & DshChatBridg
     bridge.attachViewport(element)
     const measure = () => {
       const rect = element.getBoundingClientRect()
-      bridge.updateViewport({ left: rect.left, top: rect.top, width: rect.width, height: rect.height })
+      bridge.updateViewport({ left: rect.left, top: rect.top, width: rect.width, height: rect.height, borderRadius: readSurfaceBorderRadius(element) })
     }
     const observer = new ResizeObserver(measure)
     observer.observe(element)
+    const shapeObserver = new MutationObserver(measure)
+    // Watch only the main slot's own ancestor chain; never the guest subtree.
+    let parent=element.parentElement
+    for(let depth=0;parent && depth<12;depth++,parent=parent.parentElement) {
+      observer.observe(parent)
+      shapeObserver.observe(parent,{attributes:true,attributeFilter:['class','style','data-platform','data-windows-titlebar','data-fullscreen','data-sidebar-collapsed']})
+    }
     window.addEventListener('resize', measure)
     measure()
     return () => {
       observer.disconnect()
+      shapeObserver.disconnect()
       window.removeEventListener('resize', measure)
       bridge.attachViewport(null)
       bridge.updateViewport(null)

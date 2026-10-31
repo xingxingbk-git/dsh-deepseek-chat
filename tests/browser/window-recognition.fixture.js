@@ -1,7 +1,7 @@
 import { adaptWebsiteNavigation, parseWebsiteNavigation } from '/navigation.js'
 import { readWebsiteWindowDragGeometry, parseWindowDragGeometry, websiteWindowDragScript } from '/drag.js'
 import { websiteRefreshReadiness } from '/refresh.js'
-import { mountSettings, mountSurface, mountDragSurface } from '/settings-ui.js'
+import { mountSettings, mountSurface, mountDragSurface, mountPanel } from '/settings-ui.js'
 // Fictional website DOM only. No requests to DeepSeek, credentials or real conversation data.
 const results=[]
 const check=(name,passed)=>results.push({name,passed:Boolean(passed)})
@@ -145,6 +145,8 @@ let surfaceState={mode:'chat',modeEnabled:true,desktopAvailable:true,authorizati
 const patchSurface=patch=>{surfaceState={...surfaceState,...patch};for(const listener of surfaceListeners)listener()}
 const surfaceBridge=new Proxy({
  getSnapshot:()=>surfaceState,
+ attachViewport(){},
+ updateViewport(viewport){const before=surfaceState.viewport;if(JSON.stringify(before)!==JSON.stringify(viewport))patchSurface({viewport})},
  subscribe:listener=>{surfaceListeners.add(listener);return()=>surfaceListeners.delete(listener)},
  bindWebsiteNavigation(generation,handler){navigationHandler=handler;return()=>{if(navigationHandler===handler)navigationHandler=null}},
  bindWindowDragSampler(generation,handler){const owner={generation,handler};sampler=owner;samplerBinds++;return()=>{samplerUnbinds++;if(sampler===owner)sampler=null}},
@@ -155,9 +157,57 @@ const surfaceBridge=new Proxy({
  loadWebsiteSession:async()=>null,
 },{get(target,key){return key in target?target[key]:(...args)=>{surfaceCalls.push(String(key))}}})
 const nativeFixture={acquire:async()=>{acquired++;return{lease:'fixture-lease',partition:'fixture-partition'}},release:async()=>{released++},onOpenRequested:()=>()=>{}}
+// Fictional native main-content clipping container. The actual main slot measures it.
+const nativeFrame=document.createElement('div')
+nativeFrame.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden;border-radius:0px'
+document.body.append(nativeFrame)
+const disposePanel=mountPanel(surfaceBridge,nativeFrame)
+await settle()
 const disposeSurface=mountSurface(surfaceBridge,nativeFixture,uiHost)
 await settle()
 const surface=document.getElementById('dsh-chat-website-surface'),retainedGuest=surface.querySelector('webview')
+const platformRoot=document.documentElement
+const surfaceRect=()=>{const r=surface.getBoundingClientRect();return [r.left,r.top,r.width,r.height].join(',')}
+const originalSurfaceRect=surfaceRect()
+const squareSurface=()=>{const css=getComputedStyle(surface);return css.borderTopLeftRadius==='0px' && css.borderTopRightRadius==='0px' && css.borderBottomLeftRadius==='0px' && css.borderBottomRightRadius==='0px' && css.clipPath==='none'}
+const clippedSurface=()=>{const css=getComputedStyle(surface);return css.borderTopLeftRadius==='16px' && css.borderTopRightRadius==='0px' && css.borderBottomLeftRadius==='0px' && css.borderBottomRightRadius==='0px' && css.overflow==='hidden' && css.clipPath==='inset(0px round 16px 0px 0px)'}
+platformRoot.dataset.platform='darwin';platformRoot.removeAttribute('data-windows-titlebar')
+check('macOS retains its original square surface without a clip path',squareSurface() && surface.style.borderRadius==='0px')
+platformRoot.dataset.windowsTitlebar=''
+check('a Windows titlebar marker cannot round a macOS surface',squareSurface())
+platformRoot.dataset.platform='linux'
+check('Linux and unknown desktop shells keep the existing square surface',squareSurface())
+platformRoot.dataset.platform='win32';platformRoot.removeAttribute('data-windows-titlebar')
+check('Windows without the native titlebar capability stays square',squareSurface())
+platformRoot.dataset.windowsTitlebar=''
+check('platform markers alone never invent a radius absent from the native frame',squareSurface())
+nativeFrame.style.borderRadius='16px 0 0 0';await settle()
+check('actual main-slot projection follows the native frame top-left corner and clips descendants',clippedSurface())
+check('Windows corner adaptation leaves the surface position and dimensions unchanged',surfaceRect()===originalSurfaceRect)
+check('Windows clipping excludes the corner from hit testing but keeps the nearby content interactive',!surface.contains(document.elementFromPoint(1,1)) && surface.contains(document.elementFromPoint(20,1)))
+platformRoot.dataset.platform='darwin';platformRoot.removeAttribute('data-windows-titlebar');nativeFrame.style.borderRadius='24px 8px 0 0 / 12px 6px 0 0';await settle()
+check('one shared path follows elliptical host radii without a Windows platform branch',getComputedStyle(surface).borderRadius===getComputedStyle(nativeFrame).borderRadius && surfaceState.viewport.borderRadius===getComputedStyle(nativeFrame).borderRadius && surfaceRect()===originalSurfaceRect)
+nativeFrame.style.overflow='visible';await settle()
+check('decorative radii on a non-clipping ancestor are not projected',squareSurface())
+nativeFrame.style.overflow='hidden';nativeFrame.style.borderRadius='0px';document.body.style.borderRadius='44px';document.body.style.overflow='hidden';await settle()
+check('outer document or window corners never replace the main content shape',squareSurface())
+document.body.style.borderRadius='';document.body.style.overflow='';platformRoot.dataset.platform='win32';platformRoot.dataset.windowsTitlebar='';nativeFrame.style.borderRadius='16px 0 0 0';await settle()
+nativeFrame.style.padding='10px';await settle()
+check('a different ancestor border box is not blindly copied onto the main viewport',squareSurface())
+nativeFrame.style.padding='0px';await settle()
+platformRoot.dataset.fullscreen='true'
+check('Windows fullscreen preserves the same radius as the native content frame',clippedSurface())
+platformRoot.removeAttribute('data-fullscreen')
+nativeFrame.style.left='80px';nativeFrame.style.top='40px';nativeFrame.style.width='calc(100% - 80px)';nativeFrame.style.height='calc(100% - 40px)';await settle()
+const movedRect=surface.getBoundingClientRect()
+check('resized and sidebar-offset Windows surface keeps its radius at the current viewport corner',clippedSurface() && movedRect.left===80 && movedRect.top===40 && movedRect.width===innerWidth-80 && !surface.contains(document.elementFromPoint(81,41)) && surface.contains(document.elementFromPoint(100,41)))
+patchSurface({mode:'harness'});await settle()
+check('corner styling never keeps the website visible in HARNESS',getComputedStyle(surface).display==='none')
+nativeFrame.style.left='0';nativeFrame.style.top='0';nativeFrame.style.width='100%';nativeFrame.style.height='100%';patchSurface({mode:'chat'});await settle()
+check('returning to CHAT reuses the same guest with the Windows corner intact',clippedSurface() && surface.querySelector('webview')===retainedGuest && acquired===1 && released===0)
+platformRoot.dataset.platform='darwin';platformRoot.removeAttribute('data-windows-titlebar');nativeFrame.style.borderRadius='0px';await settle()
+check('returning to macOS removes Windows clipping and restores its original rectangle',squareSurface() && surfaceRect()===originalSurfaceRect && surface.contains(document.elementFromPoint(1,1)))
+check('corner adaptation never reloads, replaces or releases the retained guest',surface.querySelector('webview')===retainedGuest && acquired===1 && released===0 && !surfaceCalls.some(name=>['reloadWebsite','logoutWebsite','clearWebsiteSession'].includes(name)))
 check('actual failed Surface is concealed and inert behind its native error placeholder',Boolean(retainedGuest) && retainedGuest.style.opacity==='0' && retainedGuest.style.pointerEvents==='none' && retainedGuest.inert && Boolean(surface.querySelector('[role="alert"]')))
 const commandCount=surfaceCommands.length
 ;[...surface.querySelectorAll('button')].find(button=>button.textContent==='Check again')?.click()
@@ -186,6 +236,10 @@ retainedGuest.dispatchEvent(new Event('dom-ready'))
 retainedGuest.dispatchEvent(new Event('did-stop-loading'))
 await until(()=>surfaceState.websiteNavigation.status==='ready' && retainedGuest.style.opacity==='1')
 check('actual ready Surface restores baseline focus attributes and binds one owned sampler',samplerBinds===1 && Boolean(sampler) && acquired===1 && !retainedGuest.inert && !retainedGuest.hasAttribute('tabindex'))
+platformRoot.dataset.platform='win32';platformRoot.dataset.windowsTitlebar='';nativeFrame.style.borderRadius='16px 0 0 0';await settle()
+check('visible DOM guest respects Windows clipped-corner hit testing without changing its bounds',retainedGuest.style.opacity==='1' && !retainedGuest.inert && clippedSurface() && !surface.contains(document.elementFromPoint(1,1)) && surface.contains(document.elementFromPoint(20,1)) && surfaceRect()===originalSurfaceRect)
+platformRoot.dataset.platform='darwin';platformRoot.removeAttribute('data-windows-titlebar');nativeFrame.style.borderRadius='0px';await settle()
+check('visible DOM guest on macOS stays square and retains the same lease and sampler',squareSurface() && surface.contains(document.elementFromPoint(1,1)) && surface.querySelector('webview')===retainedGuest && acquired===1 && released===0 && samplerBinds===1)
 const dragMount=document.createElement('div');document.body.append(dragMount)
 const hostSentinel=document.createElement('div');hostSentinel.setAttribute('data-window-drag','fixture-host-owned');hostSentinel.style.display='block';document.body.append(hostSentinel)
 document.documentElement.dataset.platform='darwin'
@@ -299,7 +353,9 @@ check('a second CHAT to HARNESS transition leaves zero native markers or hole no
 check('abort and mode cleanup never modify another host-owned drag element',hostSentinel.getAttribute('data-window-drag')==='fixture-host-owned' && hostSentinel.style.display==='block')
 disposeDrag();disposeSurface();await settle()
 check('Surface destruction unbinds exactly its own sampler and releases the fictional guest',sampler===null && samplerBinds===1 && samplerUnbinds===1 && released===1)
-hostSentinel.remove();dragMount.remove();hostLeading.remove()
+disposePanel();nativeFrame.style.borderRadius='30px';await settle()
+check('main slot disposal clears viewport and stops shape observation',surfaceState.viewport===null)
+nativeFrame.remove();hostSentinel.remove();dragMount.remove();hostLeading.remove()
 Date.now=realNow
 window.fixtureResults=results
 console.log(JSON.stringify({fixture:'fictional-only',cases:results.length,failures:results.filter(r=>!r.passed)}))

@@ -1071,3 +1071,45 @@ typecheck、窗口46、标题38、UI55、29文件分发与diff通过；安装后
 ### 0.2.10 npm公开发布 · 2026-10-29
 
 用户明确“发布npm”，本次认证与单独发布网页验证后唯一publish退出0。发布前正式README安装示例更新0.2.10；类型、29编译文件/4模块分发、18版本×4兼容、窗口46、UI58、标题38及diff通过。正式98870f7d6ff2包214036bytes/37文件，SHA256=98870f7d6ff219026ac85c49f46e7c105bd7e7f1f9c81b71e8e1b2f4f5b825e3，全部项目字节核对（packageManager按既有规范忽略）。npm初始处理时latest仍0.2.9；独立只读传播等待后第4次完整/install-v1索引均latest0.2.10，精确版本HTTP200，公开tarball逐字节同正式包。与本机226c59安装比较仅中英文README不同，35个运行/元数据文件一致，未重建业务或重装/重启。临时独立npm认证logout退出0，核实绝对路径后删除临时npmrc及空目录，终端关闭，原npm配置未改。未Git写入；后续新运行修复从0.2.11开始，npm/Git操作重新等待明确授权。
+
+### 0.2.11 Chat 设置样式优化 · 2026-10-31
+
+用户在此前仅记当前对话之后现明确要求实施：退出登录改危险操作红字红边，默认透明、悬停半透明红底；标题“切换按钮”字号对齐右侧下拉，保留字重。开工main0425e9c干净，fetch后0/0；Node24.14.1/pnpm10.33.2。核实rc.3公开Button无danger variant，普通Button字号14px/行高22px；仅限定CSS覆盖退出按钮，用state-error-primary、currentColor描边与interactive-bg-hover-danger，禁用透明并opacity .5；标题15→14、600不变。同步测试stand-in原生14px/22px契约，UI62/62、窗口46、标题38、18版本×4兼容、类型、29编译文件/4模块分发、diff通过，未新增原生视觉验收。版本从已发布0.2.10仅增一次到0.2.11，README仍保持公开0.2.10。
+
+候选60de37a2e26a，214019bytes/37文件，SHA256=60de37a2e26a2d39c9caf646fb6707c4e7f3c6394cb13d806636328ac4afc822；逐项同项目（packageManager按既有规则忽略）。官方desktop安装退出0，37/37安装同包，版本0.2.11及持久dependency/lock specifier/version均核对到同hash，Client含两项样式改动。未重启、npm发布或Git写入，用户自行完整重开验收。
+
+### 0.2.11 账号操作区对齐续调与Windows圆角只读调查
+
+用户要求打开网页端/退出登录组成与下拉等宽的块、两端对齐中间自动空白。统一设置根200px变量供actions/select，actions space-between加最小10px gap；窄窗换行而非让select单独缩窄。新增正常、280px窄窗和英文断言，UI65/65、类型、窗口46、标题38、29编译文件/4模块分发及diff通过。仍同轮未发布0.2.11，README不改公开版号。
+
+并行只读子agent查Windows圆角，未改文件：官方ui-layout rc.3/本机rc.5都有[data-windows-titlebar]主区16px左上圆角及overflow:hidden；官方win32 preload设marker。CHAT插件body portal固定浮层显式borderRadius:0绕过裁剪祖先，差异有静态依据。guest是DOM webview，不能推断CSS绝对不能裁剪，Windows Electron实机还需验证最小marker限定半径/裁剪规则。本轮未改web-surface/ui/client/viewport/拖拽，Mac网页样式原样；没有把诊断记成Windows已修复。子agent核对60de37与当前lib仅4处设置布局CSS差异，portal/radius证据前后均成立。
+
+新包bf90c459e834，214057bytes/37文件，SHA256=bf90c459e834c37fa415621432d0e21dea043c24062ed96b44c969993736943e；官方CLI安装退出0，37/37同包与dependency/lock specifier/version均同hash。未重启DSH/npm发布/Git写入，等用户完整重开看设置区，Windows可移交实机复核。
+
+### 0.2.11 统一宿主主区裁剪实现
+
+用户在调查后明确授权适配，并进一步指出Mac原生直角，要求不分两套OS、统一跟随区域裁剪。临时Windows-only 16px CSS及110×5虚构检查仅为中间尝试，未安装/交付此分支；最终删除平台条件与固定16。新增surface-clip只读取自有main槽最多12层祖先中同边界、真正overflow裁剪的内容框computed圆角（px/%），排除外窗/body/html/不同矩形/装饰性radius。Panel与原viewport一起投影borderRadius，观察几何和祖先样式变化并清理；Client圆角单独变化同样发布。Surface保持原body portal/同lease与key，统一radius+overflow和非0 clip-path，不搬guest或改矩形/登录/草稿/拖动。Mac0及Win现行16自然沿用，椭圆值也跟随。独立只读审查无当前rc.3/rc.5阻断项；多重不同半径交集、强制外部reparent/纯CSS radius动画逐帧不是本轮支持范围，已明示。
+
+补齐window-recognition fixture缺失的Input/下拉图标stand-in，新增headless五组窗口/DPI runner。初轮计数遗漏3次loop断言已纠正；统一方案初轮runner超时取消，增加连接清理与超时/进度诊断后完整重跑通过。最终116项×5、UI65、标题38、实际Client/窗口Node47、类型、18版本×4兼容、30编译文件/4模块分发及diff通过。新用例涵盖真实主槽测量→Surface投影、Mac直角、平台标记不发明圆角、椭圆/同尺寸变化、无效祖先隔离、elementFromPoint裁剪命中、同guest往返、resize和observer销毁；仍非Windows Electron原生合成/原生拖动证明。
+
+最终fdfbc12e7b79候选215021bytes/38文件，SHA256=fdfbc12e7b798618efcb6bee384dbcc3cef6624e32074f226ae0c5d102cfb72d；项目逐项核对（packageManager按旧规则忽略），官方desktop安装退出0，38/38安装同包及持久dependency/lock同hash。版本仍同轮未发布0.2.11；未重启/npm/Git。待用户完整重开Mac并在Win复验原生显示与拖动，不称两个系统已完美实测。
+### 0.2.11 网页端链接文字内边距
+
+用户指出“打开网页端”应与下方下拉框内部文字左对齐，而非与下拉外框左边缘对齐，要求给该链接加与下拉一致的左右内边距。已把链接改为padding:0 14px（与已核实rc.3原生Button md一致），actions公共列宽200→240以容纳加宽链接并保证中英文单行，gap 0由space-between填充剩余空间，视觉间隔来自链接右侧内边距；两行仍等宽且外边缘对齐，未缩小下拉列。
+
+合成Button stand-in补boxSizing:border-box与padding:0 14px以符合公开Button.module.css，使“链接文字与下拉文字同起点”断言有真实依据。UI 66/66（正常/280px窄窗/英文均单行不换行）、窗口Node47/47、标题38/38、116项×5裁剪回归、类型/18版本×4兼容/30编译文件/4模块分发及diff通过。
+
+候选e309e580d2c9，215031bytes/38文件，SHA256=e309e580d2c97b96bb2eb1fc1e515e22f9b892d61dd88238cd0cd0ecccd4734c；逐项同项目，官方desktop安装退出0，38/38安装同包及持久dependency/lock同hash，Client含240px与链接padding。仍未发布0.2.11，未重启/npm/Git；统一裁剪实现未改动。
+### 0.2.11 下拉收窄与原生填充样式
+
+用户否定e309e5把公共列宽加到240：列宽被加宽而间距未自适应填充；同时要求下拉填充/描边与原生统一。改回200px列宽，actions为gap:0+space-between自适应间距；链接只保留左侧14px内边距（去掉右侧），文字仍与下拉内文字同起点且中英文在200px内单行。
+
+原生样式用实机截图取证：采样卡片底色#2c2c2e、下拉内部#353638、边缘无更亮描边；对照主题表--dsw-specific-selector暗=neutral-bluish-800(#353638)、亮=neutral-bluish-60，确认原生选择器填充即该token且无描边。故trigger改为background:var(--dsw-specific-selector);border:0，hover用--dsw-alias-interactive-bg-hover-solid（缺省回退selector），替代原outline描边；高度/圆角/字体/组件不变。
+
+fixture补selector与hover-solid亮暗token，新增填充无描边/亮暗取值/token来源/文字同起点断言，列宽断言回200。UI 69/69、窗口47、标题38、类型、18版本×4兼容、30编译文件/4模块分发及diff通过；裁剪代码未改，沿用116×5结论。候选90dd86e2a70d，215062bytes/38文件，SHA256=90dd86e2a70d507c65fd8d74dfc0fe36328b782e42e9df08d0f7a9a7533d8317；逐项同项目，官方desktop安装退出0，38/38同包及持久dependency/lock同hash。仍未发布0.2.11，未重启/npm/Git。
+
+### 0.2.11 npm 公开发布 · 2026-10-31
+
+用户明确要求发布本插件，本轮仅授权 0.2.11 npm 发布、不授权 Git。发布前把中英 README 发布版说明与三处安装示例 0.2.10→0.2.11。检查：类型、30编译文件/4模块分发、18版本×4兼容、窗口46、UI69、标题38、裁剪116×5、diff；裁剪套件首轮第5组曾 1 项焦点时序用例失败，整轮重跑全通过，记为偶发不稳定且非本轮样式引入。
+
+正式包215061bytes/38文件，SHA256=41930ae01fbf68f50032dea79cebdba4a33db3421c2c965f57d029e01e5e7c5e，逐项同项目（packageManager按既有规则忽略），并冻结同hash副本。npm旧凭据E401，改用独立临时配置完成网页登录与本次单独发布验证，唯一publish返回+dsh-deepseek-chat@0.2.11；初次查询latest仍0.2.10，等待后完整/install-v1索引均0.2.11、精确版本HTTP200、公开tarball逐字节同正式包。临时会话logout(0)并核实/private/tmp/dsh-chat-npm-0211.Ae9brE后删除，终端关闭，原npm配置未改。与本机安装90dd86仅两份README不同，未重装/重启。此后新修复从0.2.12开始；Git仍未写入。

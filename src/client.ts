@@ -338,7 +338,7 @@ export function apply(ctx: Context): void {
     toggleSidebar: () => { ctx.layout.toggleSidebar() },
     attachViewport: element => { if (!element) { viewport = null; publish() } },
     updateViewport: next => {
-      if (viewport?.left === next?.left && viewport?.top === next?.top && viewport?.width === next?.width && viewport?.height === next?.height) return
+      if (viewport?.left === next?.left && viewport?.top === next?.top && viewport?.width === next?.width && viewport?.height === next?.height && viewport?.borderRadius === next?.borderRadius) return
       viewport = next; publish()
     },
     updateBrandAnchor: (next, owner) => {

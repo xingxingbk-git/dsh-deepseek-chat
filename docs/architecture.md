@@ -1,6 +1,35 @@
 # 架构与可行性
 
-## 0.2.10 原生控件精简布局（2026-10-29，音色保持撤回）
+## 0.2.11 账号操作区与原生选择器样式（2026-10-31）
+
+- 操作区与样式下拉共用`--dsh-chat-settings-action-width:200px`（240px 已被用户否定：会明显加宽下拉）。actions `gap:0`+`space-between`让两元素之间剩余空间自适应；链接仅保留左侧`padding:0 0 0 14px`，与原生Button md的14px内边距一致，故链接文字与下拉内文字同起点，且中英文都能在200px内单行。
+- 原生选择器填充取证：用户实机截图采样得卡片#2c2c2e、下拉内部#353638、上下边缘无更亮描边；主题表中`--dsw-specific-selector`暗=`--dsw-static-neutral-bluish-800`(#353638)、亮=`--dsw-static-neutral-bluish-60`，即原生选择器用该token填充且无描边。故`.dsh-chat-style-trigger`用`background:var(--dsw-specific-selector);border:0`，hover用`--dsw-alias-interactive-bg-hover-solid`(回退selector)，替代Button outline描边；不改高度/圆角/字体/组件。
+- 合成Button stand-in补`boxSizing:border-box`与`padding:0 14px`，与公开Button.module.css一致，避免用无内边距的假按钮证明对齐；fixture提供selector与hover-solid亮暗token以真实渲染填充色。
+
+## 0.2.11 账号操作区文字对齐（2026-10-31，240px 方案已被否定）
+
+- 账号操作区与样式下拉共用`--dsh-chat-settings-action-width:240px`的列宽（原200px不足：加内边距后最宽的中英文组合会换行）。链接`padding:0 14px`与已核实rc.3原生Button md的`0 14px`一致，因此链接文字与下拉按钮内文字起点相同；actions `gap:0`+`space-between`使剩余空间自动落到两元素之间，视觉间隔由链接右侧内边距形成，两行外边缘仍分别对齐。
+- 合成Button stand-in补`boxSizing:border-box`与`padding:0 14px`，与公开Button.module.css一致，避免测试用无内边距的假按钮证明对齐。
+
+## 0.2.11 统一主区域裁剪投影（2026-10-31）
+
+- 用户明确要求同一套区域裁剪，不按Win/Mac分别硬编码。临时Windows-marker+16px CSS方案已撤回，未作为最终候选安装；最终无平台分支/固定16px。`surface-clip.ts`仅沿自有main槽的最多12层祖先读取公共DOM几何/computed样式：找与anchor四边一致（<.75px容差）且双轴overflow实际裁剪的内容框，返回其数值px/%圆角，跳过装饰性overflow-visible、不同矩形、body/html外窗圆角；零半径归一化0px。已核实rc.3/rc.5仅centerCol单层对应内容裁剪，Mac为0、Win为16px左上，半径来源为宿主而非本插件常量。
+- DshChatChatPanel把本地borderRadius随既有viewport投影；Client同尺寸但半径变化也发布更新。现有ResizeObserver加祖先属性MutationObserver事件驱动重测，观察范围只有自有槽祖先，不遍历guest/页面正文；卸载统一清理，无后台轮询。支持窗口大小/平台样式/主区class/style变化；非现行原生结构的多层不同圆角精确交集、跨容器强制reparent及纯CSS半径动画逐帧追随未实现，不将它泛称任意CSS裁剪引擎。
+- 原body portal保留，以免迁移portal目标导致React重建webview而丢草稿/登录。surface按viewport真实borderRadius设置border-radius与overflow:hidden，圆角非0时再显式clip-path inset(round …)裁后代，0时无clip-path，Mac现有矩形几何和外观不变。不会改宿主DOM、native IPC、窗口拖拽计算或guest lease/key/ref。
+- 浏览器fixture挂真实主槽测量/Surface/拖拽组件，虚构host clip与DOM webview。覆盖无OS分支的圆角/椭圆同步、平台标记不发明圆角、无效祖先隔离、角落真实elementFromPoint、位移/缩放、同guest模式往返与观察器销毁；可见DOM guest也覆盖，但不等于Windows Electron真实合成/原生拖窗验收。
+
+## 0.2.11 操作区对齐与Windows圆角只读调查（2026-10-31，实施前历史）
+
+- 自有设置根统一定义`--dsh-chat-settings-action-width:200px`，账号actions和样式select共用宽度/flex-basis，右对齐同内边距卡片；actions用space-between与10px最小gap，窄窗换行而非收窄某一列导致错位。只动设置CSS，不修改Mac网页容器。
+- 官方ui-layout rc.3与本机rc.5的lib/client.js:73均包含 `[data-windows-titlebar] .…_frame{--dsh-windows-content-radius:16px}` 和 `. …_centerCol{border-radius:var(--dsh-windows-content-radius) 0 0 0;corner-shape:round}`，centerCol overflow:hidden。本机app.asar/lib/preload-app.cjs:573–578只在process.platform为win32时设marker和40px标题栏。该marker比单看data-platform更准确，Mac不应启用。
+- 插件src/web-surface.tsx:458–499将固定浮层portal到document.body，:468明确borderRadius:0，因此不在centerCol的圆角裁剪祖先内；宿主main槽只测矩形位置，不传递裁剪链。此路径可解释Windows直角差异。guest是DOM `<webview>`（不是额外坐标WebContentsView），不能断言CSS绝对裁不了；未来仅Windows marker下复用宿主半径+overflow/必要clip-path是否确实裁到Electron guest仍需Windows实机验证。本轮不改web-surface/viewport/拖拽，不把静态调查当作Windows修复。
+
+## 0.2.11 设置样式微调（2026-10-31）
+
+- 继续使用公开Button outline组件，不改退出逻辑；Button公开variant未提供danger，故仅对本插件退出按钮局部覆盖：`state-error-primary`作为文字色、描边用currentColor、默认透明，悬停使用`interactive-bg-hover-danger`半透明红底，禁用不着底并opacity .5。明暗主题由宿主token决定，替代0.2.10中性灰底。
+- 核对已安装rc.3 Button.module.css：普通Button字号14px、行高22px；标题15→14px，600字重与行布局不变，下拉自身字体不覆盖。合成Button stand-in同步已核实的14px/22px契约，新增明暗危险色、禁用态和标题字号断言。
+
+## 0.2.10 原生控件精简布局（2026-10-29，历史，音色保持撤回）
 
 - 切换器文本宽度改用 `Range.getBoundingClientRect()` 的小数宽度（不再临时释放宽度、也不读会被裁剪的 scrollWidth），宽度按小数写入并保留 1px 容差，避免 1px 舍入把本可完整显示的文案切出省略号；改动文案时 layout effect 同步重算。保存流程不做可见状态切换（不换文案、不禁用输入、无 aria-busy），仅内部防重复提交。
 - 切换器采用“CSS分配空间+单次测量”混合：host 占满剩余行宽(justify-end，pill仍按内容收缩)，按钮尺寸由 useLayoutEffect/ResizeObserver 在测量真实文本宽度与容器可用宽度后写成显式像素宽度，并给出四阶段算法：等宽→收短→截断长→等宽截断，下限=图标模式按钮宽度(内边距×2+15px icon)。测量用临时释放宽度后的 scrollWidth，不轮询坐标、不读宿主私有状态；图标模式下完全交给内容自然宽度。SVG 已抽为组件且已换为用户设计的填充路径（仅保留 path、去除白色底板、fill 用 currentColor 跟随主题，viewBox 20/渲染20 不变（图标态最小宽=8px×2+20px；侧栏 PanelIcon 独立保持 18 不受影响）），替换图标不影响布局契约。只在现有严格验证sidebar形态中标记brand为不可收缩，字标102px/原生图标保持尺寸，剩余空间不足仅压缩控件、文本ellipsis/title不变；属性由原adapter生命周期恢复，不改未知结构。
