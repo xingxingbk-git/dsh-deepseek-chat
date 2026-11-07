@@ -3,6 +3,14 @@
 
 本文件记录全项目的关键工作历史及理由，包含需求、调研、设计、实现、验证、失败尝试、协作和 Git 交付。当前状态以 [handoff.md](handoff.md) 为准，详细需求/架构不在此重复全文。只追加有实质影响的阶段摘要，不复制完整聊天或敏感数据。
 
+## 2026-11-08 发布文档独立变更请求
+
+用户要求提交剩余5份发布文档。已确认功能PR #11合并至main/51a8f6a，从该基线建立docs-npm-release-0218，仅同步README中英发布版/安装示例与AGENTS/handoff/worklog的npm验证记录及Git状态；不包含源码/预编译产物，不重复发布npm，不直接修改main或自动合并。检查文档差异与分发清单后提交推送并创建独立PR，结果以该分支对应GitHub变更请求为准。
+
+## 2026-11-08 0.2.18 已公开发布 npm
+
+用户明确授权发布0.2.18。中英README的版本及安装示例更新后，类型/分发33文件4模块通过；正式包222875bytes/41文件，SHA256=451b5236d214583bc16a94d6083634c5f622892b16b0e72bbd83f405fea60626，与本机cb1983候选仅两份README不同。通过独立临时配置完成web登录/本次publish网页确认，唯一publish退出0；用户再要求确认时检测到已成功，未重复publish。公开接口短暂404后，有界轮询确认完整/install-v1 latest均0.2.18，精确版本与41文件tarball可读、字节同本包、sha512匹配、中英安装示例为0.2.18。临时npm logout成功、目录核实后删除、PTY关闭，原npm配置未使用；未重装/重启、未合并PR #11或执行Git提交推送。README/发布记录留本地待后续Git同步，不把npm发布当作PR合并；后续修复0.2.19起。
+
 ## 2026-11-08 创建 PR #11（0.2.18）
 
 按用户本轮明确授权，从main/e073147创建fix-chat-sidebar-alignment分支，提交bbbb313并推送；PR #11：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/11，base main。11文件包含源码/预编译lib/回归/内部文档，不含artifacts/node_modules/tgz。创建前重新通过类型/分发33文件4模块/sidebar-rows48项/diff检查；PR正文记录首候选基准遗漏及未实机验收边界，并附官方dsh badge。未直接改main、未合并、未发布npm或重启DSH。
