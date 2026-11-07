@@ -1,6 +1,22 @@
 <!-- W018命名说明：按用户要求，历史记录的名称/路径示例统一为当前名称dsh-chat；历史版本、提交及hash仍对应原轮次。当前事实以最新W018记录和handoff为准。 -->
 # 项目决策与工作记录
 
+## 2026-11-08 0.2.19 已公开发布 npm
+
+用户明确授权发布0.2.19。中英README发布版/安装示例更新为0.2.19，类型/分发33文件4模块通过；正式包222761bytes/41文件SHA256=54a3005fe0fa64bb19ed39694b3d73b52c0d517ac98260a3953d431a72f0cfff。独立临时配置完成web登录与publish网页确认，唯一publish退出0；注册表短暂404后核验完整/install-v1 latest、精确版本、41文件tarball字节与sha512一致，中英README为0.2.19。临时npm logout成功、目录核实删除、PTY关闭，原npm配置未使用；未重装/重启、未Git提交推送，本机仍为发布前0.2.19候选。
+
+## 2026-11-08 用户授权安装0.2.19候选
+
+用户后续明确要求装新版本试用。核对fa12b7ff7b94包SHA256/版本后，官方desktop CLI add本地包--save-exact退出0；逐文件确认41/41安装同包、version=0.2.19、profile dependency/lock均指向正确候选。先前“保持卸载”限制由本次明确安装指令替代。未自动重启/npm/Git，待用户完整重开DSH验收，不把磁盘安装成功等同于运行中Client已更新。
+
+## 2026-11-08 0.2.19 保存服务错误仅在设置提示
+
+用户明确要求去掉品牌区保存服务错误浮框，Chat设置已有提示即可。DshChatBrandControl删除state.error文本/重试动作，保留独立兼容性警告；不改连接、认证和官网业务状态，删unused followup CSS。品牌回归改为27项，验证HARNESS/CHAT/超时均不弹框、设置仍有错误与可用重试、登录官网账号保留、兼容portal定位及清理；类型/分发33文件4模块/UI72/sidebar48/窗口48/diff通过。0.2.18→0.2.19本轮一次；包222762bytes/41文件SHA256=fa12b7ff7b94c7e1a7432096dd9ef061e099193fcf89f94675f0b8134a1ec007逐文件一致。尊重用户已卸载，不重新安装/重启，复核desktop仍无依赖或安装文件；未发布npm或Git提交推送。此为呈现层调整，不声称解决热卸载残留问题。
+
+## 2026-11-08 卸载后未重启仍残留界面（仅调查）
+
+用户截图显示卸载后品牌切换器及“无法连接CHAT登录保存服务”提示仍在。只读核查desktop profile：package.json已无dsh-deepseek-chat依赖，node_modules包文件也不存在，确认磁盘卸载而非安装记录残留。提示来自client.ts refreshAuthorization失败分支；品牌UI由ui.tsx的独立host+React portal绘制，正常组件卸载应disconnect observer/clearInterval/remove host，client effect正常销毁应撤回slots/监听器/样式。官方0.2.2 client-modules含manifest reconcile→loader.remove→fiber卸载机制，plugin-manager卸载亦先selectBundle(false)/reload再移除包。因此截图符合已加载Client实例/portal未随热卸载完全撤回、远端服务已不可用的残留状态，不能简单归为“必须重启是设计如此”。尚未复现卸载时间线或获取清理异常，无法确定是manifest通知/fiber销毁或插件清理中断。未重新安装、重启、清凭据或改源码；若修复需新增真实卸载链路证据与生命周期回归，不能用连接失败推断退出登录。
+
 本文件记录全项目的关键工作历史及理由，包含需求、调研、设计、实现、验证、失败尝试、协作和 Git 交付。当前状态以 [handoff.md](handoff.md) 为准，详细需求/架构不在此重复全文。只追加有实质影响的阶段摘要，不复制完整聊天或敏感数据。
 
 ## 2026-11-08 发布文档独立变更请求

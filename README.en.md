@@ -10,7 +10,7 @@
 
 DeepSeek Chat is a **DSH Desktop plugin**. Choose **CHAT** to use the real [DeepSeek Chat website](https://chat.deepseek.com/) inside DSH, or choose **HARNESS** to return to your original workspace.
 
-Published release: **0.2.18** · Built for **DSH Desktop** · The CHAT website’s language, appearance and text size follow DSH.
+Published release: **0.2.19** · Built for **DSH Desktop** · The CHAT website’s language, appearance and text size follow DSH.
 
 ## Features
 
@@ -52,13 +52,13 @@ After a normal sign-in, the plugin attempts to save the website grant and restor
 Enter this in the DSH plugin installer:
 
 ```text
-dsh-deepseek-chat@0.2.18
+dsh-deepseek-chat@0.2.19
 ```
 
 Or use the CLI:
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.18
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.19
 ```
 
 Use the same method for a first installation or an update. If DSH’s release age policy temporarily blocks a newly published version, retry later.
@@ -84,7 +84,7 @@ This installs the version already pushed to the repository, with no manual build
 Give the `.tgz` package to the DSH plugin manager, or run:
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.18.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.19.tgz
 ```
 
 Replace the path with your package location.
