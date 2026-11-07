@@ -2,7 +2,15 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
-## 当前 Git 状态：PR #11 待审阅（2026-11-08）
+## 0.2.18 npm 已公开发布（2026-11-08）
+
+用户明确要求发布0.2.18，完成临时配置网页登录及本次publish网页授权。唯一一次 `npm publish` 已返回 `+ dsh-deepseek-chat@0.2.18` 与 `PUBLISH_EXIT=0`；随后用户要求重新确认，已检查确为成功，未重复publish。经过短暂404传播期后，完整/install-v1索引latest均0.2.18、精确版本可读；公开tarball逐字节同正式包、sha512 integrity匹配、41文件和中英README版本核对通过。中英README已同步0.2.18；正式包222875bytes/41文件，SHA256 `451b5236d214583bc16a94d6083634c5f622892b16b0e72bbd83f405fea60626`，与本机候选仅两份README不同。临时npm会话已logout并核实删除临时目录，PTY已关闭；原npm配置未使用。未重装/重启、未合并PR、未执行本轮Git提交推送。README与发布记录仍为本地未提交修改，PR正文的未发布状态是创建时快照；后续新修复从0.2.19开始。
+
+## 当前 Git 状态：PR #11 已合并，发布文档独立交付（2026-11-08）
+
+本轮创建请求前确认PR #11已于2026-11-08 00:58:44（Asia/Shanghai）合并，远端main为 `51a8f6a`。用户要求为剩余发布文档创建变更请求，现从该main建立 `docs-npm-release-0218`：仅同步两份README与AGENTS/handoff/worklog，共5份文档，不重复提交已合并功能、不修改版本或运行产物、不重新发布npm。下节为PR #11创建时的历史记录。
+
+### PR #11 创建记录（历史）
 
 用户明确要求为本会话变更创建变更请求。已从 `main/e073147` 新建并推送 `fix-chat-sidebar-alignment` 分支，功能提交 `bbbb313`（11文件），PR #11：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/11，目标 `main`。包含同轮0.2.18侧栏/图标修复、预编译lib、48项回归与文档；创建前重新通过类型/分发/48项sidebar-rows/diff检查。未合并、未npm发布、未重启；下方“未Git”描述仅代表各阶段当时状态，不再代表当前状态。
 
