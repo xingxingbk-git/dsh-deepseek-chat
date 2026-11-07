@@ -2,6 +2,10 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
+## 当前 Git 状态：PR #13 待审阅（2026-11-08）
+
+用户要求为本轮0.2.19变更创建变更请求。已从main（含PR #12合并）基线新建分支fix-settings-only-service-notice，提交b655496（13文件：源码/预编译lib/回归/README/需求与记录），PR #13：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/13，目标main。创建前重新通过类型/分发33文件4模块/品牌27项/UI72/侧栏48/diff检查；未包含artifacts、安装包或凭据。未合并、未重装/重启；工作树干净，npm 0.2.19已按用户授权独立发布。
+
 ## 0.2.19 npm 已公开发布（2026-11-08）
 
 用户明确授权发布0.2.19。中英README版本/安装示例更新为0.2.19后，类型/分发33文件4模块通过；正式包222761bytes/41文件，SHA256 `54a3005fe0fa64bb19ed39694b3d73b52c0d517ac98260a3953d431a72f0cfff`。经独立临时配置网页登录与本次publish确认，唯一一次publish退出0；注册表短暂404传播后核验完整/install-v1 latest均0.2.19，公开tarball逐字节同本包、sha512 integrity匹配、41文件和中英README版本正确。临时npm会话已logout、目录核实后删除、PTY关闭，原npm配置未使用。本机desktop安装的仍是发布前0.2.19候选（与公开包仅两份README不同），未重装/重启；发布文档与版本改动本地未提交。
