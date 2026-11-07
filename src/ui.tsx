@@ -437,6 +437,7 @@ export function DshChatChatNavigation({ bridge, wide, expandSidebar }: PropsRunt
         </div>
         <div className="dsh-chat-search-actions"><Tooltip label={t(refreshing ? '正在刷新官网对话列表…' : '刷新官网对话列表')} delayMs={500}><button type="button" className="dsh-chat-icon-button" aria-label={t("刷新官网对话列表")} aria-busy={refreshing} disabled={refreshDisabled} onClick={()=>bridge.refreshWebsiteNavigation()}><IconRefreshOutlineRegular size={14} className={refreshing ? 'dsh-chat-refreshing' : undefined}/></button></Tooltip></div>
       </header>
+      <div className="dsh-chat-navigation-list-area">
       <div className="dsh-chat-navigation-list">
         {refreshing && <p className="dsh-chat-navigation-status" role="status">{t("正在刷新官网对话列表…")}</p>}
         {navigation.authenticated===true && navigation.status==='ready' ? <>
@@ -450,6 +451,7 @@ export function DshChatChatNavigation({ bridge, wide, expandSidebar }: PropsRunt
         {navigation.error && <p className="dsh-chat-navigation-status" role="alert">{t(navigation.error)}</p>}
         {state.websiteNavigationRefreshError && <p className="dsh-chat-navigation-status" role="alert">{t(state.websiteNavigationRefreshError)}</p>}
         {state.websiteNavigationRefreshError==='官网对话列表同步超时，请点击「重新加载」。' && <button type="button" className="dsh-chat-text-button" onClick={()=>bridge.reloadWebsite()} disabled={!state.modeEnabled || !state.desktopAvailable || ['signing-in','signing-out'].includes(state.websiteAuthenticationStatus)}>{t("重新加载")}</button>}
+      </div>
       </div>
     </>}
   </section>

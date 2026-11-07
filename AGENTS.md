@@ -8,13 +8,17 @@
 
 - 入口：`src/index.ts`（Host，Cordis 插件）、`src/client.ts`（Web Client）；`package.json` 的 `dsh.bundle.patch` / `dsh.client` 声明扩展点，`cordis.patch.yml` 是 Cordis layer。
 - 产物：`lib/` 为**预编译分发**（含 `lib/types/`、`lib/build-manifest.json`），与源码一起提交。
-- 当前版本 **0.2.17**，已发布 npm；本机桌面版为 DSH **0.2.2-rc.1**。
+- 当前本机候选 **0.2.18**（列表宽度/更多按钮修复，未发布），npm 公开版 **0.2.17**；本机桌面版为 DSH **0.2.2-rc.1**。
 
-## 当前状态（2026-11-07）
+## 当前状态（2026-11-08）
+
+- 最新安装候选为 `cb1983e76d01`（同轮0.2.18）：用户追加搜索/刷新圆角统一，原8px/6px改为一条主题sm规则；sidebar-rows新增动态token/更多xs保护验证共48项通过，UI72/类型/分发通过、41安装文件同包。未重启/npm/Git；下述listArea修复保留。
+- 0.2.18 上一安装候选 `ca026f87cc45`：首候选被用户截图否定，生产实现与回归参考均漏掉原生 listArea（负边距抵消 root 右 inset）。已补齐自有 wrapper，回归按官方 root→listArea→treeBody→list 完整结构，新增滚动条边界/溢出/滚动检查，45项通过、首候选在正确基准下18项失败。更多按钮仅变色交互保留；41安装文件同包。首轮36项基准不完整，不能作为已对齐证据。未自动重启/npm/Git，仍同轮0.2.18，待用户完整重开复验；详见handoff顶部。
+- PR #10 已合并，当前代码基线 `main/e073147`；下列为上一轮交付摘要。
 
 - 0.2.12–0.2.17 已完成并发布：0.2.2 系列适配、外链改系统浏览器、Mermaid 导出附件保存、侧栏提示浮层、提示文案、切换器圆角与右对齐。
-- npm `latest` 为 0.2.17，公开 tarball 与正式包逐字节一致；本机安装的是同版本候选，与公开包仅 README 不同。
-- **Git**：本会话改动已提交推送到分支 `dsh-022-links-downloads-and-switcher`（`92ce606`），并创建 PR #10（base `main`）；`main` 未被直接修改，等待审阅合并。清单与复核步骤见 handoff。
+- 0.2.17 公开 tarball 已验证与正式包逐字节一致（历史发布证据）；当前本机已升级未发布的 0.2.18 候选。
+- **Git**：0.2.12–0.2.17 经 PR #10 合并至 `main/e073147`。用户已授权创建本轮PR：0.2.18提交 `bbbb313` 已推送分支 `fix-chat-sidebar-alignment`，PR #11 待审阅（未合并/未npm发布）。上方各阶段“未Git”仅为历史状态。
 - 未实机验收：系统浏览器外开、Electron 原生“另存为”、真实账号流程、Windows 原生拖拽/圆角合成。详见 handoff。
 
 ## 目录与职责（简）
@@ -91,6 +95,7 @@ pnpm check:compatibility && pnpm check:sdk-contracts
 pnpm check:window-contracts && pnpm check:sidebar-022
 pnpm check:website-links && pnpm check:website-downloads
 pnpm check:brand-notice && pnpm check:switcher-alignment
+pnpm check:sidebar-rows
 node scripts/check-presentation-settings-browser.mjs
 node scripts/check-title-stability-browser.mjs
 node scripts/check-window-recognition-headless.mjs   # 5 组窗口/DPI；--quick 单组

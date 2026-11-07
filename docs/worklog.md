@@ -3,6 +3,26 @@
 
 本文件记录全项目的关键工作历史及理由，包含需求、调研、设计、实现、验证、失败尝试、协作和 Git 交付。当前状态以 [handoff.md](handoff.md) 为准，详细需求/架构不在此重复全文。只追加有实质影响的阶段摘要，不复制完整聊天或敏感数据。
 
+## 2026-11-08 创建 PR #11（0.2.18）
+
+按用户本轮明确授权，从main/e073147创建fix-chat-sidebar-alignment分支，提交bbbb313并推送；PR #11：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/11，base main。11文件包含源码/预编译lib/回归/内部文档，不含artifacts/node_modules/tgz。创建前重新通过类型/分发33文件4模块/sidebar-rows48项/diff检查；PR正文记录首候选基准遗漏及未实机验收边界，并附官方dsh badge。未直接改main、未合并、未发布npm或重启DSH。
+
+## 2026-11-08 搜索/刷新圆角统一（同轮0.2.18，当前cb1983e76d01）
+
+用户要求检查搜索/刷新图标悬停背景圆角，发现搜索用主题sm=8px、刷新来自通用按钮固定6px，确认不是视觉偏差。将两者合并到一条sm圆角规则；更多按钮xs及其他图标不变。sidebar-rows新增3项（8px相等、token动态改为10px仍同步、更多保留4px），48项全过；UI72/类型/分发通过。当前候选222876bytes/41文件，SHA256=cb1983e76d01dc11ad20c6aae89a33b6e262c65cb40f8a622282c271d415e20f，官方desktop安装与41/41文件、持久dependency/lock、构建圆角规则核对通过。仍0.2.18，不自动重启/npm/Git，待用户重开验收。
+
+## 2026-11-08 0.2.18 续修：首候选缺失 listArea（历史候选 ca026f87cc45）
+
+用户截图实报首候选滚动条/行宽仍不对。复核官方完整 JSX 与 CSS，发现漏掉 root 与 list 之间的 listArea（含负 edge-inset margin），首轮回归基准也遗漏此层，故此前36项通过不能证明对齐。补自有 list-area wrapper 与原生对应样式，并在原生参考中补 header/listArea/treeBody。新增滚动条四边界、溢出/滚动检查，首候选在正确基准下18项失败，修后45项全过；合成280px侧栏可见背景左右11/269、滚动条273..278，与原生参考相同，非用户窗口采样。类型/分发33文件4模块/UI72/sidebar54/切换器对齐7/浮层20/窗口48通过。保持同轮0.2.18，当前包222865bytes/41文件SHA256=ca026f87cc450701c2efe5ce77667511591969ccb2b49d417eb24c6cdcc85fdb，官方desktop更新成功，41/41安装同包、持久dependency/lock及listArea markup/CSS一致；未自动重启/npm/Git，待用户完整重开复验。首轮673256候选作失败历史保留，更多按钮仅变色交互继续保留。
+
+## 2026-11-08 0.2.18 列表与更多按钮首候选（失败历史）
+
+用户确认实施并追加更多图标仅变色的交互要求。按本机 0.2.2-rc.1 app.asar 中 WorkspaceBrowser/SessionRow 样式对齐自有 root/list/row 盒模型：root 右 inset、list 左补偿/5px gutter/2px 外距、行 transparent paint-inset border + padding-box + md 圆角与统一 hover fill；标题组/搜索头/rail 相应处理。仅更多按钮覆盖通用 icon-button 背景，tertiary→primary 变色、24px 命中区、内缩键盘焦点；菜单与官网操作不改。新增 check:sidebar-rows 36 项全部通过，旧 HEAD 样式负向回归 17 项预期失败；原生几何为冻结 CSS，Menu 为 API stand-in，无实机验收结论。类型/分发33文件4模块/兼容26×4/SDK11/sidebar54/UI72/浮层20/切换器对齐7/窗口48通过。0.2.17→0.2.18只增一次，222799bytes/41文件候选SHA256=673256bc7100d202697ed8d5a184ef2312fc30d28886495009989b908d1151e8，官方desktop安装成功，41/41同包、持久dependency/lock和构建CSS一致。未自动重启/npm/Git，README仍为公开0.2.17，待用户完整重开验收；细节与命令见handoff顶部。
+
+## 2026-11-08 CHAT 侧栏对话行宽度调查（仅分析）
+
+用户报告新版 DSH 中 CHAT 对话选项偏长。本机 Info.plist 与只读 app.asar 确认为 0.2.2-rc.1。官方 workspace 列表根节点含 `padding-right:var(--dsh-session-list-edge-inset)`（继承 sidebar-inline-padding=8px）；原生列表另保留 2px 滚动条外距、5px gutter 与剩余 padding，原生 session/project 行还以 `border-inline:3px solid transparent` 和 `background-clip:padding-box` 收进可见背景。插件 `src/styles.ts` 的 navigation 根没有对应根层右 padding，列表只沿用滚动条补偿公式（8−5−2=1px），conversation-item 也没有原生透明边框与背景裁剪，左侧仍固定 12px。由此确认插件与 0.2.2 原生行几何不一致，确有右侧伸得更远的样式原因，不是标题字符过长。上述为安装包 CSS 与插件源码的静态对比，未测量真实窗口节点，不将各层差值直接称为实机像素结果。本轮未改源码/版本、未构建安装/重启、未发布或 Git 写入；下一步如实施，应对齐完整 root/list/item 盒模型并覆盖选中/hover/菜单与宽窄侧栏回归，而非仅写死减宽。
+
 ## 记录格式
 
 每条记录使用稳定 ID、日期（Asia/Shanghai）、任务 ID，写明目标/触发、实际工作和文件/产物、发现或决策及理由、验证/失败与限制、对后续任务的影响、下一步及已有提交/交付证据。尚未完成的 Git 操作不能写成成功；当前条目所在提交用 Git 查，不硬编码自身哈希。
