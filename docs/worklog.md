@@ -3,6 +3,10 @@
 
 本文件记录全项目的关键工作历史及理由，包含需求、调研、设计、实现、验证、失败尝试、协作和 Git 交付。当前状态以 [handoff.md](handoff.md) 为准，详细需求/架构不在此重复全文。只追加有实质影响的阶段摘要，不复制完整聊天或敏感数据。
 
+## 2026-11-08 创建 PR #11（0.2.18）
+
+按用户本轮明确授权，从main/e073147创建fix-chat-sidebar-alignment分支，提交bbbb313并推送；PR #11：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/11，base main。11文件包含源码/预编译lib/回归/内部文档，不含artifacts/node_modules/tgz。创建前重新通过类型/分发33文件4模块/sidebar-rows48项/diff检查；PR正文记录首候选基准遗漏及未实机验收边界，并附官方dsh badge。未直接改main、未合并、未发布npm或重启DSH。
+
 ## 2026-11-08 搜索/刷新圆角统一（同轮0.2.18，当前cb1983e76d01）
 
 用户要求检查搜索/刷新图标悬停背景圆角，发现搜索用主题sm=8px、刷新来自通用按钮固定6px，确认不是视觉偏差。将两者合并到一条sm圆角规则；更多按钮xs及其他图标不变。sidebar-rows新增3项（8px相等、token动态改为10px仍同步、更多保留4px），48项全过；UI72/类型/分发通过。当前候选222876bytes/41文件，SHA256=cb1983e76d01dc11ad20c6aae89a33b6e262c65cb40f8a622282c271d415e20f，官方desktop安装与41/41文件、持久dependency/lock、构建圆角规则核对通过。仍0.2.18，不自动重启/npm/Git，待用户重开验收。

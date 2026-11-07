@@ -2,6 +2,10 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
+## 当前 Git 状态：PR #11 待审阅（2026-11-08）
+
+用户明确要求为本会话变更创建变更请求。已从 `main/e073147` 新建并推送 `fix-chat-sidebar-alignment` 分支，功能提交 `bbbb313`（11文件），PR #11：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/11，目标 `main`。包含同轮0.2.18侧栏/图标修复、预编译lib、48项回归与文档；创建前重新通过类型/分发/48项sidebar-rows/diff检查。未合并、未npm发布、未重启；下方“未Git”描述仅代表各阶段当时状态，不再代表当前状态。
+
 ## 0.2.18 最新候选：搜索/刷新共用圆角规则（2026-11-08）
 
 用户截图指出刷新与搜索悬停色块圆角可能不同。源码确认：搜索为主题 `--dsw-radius-sm`（8px），通用 icon-button 为写死6px。自有CSS将搜索与header刷新合并为同一条sm圆角规则，不改变更多按钮xs（4px）或其他图标。新增三项计算样式验证（8px一致、改token至10px仍同步、更多保持4px），sidebar-rows共48项全过，UI72/类型/分发通过。仍为同轮0.2.18，当前安装包 `artifacts/dsh-deepseek-chat-0.2.18-cb1983e76d01.tgz`（222876bytes/41文件，SHA256 `cb1983e76d01dc11ad20c6aae89a33b6e262c65cb40f8a622282c271d415e20f`），官方安装退出0，41/41文件同包，持久dependency/lock与构建圆角规则已核对。未自动重启/npm/Git，待用户重开看效果；替代下节ca026候选，listArea修复保留。
