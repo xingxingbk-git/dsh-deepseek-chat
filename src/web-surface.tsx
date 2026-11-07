@@ -2,13 +2,28 @@ import { createPortal } from 'react-dom'
 import { createElement, useCallback, useEffect, useRef, useState } from 'react'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { DesktopBrowserBridge, DesktopBrowserReservation } from '@deepseek-ai/dsh-client-ui-sidebar-browser/types'
-import { DshChatStyles, useDshChat, type DshChatBridgeProps } from './ui.js'
+import { DshChatStyles, useDshChat, type DshChatBridgeProps, type WebsiteNotice } from './ui.js'
 import { translate } from './i18n.js'
 import { parseWindowDragGeometry, websiteWindowDragScript } from './window-drag.js'
 import { emptyNavigation, parseWebsiteNavigation, websiteCommandScript, type WebsiteCommand } from './website-navigation.js'
 import { parseWebsiteSession, websiteSessionCaptureScript, websiteSessionRestoreScript } from './website-session.js'
+import { handleWebsiteLink } from './website-links.js'
+import { parseWebsiteDownload, websiteDownloadScript } from './website-downloads.js'
+import type { WebsiteFile } from './website-downloads.js'
 
 const WEBSITE_URL = 'https://chat.deepseek.com/'
+
+/** Fixed codes only; the page never supplies these strings. */
+function noticeText(notice: WebsiteNotice | null | undefined, t: (text: string) => string): string | null {
+  switch (notice) {
+    case 'link-unavailable': return t('无法打开该链接，请使用浏览器访问')
+    case 'download-failed': return t('附件保存失败，请重试')
+    case 'download-too-large': return t('附件超过 16 MB，无法保存')
+    case 'download-saved': return t('附件已保存')
+    case 'download-requested': return t('附件已开始下载')
+    default: return null
+  }
+}
 
 /** Runs entirely in our guest. Only an enum crosses back; no draft text is exported or stored. */
 function websiteRefreshReadiness(doc: Document, origin: string): 'ready' | 'draft' | 'busy' | 'unavailable' {
@@ -400,15 +415,36 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     }, { signal: events.signal })
     const offOpen = nativeBrowser.onOpenRequested(reservation.native.lease, url => {
       if (events.signal.aborted) return
-      let target: URL
-      try { target = new URL(url) } catch { return }
-      if (target.protocol === 'https:' && target.hostname === 'chat.deepseek.com' && target.username === '' && target.password === '') {
-        navigate(target.href)
-      } else {
-        report(false, '该链接未在此视图中打开，请使用系统浏览器访问。')
-      }
+      const route = handleWebsiteLink(url, (target, name, features) => window.open(target, name, features))
+      if (route.kind === 'same-site') { navigate(route.url); return }
+      // External pages go to the system browser: the right-Sidebar browser belongs to
+      // HARNESS and would change this view. A failed dispatch is never a page-load error.
+      if (route.kind === 'failed' || route.kind === 'rejected') bridge.reportWebsiteNotice(generation, 'link-unavailable')
     })
     events.signal.addEventListener('abort', offOpen, { once: true })
+    // Generated attachments: the guest's own blob is read on the user's explicit export
+    // action, then saved through the public file-actions service. Downloads stay blocked.
+    let downloadPolling = false
+    const pollDownloads = async () => {
+      if (downloadPolling) return
+      const snapshot = bridge.getSnapshot()
+      const enabled = snapshot.mode === 'chat' && !snapshot.settingsOpen
+      if (!active() || !approvedOrigin()) return
+      downloadPolling = true
+      try {
+        const value = parseWebsiteDownload(await executeScript(websiteDownloadScript('poll', enabled)))
+        if (value === null) return
+        if (value.kind === 'file') bridge.saveWebsiteFile(value)
+        else if (value.kind !== 'busy') bridge.reportWebsiteNotice(generation, value.kind === 'too-large' ? 'download-too-large' : 'download-failed')
+      } catch {
+        // Polling is best-effort; a closed guest simply stops exporting until remount.
+      } finally { downloadPolling = false }
+    }
+    const downloadTimer = setInterval(() => { void pollDownloads() }, 500)
+    events.signal.addEventListener('abort', () => {
+      clearInterval(downloadTimer)
+      try { void Promise.resolve(current.executeJavaScript(websiteDownloadScript('dispose'))).catch(() => {}) } catch { /* the guest is already gone */ }
+    }, { once: true })
   }, [bridge, nativeBrowser, reservation])
 
   useEffect(() => {
@@ -456,12 +492,12 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
   const guestUsable=presentationReady && !projectionError && state.websiteAuthenticationStatus!=='signed-out' && state.websiteAuthenticationStatus!=='signing-out' && !logoutError
   const websiteStatusMessage=state.webError || (logoutError ? state.websiteSessionError : projectionError)
     || (nativeBrowser===undefined ? '需要提供官方浏览器能力的 DSH 桌面版。' : state.websiteAuthenticationStatus==='signing-out' ? '正在清除登录记忆并退出官网。' : 'CHAT 使用独立的官网登录，登录后自动同步账号和官网对话。')
-  return createPortal(<section id="dsh-chat-website-surface" className="dsh-chat-web-surface" aria-label={t("DeepSeek 官网网页")} aria-hidden={!visible} style={{
+  return createPortal(<section id="dsh-chat-website-surface" className="dsh-chat-web-surface" aria-label={t("DeepSeek 官网网页")} aria-hidden={!visible || rect?.inert} {...(rect?.inert ? { inert: '' } : {})} style={{
     zIndex: inSettings ? 0 : 14,
     visibility: visible ? 'visible' : 'hidden',
     display: (inSettings || state.mode==='chat') && rect ? 'flex' : 'none',
     opacity: visible ? 1 : 0,
-    pointerEvents: visible ? 'auto' : 'none',
+    pointerEvents: visible && !rect?.inert ? 'auto' : 'none',
     left: rect?.left ?? 0,
     top: (rect?.top ?? 0) + clearance,
     width: rect?.width ?? 0,
@@ -479,7 +515,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
         className: 'dsh-chat-webview',
         // Keep the normal 0.2.7 focus attributes; only concealed, unsafe content
         // is inert, so it cannot retain keyboard/Tab interaction behind an error.
-        inert: guestUsable ? undefined : '',
+        inert: guestUsable && !rect?.inert ? undefined : '',
         style: { opacity: guestUsable ? 1 : 0, pointerEvents: guestUsable ? undefined : 'none' },
         name: activeReservation.native.lease,
         partition: activeReservation.native.partition,
@@ -498,5 +534,6 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
         {(state.webError !== null) && <button type="button" className="dsh-chat-text-button" onClick={() => bridge.reloadWebsite()} disabled={nativeBrowser === undefined || !state.modeEnabled}>{t("重试网页")}</button>}
       </div>}
     </div>
+    {visible && noticeText(state.websiteNotice, t) && <p className={`dsh-chat-web-toast${state.websiteNotice === 'link-unavailable' || state.websiteNotice === 'download-failed' || state.websiteNotice === 'download-too-large' ? ' dsh-chat-web-toast-error' : ''}`} role="status">{noticeText(state.websiteNotice, t)}</p>}
   </section>, document.body)
 }

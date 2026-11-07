@@ -10,6 +10,8 @@ import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import { acquireChatStyles, ensureChatStyles } from './styles.js'
 import { translate } from './i18n.js'
 import { readSurfaceBorderRadius } from './surface-clip.js'
+import { DshChatBrandNotice } from './brand-notice.js'
+import type { WebsiteFile } from './website-downloads.js'
 import type { WebsiteCommand, WebsiteNavigation } from './website-navigation.js'
 import type { ChatLanguage } from './website-settings.js'
 import type { WebsiteSession } from './protocol.js'
@@ -25,6 +27,8 @@ export interface DshChatViewportRect {
   readonly height: number
   /** Host main-content clip, projected locally; never website or account data. */
   readonly borderRadius?: string
+  /** Mirror the main slot's native modal/drawer interaction lock onto our portal. */
+  readonly inert?: boolean
 }
 
 /** Only in-memory navigation metadata; never message bodies or account secrets. */
@@ -58,7 +62,12 @@ export interface DshChatViewState {
   readonly switchPreferencesStatus?: 'loading' | 'ready' | 'unavailable'
   readonly switchPreferencesPending?: boolean
   readonly switchPreferencesError?: string | null
+  /** Transient, non-blocking code for link/download feedback; never page-load errors. */
+  readonly websiteNotice?: WebsiteNotice | null
 }
+
+/** Fixed codes only: guest or site text never reaches this state. */
+export type WebsiteNotice = 'link-unavailable' | 'download-failed' | 'download-too-large' | 'download-saved' | 'download-requested'
 
 export interface DshChatUIBridge {
   getSnapshot(): DshChatViewState
@@ -91,6 +100,10 @@ export interface DshChatUIBridge {
   saveWebsiteSession(generation: number, session: WebsiteSession): Promise<boolean>
   clearWebsiteSession(generation: number): Promise<boolean>
   reportWebsiteSessionError(generation: number, message: string): void
+  /** Save one explicitly exported attachment through the host file-actions service. */
+  saveWebsiteFile(file: WebsiteFile): void
+  /** Non-fatal status feedback for links and exports; never a page-load error. */
+  reportWebsiteNotice(generation: number, notice: WebsiteNotice | null): void
 }
 
 export interface DshChatBridgeProps { readonly bridge: DshChatUIBridge }
@@ -102,6 +115,13 @@ export function useDshChat(bridge: DshChatUIBridge): DshChatViewState {
 export function DshChatStyles() {
   useLayoutEffect(() => acquireChatStyles(document), [])
   return null
+}
+
+/** The shell owns the navigation button/label and supplies icon geometry. */
+export function DshChatSettingsIcon({ size }: { size: number; active: boolean }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M4 3.25h8A1.75 1.75 0 0 1 13.75 5v5A1.75 1.75 0 0 1 12 11.75H7l-3.75 2v-2.2A1.75 1.75 0 0 1 2.25 10V5A1.75 1.75 0 0 1 4 3.25Z M5 6.25h6 M5 8.75h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
 }
 
 function PanelIcon() {
@@ -271,25 +291,22 @@ export function DshChatBrandName({ bridge }: PropsRuntime<'sidebar.brand.name'> 
   </span>{controlHost && createPortal(<DshChatBrandControl bridge={bridge}/>, controlHost)}</>
 }
 
-function DshChatAuthorizationNotice({ bridge, state }: DshChatBridgeProps & { readonly state: DshChatViewState }) {
-  const t = (text: string | null | undefined) => translate(state.language, text)
-  if (!state.error) return null
-  return <div className="dsh-chat-authorization-notice" role="status">
-    <p>{t(state.error)}</p>
-    <button type="button" className="dsh-chat-text-button" onClick={() => bridge.refreshAuthorization()}>{t("重试连接")}</button>
-  </div>
-}
-
 /** DOM siblings remain React descendants of the Windows New Session brand. */
 export function DshChatBrandControl({ bridge }: DshChatBridgeProps) {
   const state = useDshChat(bridge)
+  const control = useRef<HTMLDivElement>(null)
   const t = (text: string | null | undefined) => translate(state.language, text)
-  return <div className="dsh-chat-brand-control" aria-label={t("dsh-deepseek-chat 模式选择")}
+  const explained = Boolean(state.error) || state.sidebarAdapted === false
+  return <div ref={control} className="dsh-chat-brand-control" aria-label={t("dsh-deepseek-chat 模式选择")}
     onClick={event => event.stopPropagation()}>
     <DshChatStyles />
     <DshChatModeSelector bridge={bridge} state={state} />
-    <DshChatAuthorizationNotice bridge={bridge} state={state} />
-    {state.sidebarAdapted === false && <div className="dsh-chat-authorization-notice" role="alert">{t("当前侧栏不兼容：顶部新会话仍使用 HARNESS。CHAT 请展开官网导航后新建对话。")}</div>}
+    {/* The sidebar brand row clips descendants; keep our own notice outside that ancestor. */}
+    {explained && <DshChatBrandNotice anchor={control} role={state.error ? 'status' : 'alert'}>
+      {state.error && <p>{t(state.error)}</p>}
+      {state.error && <button type="button" className="dsh-chat-text-button" onClick={() => bridge.refreshAuthorization()}>{t("重试连接")}</button>}
+      {state.sidebarAdapted === false && <p className={state.error ? 'dsh-chat-brand-notice-followup' : undefined}>{t("当前侧栏不兼容：顶部新会话仍使用 HARNESS。CHAT 请展开官网导航后新建对话。")}</p>}
+    </DshChatBrandNotice>}
   </div>
 }
 
@@ -449,7 +466,8 @@ export function DshChatChatPanel({ bridge }: PropsRuntime<'main'> & DshChatBridg
     bridge.attachViewport(element)
     const measure = () => {
       const rect = element.getBoundingClientRect()
-      bridge.updateViewport({ left: rect.left, top: rect.top, width: rect.width, height: rect.height, borderRadius: readSurfaceBorderRadius(element) })
+      bridge.updateViewport({ left: rect.left, top: rect.top, width: rect.width, height: rect.height,
+        borderRadius: readSurfaceBorderRadius(element), inert: element.closest('[inert]') !== null })
     }
     const observer = new ResizeObserver(measure)
     observer.observe(element)
@@ -458,7 +476,7 @@ export function DshChatChatPanel({ bridge }: PropsRuntime<'main'> & DshChatBridg
     let parent=element.parentElement
     for(let depth=0;parent && depth<12;depth++,parent=parent.parentElement) {
       observer.observe(parent)
-      shapeObserver.observe(parent,{attributes:true,attributeFilter:['class','style','data-platform','data-windows-titlebar','data-fullscreen','data-sidebar-collapsed']})
+      shapeObserver.observe(parent,{attributes:true,attributeFilter:['class','style','inert','data-platform','data-windows-titlebar','data-fullscreen','data-sidebar-collapsed']})
     }
     window.addEventListener('resize', measure)
     measure()
@@ -481,7 +499,7 @@ export function DshChatLeadingControls({bridge}: PropsRuntime<'shell.leading'> &
   const state = useDshChat(bridge)
   const t = (text: string | null | undefined) => translate(state.language, text)
   return <div className="dsh-chat-leading"><DshChatStyles />
-    <Tooltip label={t("展开侧边栏")} delayMs={500}><button type="button" aria-label={t("展开侧边栏")} onClick={() => bridge.toggleSidebar()}><IconPanelLeftOutlineRegular size={16}/></button></Tooltip>
+    <Tooltip label={t("展开侧边栏")} delayMs={500}><button type="button" data-sidebar-opener aria-label={t("展开侧边栏")} onClick={() => bridge.toggleSidebar()}><IconPanelLeftOutlineRegular size={16}/></button></Tooltip>
     <Tooltip label={t("新建对话")} delayMs={500}><button type="button" aria-label={t("新建官网对话")} disabled={!state.modeEnabled || !state.websiteNavigation.canCreate} onClick={() => bridge.commandWebsite({type:'new'})}><IconNewChatOutlineRegular size={16}/></button></Tooltip>
   </div>
 }

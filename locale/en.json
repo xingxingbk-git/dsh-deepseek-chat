@@ -139,6 +139,11 @@
     "保存": "Save",
     "CHAT 按钮文案": "CHAT button label",
     "HARNESS 按钮文案": "HARNESS button label",
-    "打开网页端": "Open website"
+    "打开网页端": "Open website",
+    "无法打开该链接，请使用浏览器访问": "Open this link in your browser",
+    "附件保存失败，请重试": "Could not save the attachment, please retry",
+    "附件超过 16 MB，无法保存": "The attachment exceeds 16 MB and cannot be saved",
+    "附件已保存": "Attachment saved",
+    "附件已开始下载": "Download started"
   }
 }

@@ -4,8 +4,8 @@ import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..')
-// 113 literal assertions plus 3 strict-proof configurations in the fixture loop.
-export const WINDOW_RECOGNITION_CASES = 116
+// 116 literal assertions plus 3 strict-proof configurations in the fixture loop.
+export const WINDOW_RECOGNITION_CASES = 119
 export async function startWindowRecognitionFixture({quiet=false}={}) {
   const bundle=async entry=>(await build({absWorkingDir:root,entryPoints:[entry],bundle:true,write:false,format:'esm',platform:'browser',target:'chrome130'})).outputFiles[0].text
   const surface=await readFile(path.join(root,'src/web-surface.tsx'),'utf8')

@@ -161,7 +161,12 @@ const nativeFixture={acquire:async()=>{acquired++;return{lease:'fixture-lease',p
 const nativeFrame=document.createElement('div')
 nativeFrame.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden;border-radius:0px'
 document.body.append(nativeFrame)
-const disposePanel=mountPanel(surfaceBridge,nativeFrame)
+// 0.2.2 adds a flex global-panel wrapper and makes it inert while its drawer is open.
+const nativePanel=document.createElement('div')
+nativePanel.setAttribute('data-global-panel','fixture-chat')
+nativePanel.style.cssText='display:flex;width:100%;height:100%;min-height:0'
+nativeFrame.append(nativePanel)
+const disposePanel=mountPanel(surfaceBridge,nativePanel)
 await settle()
 const disposeSurface=mountSurface(surfaceBridge,nativeFixture,uiHost)
 await settle()
@@ -312,6 +317,14 @@ const dragModal=document.createElement('div');dragModal.className='ds-modal-cont
 await until(()=>rowMarkers().length===0);const pausedForModal=rowMarkers().length===0
 dragModal.remove();await until(()=>rowMarkers().length===1)
 check('visible website dialogs pause native drag and closing them restores one row',pausedForModal && rowMarkers().length===1)
+const drawerRect=surfaceRect(),drawerGuest=surface.querySelector('webview')
+nativePanel.inert=true
+await until(()=>surface.inert && dragNodes().length===0)
+check('0.2.2 drawer interaction lock is projected without moving or replacing the guest',surfaceState.viewport.inert===true && surface.inert && surfaceRect()===drawerRect && surface.querySelector('webview')===drawerGuest && acquired===1 && released===0)
+check('an inert native main panel disables both guest interaction and plugin native drag',retainedGuest.inert && surface.style.pointerEvents==='none' && surface.getAttribute('aria-hidden')==='true' && dragNodes().length===0)
+nativePanel.inert=false
+await until(()=>!surface.inert && rowMarkers().length===1)
+check('closing the native drawer restores interaction and one drag row on the same lease',surfaceState.viewport.inert===false && !surface.inert && !retainedGuest.inert && surface.style.pointerEvents==='auto' && surfaceRect()===drawerRect && rowMarkers().length===1 && surface.querySelector('webview')===drawerGuest && acquired===1 && released===0)
 const readyNavigation=surfaceState.websiteNavigation
 patchSurface({websiteNavigation:{...readyNavigation,status:'loading'}});await settle()
 check('uncertain website recognition removes all component drag nodes',dragNodes().length===0)

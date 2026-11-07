@@ -22,9 +22,9 @@ export const chatStyles = String.raw`
 [data-dsh-chat-brand-fill="brand"]{flex:0 0 auto;min-width:max-content}
 .dsh-chat-brand-wordmark{display:block;flex:0 0 102px;min-width:102px;width:102px;height:24px;overflow:hidden}
 .dsh-chat-brand-wordmark svg{display:block;width:156px;max-width:none;height:24px}
-.dsh-chat-brand-control-host{display:flex;align-items:center;justify-content:flex-end;width:auto;min-width:0;height:24px;flex:1 1 auto;margin-left:auto;-webkit-app-region:no-drag}
+.dsh-chat-brand-control-host{display:flex;align-items:center;justify-content:flex-end;width:auto;min-width:0;height:24px;flex:1 1 auto;margin-left:auto;margin-right:calc(var(--dsh-sidebar-paint-inset, 3px) + 1px);-webkit-app-region:no-drag}
 .dsh-chat-brand-control{position:relative;width:100%;min-width:0;height:24px;pointer-events:auto;display:flex;align-items:center;-webkit-app-region:no-drag}
-.dsh-chat-brand-control .dsh-chat-modes{height:23px;min-height:23px;max-height:23px;padding:1px;border-radius:5px;gap:0;overflow:hidden}
+.dsh-chat-brand-control .dsh-chat-modes{height:23px;min-height:23px;max-height:23px;padding:1px;border-radius:8px;gap:0;overflow:hidden}
 .dsh-chat-brand-control .dsh-chat-mode-wrap{display:flex;justify-content:flex-end;width:100%;min-width:0;max-width:100%}
 .dsh-chat-brand-control .dsh-chat-modes{width:auto;min-width:0;max-width:100%}
 .dsh-chat-brand-control .dsh-chat-modes button{flex:0 0 auto;min-width:0;overflow:hidden}
@@ -44,11 +44,15 @@ export const chatStyles = String.raw`
 .dsh-chat-label-input,.dsh-chat-label-input input,.dsh-chat-label-input input:hover,.dsh-chat-label-input input:focus,.dsh-chat-label-input input:disabled{background:transparent}
 .dsh-chat-label-save{flex:none;margin-inline-start:auto}
 .dsh-chat-preference-note{font-size:12px;color:var(--dsw-alias-label-secondary,inherit);line-height:1.6}
-.dsh-chat-brand-control .dsh-chat-modes button{display:inline-flex;align-items:center;justify-content:center;font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);padding:0 8px;height:21px;min-height:21px;max-height:21px;font-size:9px;line-height:13px;letter-spacing:.2px;border-radius:4px}
+.dsh-chat-brand-control .dsh-chat-modes button{display:inline-flex;align-items:center;justify-content:center;font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);padding:0 8px;height:21px;min-height:21px;max-height:21px;font-size:9px;line-height:13px;letter-spacing:.2px;border-radius:7px}
 .dsh-chat-brand-control .dsh-chat-modes button[aria-pressed="true"]{box-shadow:none}
 .dsh-chat-brand-control .dsh-chat-modes button:focus-visible{outline-offset:-2px}
 .dsh-chat-authorization-notice{position:absolute;top:calc(100% + 6px);right:0;width:230px;max-width:calc(100vw - 24px);padding:10px 12px;z-index:40;border:1px solid var(--dsw-alias-border-l2,#dee1e8);border-radius:8px;background:var(--dsw-specific-sidebar-fill,#f4f5f8);box-shadow:0 4px 16px #0d1a3520;font-size:11px;line-height:1.6;color:var(--dsw-alias-label-primary,#22242a)}
 .dsh-chat-authorization-notice p{margin:0 0 5px}
+.dsh-chat-brand-notice{box-sizing:border-box;font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);pointer-events:auto;-webkit-app-region:no-drag;overscroll-behavior:contain}
+.dsh-chat-brand-notice-followup{margin-top:6px}
+.dsh-chat-web-toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:20;max-width:calc(100% - 32px);margin:0;padding:8px 14px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2,#dee1e8);background:var(--dsw-specific-sidebar-fill,#f4f5f8);box-shadow:0 6px 20px #0d1a3526;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-primary,#22242a);pointer-events:none}
+.dsh-chat-web-toast-error{border-color:var(--dsw-alias-state-error-primary,#ef5350);color:var(--dsw-alias-state-error-primary,#ef5350)}
 .dsh-chat-navigation{display:flex;flex-direction:column;height:100%;min-height:0;background:transparent;color:inherit}
 .dsh-chat-navigation-header{margin:2px 12px 4px;padding:0 4px}
 .dsh-chat-navigation-header{box-sizing:border-box;border-radius:var(--dsw-radius-md);height:36px;color:var(--dsw-alias-label-tertiary);flex:none;justify-content:flex-end;align-items:center;gap:4px;margin-bottom:4px;padding-left:4px;display:flex;overflow:hidden}

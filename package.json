@@ -1,6 +1,6 @@
 {
   "name": "dsh-deepseek-chat",
-  "version": "0.2.11",
+  "version": "0.2.17",
   "description": "CHAT / HARNESS mode switcher for DeepSeek Harness",
   "repository": {
     "type": "git",
@@ -24,7 +24,7 @@
   "packageManager": "pnpm@10.33.2",
   "engines": {
     "node": "^22.19.0 || >=24.0.0",
-    "dsh": "0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0"
+    "dsh": "0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0"
   },
   "main": "./lib/index.js",
   "types": "./lib/types/index.d.ts",
@@ -52,6 +52,8 @@
     "release:prepare": "node ./scripts/build.mjs && node ./scripts/check-distribution.mjs",
     "check:distribution": "node ./scripts/check-distribution.mjs",
     "check:compatibility": "node ./scripts/check-compatibility.mjs",
+    "check:sdk-contracts": "node ./scripts/check-sdk-contracts.mjs",
+    "check:sidebar-022": "node ./scripts/check-sidebar-022.mjs",
     "check:shell-ui": "node ./scripts/check-shell-ui-browser.mjs",
     "check:window-contracts": "node ./scripts/check-window-contracts.mjs",
     "check:window-recognition": "node ./scripts/check-window-recognition-browser.mjs",
@@ -60,7 +62,11 @@
     "preview": "node ./scripts/preview.mjs",
     "check:artifact": "node ./scripts/check-artifact.mjs",
     "check:git-install": "node ./scripts/check-git-install.mjs",
-    "package:plugin": "pnpm release:prepare && pnpm pack --pack-destination ./artifacts"
+    "package:plugin": "pnpm release:prepare && pnpm pack --pack-destination ./artifacts",
+    "check:website-links": "node ./scripts/check-website-links.mjs",
+    "check:website-downloads": "node ./scripts/check-website-downloads-browser.mjs",
+    "check:brand-notice": "node ./scripts/check-brand-notice.mjs",
+    "check:switcher-alignment": "node ./scripts/check-switcher-alignment.mjs"
   },
   "dsh": {
     "bundle": {
@@ -73,39 +79,41 @@
         "@deepseek-ai/dsh-client-ui-layout",
         "@deepseek-ai/dsh-client-ui-sidebar",
         "@deepseek-ai/dsh-api-gateway",
-        "@deepseek-ai/dsh-client-ui-settings"
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-file-actions"
       ]
     }
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.4",
-    "@deepseek-ai/dsh-credentials": "0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0",
-    "@deepseek-ai/dsh-typert-protocol": "0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0",
-    "@deepseek-ai/dsh-typert-registry": "0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0",
+    "@deepseek-ai/dsh-credentials": "0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0",
+    "@deepseek-ai/dsh-typert-protocol": "0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0",
+    "@deepseek-ai/dsh-typert-registry": "0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0",
     "@deepseek-ai/schemastery": "^3.18.4"
   },
   "dependencies": {
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@deepseek-ai/cordis": "4.0.5",
-    "@deepseek-ai/cordis-plugin-group": "1.0.5",
-    "@deepseek-ai/cordis-plugin-include": "1.0.10",
-    "@deepseek-ai/dsh-api-gateway": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-store": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-layout": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-primitives": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-renderer": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-sidebar": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-sidebar-browser": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-credentials": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-deepseek-account": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-settings": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-typert-protocol": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-typert-registry": "0.2.1-rc.3",
-    "@deepseek-ai/schemastery": "3.18.5",
+    "@deepseek-ai/cordis": "4.1.0",
+    "@deepseek-ai/cordis-plugin-group": "1.1.0",
+    "@deepseek-ai/cordis-plugin-include": "1.1.0",
+    "@deepseek-ai/dsh-api-gateway": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-store": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-file-actions": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-layout": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-sidebar": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-sidebar-browser": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-credentials": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-deepseek-account": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-settings": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-typert-protocol": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-typert-registry": "0.2.2-rc.1",
+    "@deepseek-ai/schemastery": "3.19.0",
     "@types/node": "24.0.0",
     "@types/react": "18.3.1",
     "@types/react-dom": "18.3.0",

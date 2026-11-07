@@ -1,4 +1,14 @@
-# 官方资料与调研记录
+# 资料来源与取证
+
+## 索引（2026-11-07）
+
+- **项目文档**：[README](../README.md)、[需求](requirements.md)、[架构](architecture.md)、[路线](roadmap.md)、[交接](handoff.md)、[历史](handoff-archive.md)、[工作日志](worklog.md)。
+- **官方 DSH 依据**：按精确版本从 npm registry / 本机 `app.asar` 只读提取；包与提取件放在 ignored `artifacts/`（`dsh-022-rc1-reference`、`dsh-022-rc1-npm-reference`、`dsh-021-rc3-reference`、`chat-links-022-*` 等），**不随仓库提交**。
+- **官网公开资产**：仅在未登录状态下读取公开静态 bundle；不携带 Cookie、不请求账户接口，结论不覆盖服务端未公开能力。
+- **npm 发布取证**：每次发布记录版本、tarball 字节与 SHA256、索引 latest 校验结果，见 [worklog](worklog.md) 对应阶段与 handoff 当前状态。
+
+> 以下为按主题追加的取证记录（新在上）。
+
 
 ## 0.2.8 npm公开分发核验（2026-10-27）
 
@@ -277,3 +287,18 @@ Info.plist与app.asar内dsh/package.json均为0.2.1-rc.1，runtime/versions.json
 ## 2026-10-18 / 当前官网两套复制实现
 
 正常匿名首页浏览HTTP200，script src确认main.a0ce88b684.js；fresh公共脚本中copyBotResponse调用aY（writeText失败后execCommand后备），copyShareLinkError对应m仅writeText及warning。DSH0.2.1-rc.2 guest权限拒绝代码仍在。已以当前原函数/相同虚构URL/独立浏览器原生denied对照，未把返回true当作OS文本已核对。资源hash、位置、复现范围及拟修方案见[分享复制调查](share-copy-investigation.md)。
+
+## DSH 0.2.2-rc.1 适配依据（2026-11-07）
+
+- 版本证据：本机 `Info.plist`、ASAR 根 `package.json` 与 `dsh/package.json` 三处均为 0.2.2-rc.1；官方 npm 的 DSH `latest`/`next` 及开发包 `next` 同为该版，0.2.1 线仍为已发布旧版。
+- 只读参考：用 ASAR 头部解析（非目录访问）提取布局/侧栏/设置/renderer/credentials/typert/app-boot 等包到 ignored `artifacts/dsh-022-rc1-reference/`；按 sha512 integrity 校验下载完整官方 npm 0.2.2-rc.1 包（含 slots/store/primitives/settings-general/web）到 `artifacts/dsh-022-rc1-npm-reference/proof.json`；旧 0.2.1-rc.3 声明/产物留存 `artifacts/dsh-021-rc3-reference/` 供逐项对比。
+- 结论要点：slots `register/entries/subscribe/inject/spec`、StoredEntry、layout 面板服务、settings configForms 与 section 契约、Browser Bridge（protocolVersion=1，官方仍只设 name/partition/allowpopups/src）、client-web 共享模块表 9 个 baseline 键均保持；typert-api 仅新增可选字段。真实变化为 settings 图标进入公开 `settings.section.icon` 槽、`session/create` 权限可移除原生新会话按钮并使 brand 变 SPAN、窄窗 drawer 给主区加 `inert` 并按 `[data-sidebar-opener]` 恢复焦点。
+- 边界：均为官方分发静态核对与本地合成/Node 回归，不是 Electron 原生或真实账号实机验收。
+
+## 0.2.13 外链与附件下载依据（2026-11-07）
+
+- Desktop 下载策略：本机 0.2.2-rc.1 `app.asar` 只读提取 `lib/main.js`、`lib/preload-app.cjs` 到 ignored `artifacts/chat-links-022-desktop-reference/`；其中 Browser 会话 `will-download` 无条件 `preventDefault`（每个 lease 独立随机 partition），BrowserBridge 仅 `acquire/release/onOpenRequested`。公开 `dshDesktop.fileActions.save` 由主窗口 preload 暴露，接受 http/https/blob/data，下载走主应用 defaultSession。
+- 官方文件保存 SDK：`artifacts/chat-links-022-npm-reference/dsh-client-ui-file-actions/`（npm 0.2.2-rc.1，sha512 校验）；`save(source,'download'|'saveAs')`，`read(signal)` 时由 app realm 读 Blob 并自建对象 URL，因此 guest blob URL 不能跨分区直接使用（[Blob storage partitioning](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/blob#storage_partitioning)）。
+- 外开：Desktop 主窗口 `setWindowOpenHandler` 对 http(s) 调 `shell.openExternal` 并 deny 子窗口；官方 toolbar/右键菜单同样使用 `window.open(url,'_blank','noopener,noreferrer')`（sidebar-browser 与 open-in-app 的 client.js 均可见），故 null 返回值不是失败。
+- 官网导出结构：仅依据此前已确认的公开静态 bundle（10-18 版本，非本轮 fresh 首页）——Mermaid 代码块有唯一图表/代码页签与“下载/Download”按钮，导出菜单 portal 到 body 且恰好三项（下载 SVG/PNG/代码；英文 SVG/PNG/Code），helper 为 `Blob → createObjectURL → a[download] → append → click → 200ms 后 revoke`。本轮未重新下载官网资产，未读取任何账号/会话/附件。
+- 边界：以上为静态契约与合成/CDP 点击回归依据，不是 Electron 原生保存对话框、系统浏览器外开或线上真实菜单的验收。

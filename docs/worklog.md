@@ -1113,3 +1113,55 @@ fixture补selector与hover-solid亮暗token，新增填充无描边/亮暗取值
 用户明确要求发布本插件，本轮仅授权 0.2.11 npm 发布、不授权 Git。发布前把中英 README 发布版说明与三处安装示例 0.2.10→0.2.11。检查：类型、30编译文件/4模块分发、18版本×4兼容、窗口46、UI69、标题38、裁剪116×5、diff；裁剪套件首轮第5组曾 1 项焦点时序用例失败，整轮重跑全通过，记为偶发不稳定且非本轮样式引入。
 
 正式包215061bytes/38文件，SHA256=41930ae01fbf68f50032dea79cebdba4a33db3421c2c965f57d029e01e5e7c5e，逐项同项目（packageManager按既有规则忽略），并冻结同hash副本。npm旧凭据E401，改用独立临时配置完成网页登录与本次单独发布验证，唯一publish返回+dsh-deepseek-chat@0.2.11；初次查询latest仍0.2.10，等待后完整/install-v1索引均0.2.11、精确版本HTTP200、公开tarball逐字节同正式包。临时会话logout(0)并核实/private/tmp/dsh-chat-npm-0211.Ae9brE后删除，终端关闭，原npm配置未改。与本机安装90dd86仅两份README不同，未重装/重启。此后新修复从0.2.12开始；Git仍未写入。
+
+### 0.2.12 DSH 0.2.2 系列适配
+
+用户要求适配现行0.2.2。确认本机Desktop/DSH均0.2.2-rc.1（Info.plist、ASAR根、package.json三处一致），官方npm latest/next与开发包next同版；旧准入<0.2.2-0明确排除。版本自0.2.11递增一次至0.2.12，未重启/npm/Git。
+
+版本与依赖：engine+3 DSH peers统一扩为 0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0，仍排除0.2.2 alpha/beta/rc.0与全部0.2.3预发；开发SDK升0.2.2-rc.1（cordis4.1.0、schemastery3.19.0、cordis插件1.1.0）。兼容检查改26版本×4字段，并保留"rc.1不被旧范围接受"的可复现断言。
+
+契约核对（官方分发包+本机ASAR只读提取，存ignored artifacts）：slots核心/StoredEntry、layout panelInfo/selectPanel/toggleSidebar、settings configForms与section契约、Browser Bridge protocolVersion1+acquire/release/onOpenRequested（官方仍只设name/partition/allowpopups/src）、shared 9 baseline键均保持；typert协议/registry与gateway仅新增字段。
+
+必要适配：①设置图标改公开settings.section.icon（0.2.2导航按钮首子节点SVG→span包裹renderSlot，旧DOM装饰必失配），新增按声明生命周期的bindChatSettingsIconSlot，仅无该声明时保留旧窄fallback，撤销回退/幂等清理/停止不重注册；②sidebar新增严格正匹配分支支持session/create门控下BUTTON缺失（SPAN+0BUTTON+唯一带label NAV+紧跟唯一region且直接唯一workspace outlet），旧唯一紧邻BUTTON分支保留，节点级disabled/marker精确恢复与动态重建安全，未知结构拒绝；③新抽屉交互锁：viewport增inert投影，Panel读祖先[inert]并发布、Client比较含inert、Surface同步inert/aria-hidden/pointer-events、拖拽暂停，关闭后同guest恢复；④自有展开按钮补data-sidebar-opener供原生drawer焦点回归；⑤保留workspace搜索重放窄guard（新版仍useState(0)+非0即展开/聚焦，上游未修）。
+
+回归：类型、分发30编译文件4模块、兼容26×4、新增check:sdk-contracts 11项（真实官方SlotRegistry）、窗口Node48、sidebar-022 54、UI72、标题38、裁剪119×5、diff。历史authorization/mode测试断言更早契约且对应源码未改、不在门禁内，属既有陈旧测试。产物216167bytes/38文件SHA256=570401bd66015acbfdf8f9a145e15011d208df4c5c50c54e1706e433deab94d3，官方desktop安装退出0，38/38同包、版本0.2.12、持久dependency/lock同hash。未重启DSH，原生/真实账号实机仍未验收；README暂守已发布0.2.11说明，发布时再改。
+
+### 0.2.13 CHAT 外链、附件下载与黑条来源
+
+用户实报三处：CHAT外链弹出“该链接未在此视图中打开”整页错误；Mermaid“下载 SVG/PNG/代码”无反应；HARNESS品牌行下偶发黑条。自0.2.12增一次至0.2.13，保留上轮全部未提交适配；未重启/npm/Git。
+
+外链：原onOpenRequested把非官网URL当页面错误。内置Browser属right Sidebar/dock，无公开入口可在不改变CHAT布局下打开，故选系统默认浏览器——官方实现即window.open(url,'_blank','noopener,noreferrer')，Desktop主进程将其交给shell.openExternal并deny子窗口，null返回值属正常。新增src/website-links.ts：仅绝对http(s)、空用户名密码、≤8192；完整origin等于官网才留住原guest，其余外开；其余协议拒绝；失败只非致命提示，不再遮网页。
+
+下载：Desktop对每个Browser partition的will-download无条件preventDefault，BrowserBridge无放行接口。改用官方公开ctx.fileActions：新增src/website-downloads.ts在guest内只响应用户真实手势（可信click/Enter + 官方Mermaid下载按钮 + 唯一图表/代码页签 + portal菜单恰好3项且标签唯一为下载SVG/PNG/代码或SVG/PNG/Code），命中后捕获阶段立即读取该次点击的a[download] blob（官网200ms后revoke），16MiB/8s/单在途有界，转data URL回主框架；Client用parseWebsiteDownload/websiteDownloadBlob校验名字/MIME/base64/PNG签名/SVG根/UTF-8后以source.read交官方fileActions.save(saveAs或download)。未改guest下载禁令、未注入preload/IPC、未覆盖全局API、未扫正文。取消静默，其余给非阻断提示。
+
+黑条：合成复现确认是本插件自己的授权/侧栏提示以absolute挂在高24px控件内、被原生logo行overflow:hidden裁成230×12圆角背景条（文字全裁），与原生Tooltip无关。新增src/brand-notice.tsx改为body portal + fixed，锚定控件右缘下6px、窗口12px夹取，随尺寸/属性/resize/滚动更新；两种提示合并单框；不改宿主行结构。
+
+回归：类型；分发33编译文件4模块；兼容26×4；SDK11；新增links35、downloads9（生产gate+合成公开DOM+CDP可信点击）、brand20（portal脱离裁剪/固定定位/暗亮token/合并/清理）；窗口48；sidebar54；UI72；标题38；裁剪119×5；diff干净。候选0.2.13：221985bytes/41文件SHA256=afcc46c9ae5f411741e7c315d75729113d43e52fef20edb282d93c8477adbc6d，官方desktop安装退出0、41/41同包、版本/persistent dependency/lock一致、client inject含file-actions。未重启DSH；Mermaid结构若与线上不同则不接管（已知限制），Electron保存框/系统外开/真实账号待用户复验。
+
+### 0.2.14 提示文案去句号
+
+用户指出“附件已保存。”这类短提示带句号不合适。只改文案：noticeText 五条提示去尾句号，并补 locale 中英条目（原五条未本地化，英文界面会回落中文）；无行为/结构/权限变化。0.2.13→0.2.14（唯一一次）。类型/分发33文件4模块/兼容26×4/外链35/下载9/浮层20/窗口48/UI72/diff 全过。候选0.2.14：222289bytes/41文件SHA256=0b2b4dedad099f9f5986f1dc4743ead51771507504a1219f8be6fd2a38eebba0，官方desktop安装退出0、41/41同包、版本与持久dependency/lock一致、安装Client五条提示均无尾部句号。未重启/npm/Git，待用户重开查看文案。
+
+### 0.2.15 切换器圆角试改
+
+用户要求切换器圆角改12px看效果。仅改自有CSS：外框5→12px、内部按钮4→11px（1px内边距后同心，避免选中白块方角）；其余不变。核对DSH0.2.2主题token `--dsw-radius-md`=12px，宿主「新会话」即该值。0.2.14→0.2.15。回归：类型/分发33文件4模块/UI72/浮层20/窗口48/裁剪119(quick)/diff全过。候选0.2.15：222292bytes/41文件SHA256=d02a848ffcebbded3f4afb1ee49429b97aa5332dd65f1898fbbffa95bd1e5f7e，官方desktop安装退出0、41/41同包、版本与构建CSS一致。未重启/npm/Git，待用户重开看效果。
+
+### 0.2.16 切换器圆角 8px
+
+用户看过12px后要求改8px。仅改自有CSS：外框12→8px、内部按钮11→7px（1px内边距同心）；8px即 `--dsw-radius-sm`（与右上Open In分体按钮同值）。0.2.15→0.2.16。回归：类型/分发33文件4模块/UI72/浮层20/窗口48/diff全过。候选0.2.16：222294bytes/41文件SHA256=72cfd1f2491ac9d2e88c6eec9c712e92bfdbe22da45da8dc6e384dc686d98ec1，官方desktop安装退出0、41/41同包、构建CSS含8px/7px。未重启/npm/Git，待用户重开看效果。
+
+### 0.2.17 切换器右对齐原生新会话
+
+用户要求切换器右缘与「新会话」对齐。官方侧栏：root padding 8px、logo 行 padding 0、新会话 margin-right calc(paint-inset 3px+1px)=4px；插件宿主原无右缩进，故偏右 4px。给 `.dsh-chat-brand-control-host` 加同一 calc 的 margin-right，随折叠/Windows/宽度自动一致，不写死像素。新增 check:switcher-alignment 7 项（官方几何合成，含 Windows titlebar、加宽侧栏、无重叠、清理）。0.2.16→0.2.17。回归：类型/分发33文件4模块/对齐7/UI72/浮层20/窗口48/diff 全过。候选0.2.17：222356bytes/41文件SHA256=7af60eed48b04cbf088f830b04129600b614c70a36ae09e9501b661e92d86fa4，官方desktop安装退出0、41/41同包、构建CSS含margin规则。未重启/npm/Git，待用户重开确认。
+
+### 0.2.17 已公开发布 npm
+
+用户明确要求发布。发布前中英README发布版/安装示例0.2.11→0.2.17，兼容说明补0.2.2线（>=0.2.2-rc.1），功能/限制补外链系统浏览器与Mermaid导出保存。正式包222584bytes/41文件SHA256=4cb49a0c0a19c7387b3ff3e5c27af32356c3b426c69bf8adfa79d334ec36ba5c。原npm登录过期(E401)，用独立临时配置完成web登录；publish触发EOTP，在PTY取完整授权链接由用户确认后唯一一次publish成功。约110秒后latest与install-v1均0.2.17，公开tarball逐字节同正式包、integrity匹配、README为新版。与本机安装候选仅两份README不同，未重装/重启。临时npm配置已logout并按绝对路径核实删除，原~/.npmrc未改，PTY已关闭。Git仍未提交推送；后续修复从0.2.18开始。
+
+### 2026-11-07 文档整理（提交 GitHub 前）
+
+用户要求整理文档以便随后提交 GitHub。将 handoff 中 0.2.11 及更早的 1141 行历史段落原样迁至新增 `docs/handoff-archive.md`，handoff 改为当前快照（当前状态、提交清单、0.2.12–0.2.17 记录、历史索引），从 245KB 降到约 21KB；`AGENTS.md` 由 68KB（已触发读取截断）重写为约 8KB 的入口指南（目标、当前状态、目录职责、版本/发布/Git 规则、兼容依据、现行决策与硬约束、文档职责、开工清单、验证命令）；requirements/architecture/roadmap/references 各在文首补充“现行总要求/架构概览/当前进度/取证索引”，历史章节保留并标注为变更记录。全库 117 个相对链接/图片核对无缺失。未改代码与产物，`check:distribution` 仍通过；Git 仍未提交/推送。
+
+### 2026-11-07 创建变更请求（PR #10）
+
+用户要求为本会话变更创建变更请求。基于 `main`/`329e861` 新建分支 `dsh-022-links-downloads-and-switcher`，提交 0.2.12–0.2.17 全部 49 项改动（源码、预编译 lib、scripts/tests、README、docs、AGENTS、package.json/lock）为 `92ce606`，未包含 artifacts/node_modules/tgz；推送后经 `gh` 创建 PR #10（base main，OPEN、MERGEABLE，1 commit/49 files），PR 描述含改动概要与验证矩阵并附 dsh badge。默认分支 main 未被直接修改，等待用户审阅合并。

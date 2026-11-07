@@ -9,7 +9,7 @@ function dragReady(state: DshChatViewState): state is DshChatViewState & { reado
     && state.authorizationStatus === 'authorized' && state.desktopAvailable
     && state.websiteAuthenticationStatus === 'signed-in' && !state.webLoading && !state.webError
     && state.websiteNavigation.status === 'ready' && state.websiteNavigation.authenticated === true
-    && rect !== null && [rect.left, rect.top, rect.width, rect.height].every(Number.isFinite)
+    && rect !== null && !rect.inert && [rect.left, rect.top, rect.width, rect.height].every(Number.isFinite)
     && rect.left >= 0 && rect.top >= 0 && rect.width > 0 && rect.height >= 40
 }
 
