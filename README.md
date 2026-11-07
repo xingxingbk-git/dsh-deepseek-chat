@@ -10,7 +10,7 @@
 
 DeepSeek Chat 是一款 **DSH 桌面插件**。选择 **CHAT**，即可在 DSH 内使用真实的 [DeepSeek Chat 官网](https://chat.deepseek.com/)；选择 **HARNESS**，随时返回原来的工作区。
 
-当前发布版 **0.2.11** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
+当前发布版 **0.2.17** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
 
 ## 功能预览
 
@@ -23,6 +23,7 @@ DeepSeek Chat 是一款 **DSH 桌面插件**。选择 **CHAT**，即可在 DSH �
 - 通过对话右侧的菜单重命名、置顶、分享和删除对话。
 - 点击“对话”右侧的刷新图标，更新官网页面和对话列表。
 - 语言、明暗主题和内容字号自动跟随 DSH 设置。
+- 对话中的外部链接使用系统默认浏览器打开；Mermaid 代码块的“下载 SVG / PNG / 代码”可保存到本机。
 
 ### 随时切回 HARNESS
 
@@ -51,13 +52,13 @@ DeepSeek Chat 是一款 **DSH 桌面插件**。选择 **CHAT**，即可在 DSH �
 在 DSH 插件安装输入框中输入：
 
 ```text
-dsh-deepseek-chat@0.2.11
+dsh-deepseek-chat@0.2.17
 ```
 
 也可以使用命令行：
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.11
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.17
 ```
 
 首次安装和更新已有插件均可使用。刚发布的版本若被 DSH 的发布时间策略暂时拦截，可稍后重试。
@@ -83,7 +84,7 @@ dsh plugin --profile desktop add https://github.com/xingxingbk-git/dsh-deepseek-
 将 `.tgz` 安装包交给 DSH 插件管理器，或使用命令行：
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.11.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.17.tgz
 ```
 
 将路径替换为实际安装包位置。
@@ -99,11 +100,11 @@ dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.11.tgz
 
 ## 使用说明与限制
 
-- **运行环境：**适用于 DSH 桌面版，兼容 0.2.0-rc.2 及从 0.2.1-rc.1 开始的 0.2.1 发布线；0.2.2 及以上版本需要适配，暂不支持 DSH Web。
+- **运行环境：**适用于 DSH 桌面版，兼容 0.2.0-rc.2、从 0.2.1-rc.1 开始的 0.2.1 发布线，以及从 0.2.2-rc.1 开始的 0.2.2 发布线；0.2.2 的早期预发版和 0.2.3 及以上版本需要适配，暂不支持 DSH Web。
 - **对话列表：**列表和搜索仅包含官网已加载的导航内容。官网页面结构变化可能影响账号或列表识别，可根据界面提示重试。
 - **登录状态：**登录记忆仅用于同一 DSH 配置环境；授权过期、撤销或官网登录机制变化后，可能需要重新登录，不保证永久免登录。
 - **草稿与刷新：**模式切换会保留网页，但刷新、停用、卸载或退出 DSH 前，请先保留未发送内容。插件不会额外备份草稿。
-- **快捷键与网页能力：**Harness 原有的新会话快捷键和菜单仍作用于 HARNESS；CHAT 请使用其顶部“新会话”按钮。下载、设备权限和部分弹窗受 DSH 的浏览器安全策略限制。
+- **快捷键与网页能力：**Harness 原有的新会话快捷键和菜单仍作用于 HARNESS；CHAT 请使用其顶部“新会话”按钮。附件保存只覆盖 Mermaid 代码块的 SVG/PNG/源码导出；其他下载、设备权限和部分弹窗仍受 DSH 的浏览器安全策略限制。
 
 ## 隐私与数据
 

@@ -10,7 +10,7 @@
 
 DeepSeek Chat is a **DSH Desktop plugin**. Choose **CHAT** to use the real [DeepSeek Chat website](https://chat.deepseek.com/) inside DSH, or choose **HARNESS** to return to your original workspace.
 
-Published release: **0.2.11** · Built for **DSH Desktop** · The CHAT website’s language, appearance and text size follow DSH.
+Published release: **0.2.17** · Built for **DSH Desktop** · The CHAT website’s language, appearance and text size follow DSH.
 
 ## Features
 
@@ -23,6 +23,7 @@ Published release: **0.2.11** · Built for **DSH Desktop** · The CHAT website�
 - Use each conversation’s menu to rename, pin, share or delete it.
 - Refresh the website page and conversation list using the icon beside Chats.
 - Language, light/dark appearance and content text size follow DSH settings automatically.
+- External links in a conversation open in your default browser; a Mermaid code block’s **Download SVG / PNG / Code** can be saved to this computer.
 
 ### Switch back to HARNESS
 
@@ -51,13 +52,13 @@ After a normal sign-in, the plugin attempts to save the website grant and restor
 Enter this in the DSH plugin installer:
 
 ```text
-dsh-deepseek-chat@0.2.11
+dsh-deepseek-chat@0.2.17
 ```
 
 Or use the CLI:
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.11
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.17
 ```
 
 Use the same method for a first installation or an update. If DSH’s release age policy temporarily blocks a newly published version, retry later.
@@ -83,7 +84,7 @@ This installs the version already pushed to the repository, with no manual build
 Give the `.tgz` package to the DSH plugin manager, or run:
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.11.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.17.tgz
 ```
 
 Replace the path with your package location.
@@ -99,11 +100,11 @@ Replace the path with your package location.
 
 ## Notes and limitations
 
-- **Environment:** DSH Desktop is required. The compatibility range covers 0.2.0-rc.2 and the 0.2.1 release line starting at 0.2.1-rc.1. Versions 0.2.2 and above require adaptation. CHAT is not supported in DSH Web.
+- **Environment:** DSH Desktop is required. The compatibility range covers 0.2.0-rc.2, the 0.2.1 release line starting at 0.2.1-rc.1, and the 0.2.2 release line starting at 0.2.2-rc.1. Earlier 0.2.2 prereleases and 0.2.3 or later require adaptation. CHAT is not supported in DSH Web.
 - **Conversation list:** The list and search cover only navigation content already loaded by the website. Website layout changes may affect account or list recognition; use the retry action shown in the interface.
 - **Sign-in:** Login memory is specific to the same DSH profile. Expired or revoked grants, or changes to the website’s sign-in mechanism, may require signing in again. Permanent sign-in is not guaranteed.
 - **Drafts and refresh:** Switching modes retains the website page, but preserve unsent text before refreshing, disabling, uninstalling or quitting DSH. The plugin does not separately back up drafts.
-- **Shortcuts and website capabilities:** Existing Harness new-session shortcuts and menus still act on HARNESS. Use CHAT’s top New Chat button for website conversations. Downloads, device permissions and some popups are limited by DSH’s browser security policies.
+- **Shortcuts and website capabilities:** Existing Harness new-session shortcuts and menus still act on HARNESS. Use CHAT’s top New Chat button for website conversations. Attachment saving covers only the SVG/PNG/source export of Mermaid code blocks; other downloads, device permissions and some popups remain limited by DSH’s browser security policies.
 
 ## Privacy and data
 

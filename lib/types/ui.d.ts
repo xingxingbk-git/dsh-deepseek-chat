@@ -1,5 +1,6 @@
 import type { StoredEntry } from '@deepseek-ai/dsh-client-ui-slots';
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
+import type { WebsiteFile } from './website-downloads.js';
 import type { WebsiteCommand, WebsiteNavigation } from './website-navigation.js';
 import type { ChatLanguage } from './website-settings.js';
 import type { WebsiteSession } from './protocol.js';
@@ -13,6 +14,8 @@ export interface DshChatViewportRect {
     readonly height: number;
     /** Host main-content clip, projected locally; never website or account data. */
     readonly borderRadius?: string;
+    /** Mirror the main slot's native modal/drawer interaction lock onto our portal. */
+    readonly inert?: boolean;
 }
 /** Only in-memory navigation metadata; never message bodies or account secrets. */
 export interface DshChatViewState {
@@ -45,7 +48,11 @@ export interface DshChatViewState {
     readonly switchPreferencesStatus?: 'loading' | 'ready' | 'unavailable';
     readonly switchPreferencesPending?: boolean;
     readonly switchPreferencesError?: string | null;
+    /** Transient, non-blocking code for link/download feedback; never page-load errors. */
+    readonly websiteNotice?: WebsiteNotice | null;
 }
+/** Fixed codes only: guest or site text never reaches this state. */
+export type WebsiteNotice = 'link-unavailable' | 'download-failed' | 'download-too-large' | 'download-saved' | 'download-requested';
 export interface DshChatUIBridge {
     getSnapshot(): DshChatViewState;
     subscribe(listener: () => void): () => void;
@@ -84,12 +91,21 @@ export interface DshChatUIBridge {
     saveWebsiteSession(generation: number, session: WebsiteSession): Promise<boolean>;
     clearWebsiteSession(generation: number): Promise<boolean>;
     reportWebsiteSessionError(generation: number, message: string): void;
+    /** Save one explicitly exported attachment through the host file-actions service. */
+    saveWebsiteFile(file: WebsiteFile): void;
+    /** Non-fatal status feedback for links and exports; never a page-load error. */
+    reportWebsiteNotice(generation: number, notice: WebsiteNotice | null): void;
 }
 export interface DshChatBridgeProps {
     readonly bridge: DshChatUIBridge;
 }
 export declare function useDshChat(bridge: DshChatUIBridge): DshChatViewState;
 export declare function DshChatStyles(): null;
+/** The shell owns the navigation button/label and supplies icon geometry. */
+export declare function DshChatSettingsIcon({ size }: {
+    size: number;
+    active: boolean;
+}): import("react/jsx-runtime").JSX.Element;
 export declare function DshChatModeSelector({ bridge, state, compact }: DshChatBridgeProps & {
     readonly state: DshChatViewState;
     readonly compact?: boolean;

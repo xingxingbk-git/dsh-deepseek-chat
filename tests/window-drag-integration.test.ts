@@ -109,6 +109,10 @@ function harness(options:{pendingMount?:boolean;desktop?:boolean;originalPanel?:
   const ctx={
     effect,
     inject(dependencies:string[],callback:(ctx:unknown)=>unknown) {
+      if(dependencies.length===1 && dependencies[0]==='fileActions') {
+        const dispose=effect(()=>callback({...ctx,fileActions:{canSaveAs:false,save:async()=>({status:'requested'})}}))
+        return {dispose,then:dispose.then}
+      }
       if(dependencies.length===1 && dependencies[0]==='configForms') {
         const dispose=effect(()=>callback({...ctx,configForms:{get:()=>preferenceForm}}))
         return {dispose,then:dispose.then}
@@ -125,7 +129,9 @@ function harness(options:{pendingMount?:boolean;desktop?:boolean;originalPanel?:
         listeners.add(listener)
         return ()=>{listeners!.delete(listener)}
       },
-      inject:(_name:string,callback:()=>unknown)=>effect(callback),
+      // This fixture models the pre-0.2.2 shell without the optional icon seat.
+      spec:()=>undefined,
+      inject:(name:string,callback:()=>unknown)=>effect(name==='settings.section.icon' ? ()=>{} : callback),
       register(slot:SlotOptions,component:unknown) {
         const key=`${slot.name}:${slot.key ?? slot.id ?? ''}`, entry={options:slot,component}
         assert.equal(registrations.has(key),false,`slot ${key} must have one owner`)
@@ -350,6 +356,32 @@ test('only the current viewport and authorized ready CHAT state can invoke a sam
     assert.deepEqual(await h.bridge.readWindowDrag(rect),regions);assert.equal(reads,2)
     h.bridge.reportWebsiteNavigation(generation,{status:'sign-in',conversations:[],canCreate:false})
     assert.deepEqual(await h.bridge.readWindowDrag(rect),[]);assert.equal(reads,2)
+  } finally {await h.dispose()}
+})
+test('native drawer inert-only updates publish and revoke pending drag without replacing the guest',async()=>{
+  const h=harness()
+  try {
+    const generation=await readyChat(h), reply=deferred<readonly WindowDragRegion[]>()
+    let reads=0, changes=0
+    const stop=h.bridge.subscribe(()=>{changes++})
+    h.bridge.bindWindowDragSampler(generation,()=>{reads++;return reply.promise})
+    const pending=h.bridge.readWindowDrag(rect)
+    const blocked={...rect,inert:true}
+    h.bridge.updateViewport(blocked)
+    assert.equal(h.bridge.getSnapshot().viewport?.inert,true)
+    assert.equal(changes,1)
+    assert.deepEqual(await h.bridge.readWindowDrag(blocked),[])
+    reply.resolve(regions)
+    assert.deepEqual(await pending,[])
+    assert.equal(reads,1)
+    const restored={...rect,inert:false}
+    h.bridge.updateViewport(restored)
+    assert.equal(changes,2)
+    h.bridge.bindWindowDragSampler(generation,async()=>regions)
+    assert.deepEqual(await h.bridge.readWindowDrag(restored),regions)
+    assert.equal(h.bridge.getSnapshot().authorizationGeneration,generation)
+    assert.equal(h.nativeCalls(),0)
+    stop()
   } finally {await h.dispose()}
 })
 test('an unauthorized Host cannot sample even if fictional website metadata says signed in',async()=>{

@@ -1,5 +1,36 @@
 # 架构与可行性
 
+## 现行架构概览（2026-11-07）
+
+- **Host（`src/index.ts` → `src/server.ts`）**：Cordis 插件，暴露 `dshDeepseekChat` 远程方法（授权、登录记忆、会话刷新等），经 typert/gateway 与 Client 通信；不清点或代理聊天内容。
+- **Client 控制器（`src/client.ts`）**：持有模式状态、授权代次、导航投影、viewpanel 几何、侧栏适配与设置表单；所有跨 guest 的数据都经最小投影（枚举/布尔/锚点几何），不导出正文。
+- **模式（`src/core/mode.ts`）**：CHAT/HARNESS 的进入/退出与主面板恢复；CHAT 由插件自有 slot 覆盖 main，不主动开关右栏。
+- **官网浮层（`src/web-surface.tsx`）**：body portal + 固定几何（跟随主槽裁剪祖先圆角），同一 webview 租约（acquire/release）跨模式保留；负责适配命令、导航投影、外链路由与 Mermaid 导出下载桥。
+- **附属面**：`window-drag-surface`/`window-drag`（CHAT 顶部原生拖拽行与命中洞）、`sidebar-adapter`（品牌/新会话限定适配）、`settings-icon`（公开 `settings.section.icon` 优先，旧壳 fallback）、`brand-notice`（body portal 提示浮层）。
+- **数据边界**：官网登录仅三个固定 key；导航只保留当前授权代次内存；外链与下载不落盘、不进日志、不进模型输入。
+- **构建**：`scripts/build.mjs` 产 Host ESM、`.d.ts` 与 lazy-CJS Client；`check-distribution.mjs` 用 `lib/build-manifest.json` 校验预编译产物与源码一致（当前 33 编译文件 / 4 共享模块）。
+- **验证分层**：Node 契约/浏览器合成（CDP 可信点击）/跨窗口 DPI 裁剪；Electron 原生合成与真实账号流程不在自动化范围。
+
+> 以下按版本倒序记录各阶段机制、证据与限制；长期结论以本节概览与 [requirements](requirements.md) 为准。
+
+
+## 0.2.13 CHAT 外链、附件下载与侧栏浮层（2026-11-07）
+
+- **外链走系统浏览器，不用内置 Browser**：0.2.2 的内置浏览器是右侧栏（right Sidebar/dock）能力，公开入口 `ctx.sidebarRight.openTabIn(..., 'browser', ...)` 会改变 CHAT 主区布局并牵动 HARNESS 面板状态；在“不得打开 HARNESS 右栏”的前提下没有安全的隔离入口。官方自身的“在系统浏览器打开”实现即 `window.open(url,'_blank','noopener,noreferrer')`：Desktop 主窗口 `setWindowOpenHandler` 对 http(s) 调 `shell.openExternal` 并 deny 子窗口，因此返回 null 不代表失败。`src/website-links.ts` 只接受绝对 http(s)、空用户名密码、原始与规范化长度≤8192；完整 origin 等于 `https://chat.deepseek.com` 才回到原 guest（保留 query/hash），否则交给系统浏览器；失败/被拒只产生非致命提示，绝不写 `webError`（否则会遮住正常网页）。
+- **附件保存在主框架完成**：Desktop 对每个 Browser partition 的 `will-download` 无条件 `preventDefault()`，BrowserBridge 只暴露 acquire/release/onOpenRequested，没有放行下载或注入 guest preload 的公开能力。官方 `ctx.fileActions`（`@deepseek-ai/dsh-client-ui-file-actions`）提供 `save(source,'download'|'saveAs')`：带 `read(signal)` 时由 app realm 读取 Blob、自行建对象 URL 再交 Desktop `downloadURL`，因此 guest 的 blob 不能在 guest 之外直接使用（Blob 受 storage partition 限制）。实现把“读取”留在 guest：`src/website-downloads.ts` 在捕获阶段识别用户真实手势（可信 click/Enter；官方 Mermaid 下载按钮 `.code-info-button-text` 为 下载/Download 且同 block 内唯一 `.ds-segmented[role=tablist]` 为图表/代码两页签；随后 portal 到 body 的 `[role=menu]` 恰好 3 个 `.ds-dropdown-menu-option` 且标签唯一对应 下载 SVG/PNG/代码 或 SVG/PNG/Code），命中即同步读该次点击产生的 `a[download]` blob（官网 helper 约 200ms 后 revoke，必须立即启动，不能等轮询），16MiB/8s/单在途有界，转 data URL 回主框架；`parseWebsiteDownload`/`websiteDownloadBlob` 再校验文件名、MIME、base64、PNG 签名、SVG 根与 UTF-8，最后以 `source.read` 交给官方 `save`。未改 guest 下载策略、未注入 IPC/preload、未覆盖 `createObjectURL`/`anchor.click`/`fetch` 等全局 API，也未扫描正文或私有状态。取消保存静默；`saved`/`requested`/失败分别给非阻断提示。
+- **提示浮层脱离裁剪祖先**：侧栏 logo 行 `height:60` 且 `overflow:hidden`，原先 `position:absolute` 的 230px 授权提示被裁成约 12px 高的背景条（文档已删除文字，截图表现为黑条）。`src/brand-notice.tsx` 改为 `document.body` portal + `position:fixed`，以模式控件右缘为锚、下方 6px、窗口 12px 夹取，并在 own anchor/祖先属性/resize/scroll 变化时重算；两种提示合并为一个浮框。宿主行结构、overflow 与原生 Tooltip 均未改动。
+- **限制**：仅覆盖 Mermaid 代码块的 SVG/PNG/源码导出；站点其它下载机制（未挂载 anchor 的程序化下载、非 Mermaid 附件）不在识别范围内，识别失败时失败关闭，官网自身下载仍会宿主策略阻止——这是已知限制而非本插件伪装成功。线上菜单标签/结构与所核对的公开 bundle 不一致时同样不接管。系统浏览器外开与原生保存对话框的效果需在 Electron 实机验收，合成 CDP 点击与 Node 回归不能替代。
+
+## 0.2.12 DSH 0.2.2 适配（2026-11-07）
+
+- 兼容准入扩为 `0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0`（engine 与 3 个 DSH peers 同值）。按官方 app-boot 同样的 `includePrerelease:true` 语义验证：0.2.2-alpha/beta/rc.0 与全部 0.2.3 预发仍拒绝，因为裸 `<0.2.3` 会误放行 `0.2.3-rc.*`。
+- 0.2.2 契约差异只有少量新增，现有调用面未破坏：slots 核心、StoredEntry、layout 面板服务、settings configForms 与 section、Browser Bridge（`protocolVersion=1`，官方仍仅设 name/partition/allowpopups/src 的 `about:blank#lease`）均保持；typert 资源解析新增可选 `resolve`、gateway 新增 pending-events 与流压缩，均为向后兼容增量。`ctx.slots.spec()` 在 0.2.2 的 SlotRegistry 与 0.2.0-rc.2 的 registry.d.ts 中均存在，故可用它判定图标插槽是否声明。
+- 设置图标：0.2.2 导航按钮首个子节点由 SVG 改为 `<span aria-hidden>` 包裹 `settings.section.icon` renderSlot，旧的“首子节点必须是 SVG”匹配必然失配。改为优先注册公开 slot（id 必须等于 section id，owner props `size/active`，由壳负责按钮/标签/默认字形），并且只在 `settings.section.icon` 未声明时启用原窄 DOM fallback；插槽声明撤销时同步回退，注册与观察器成对清理，卸载后不再重注册，避免两个图标源同时生效。
+- 侧栏：0.2.2 用 `useRemoteAccess('session/create')` 门控原生新会话按钮，无权限时 BUTTON 缺失且 brand 从 BUTTON 变为 SPAN。适配保留旧“唯一直接 BUTTON 紧跟 brand 行”分支，新增严格正匹配分支：SPAN + 根下 0 个直接 BUTTON + 唯一非空 label 的 NAV + 紧跟的唯一 DIV region，且该 region 直接包含唯一 `sidebar.workspaces` SlotOutlet。按钮按节点保存/恢复 disabled 与原 marker，动态移除/重建/替换与 owner 重挂安全；未知形态仍返回不兼容而非猜测。
+- 交互锁：0.2.2 窄窗 drawer 打开时给主区加 `inert`。`DshChatViewportRect` 新增可选 `inert`，Panel 读取自身祖先 `[inert]`（观察属性含 `inert`）并随 viewport 发布，Client 的相等比较包含 `inert` 以触发纯状态变更发布；Surface 据此设置 inert/aria-hidden/pointer-events，拖拽采样与行在该状态下暂停。guest 仍是同一 lease，不重载、不重建。
+- 焦点回归：0.2.2 drawer 关闭后按 `[data-sidebar-opener]` 恢复焦点，自有展开按钮补该公开标记，避免焦点丢失。
+- 保留的宿主适配：workspace 搜索重放窄 guard 仍必要（新版 `lib/client.js` 仍以 0 初始化并不为 0 的 retained 请求立即展开 + mount effect 聚焦），未扩大对宿主 entry 的改写。全部证据来自官方 0.2.2-rc.1 分发与只读提取，等价的 Node/合成回归不等于 Electron 原生或真实账号验收。
+
 ## 0.2.11 账号操作区与原生选择器样式（2026-10-31）
 
 - 操作区与样式下拉共用`--dsh-chat-settings-action-width:200px`（240px 已被用户否定：会明显加宽下拉）。actions `gap:0`+`space-between`让两元素之间剩余空间自适应；链接仅保留左侧`padding:0 0 0 14px`，与原生Button md的14px内边距一致，故链接文字与下拉内文字同起点，且中英文都能在200px内单行。

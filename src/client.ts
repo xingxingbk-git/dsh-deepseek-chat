@@ -4,6 +4,8 @@ import type { MainPanelId } from '@deepseek-ai/dsh-client-ui-layout/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import type {} from '@deepseek-ai/dsh-api-gateway/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
+import type {} from '@deepseek-ai/dsh-client-ui-file-actions/client'
+import type { FileActions, FileSaveResult } from '@deepseek-ai/dsh-client-ui-file-actions/types'
 import type { DesktopBrowserBridge } from '@deepseek-ai/dsh-client-ui-sidebar-browser/types'
 import { CHAT_PANEL, ModeController } from './core/mode.js'
 import { readHostLanguage, type ChatLanguage } from './website-settings.js'
@@ -11,14 +13,16 @@ import { translate } from './i18n.js'
 import { authorizationSchema, DSH_CHAT_REMOTE_CONTRIBUTION } from './protocol.js'
 import type { AuthorizationState, DshChatClientMetadata, WebsiteSession } from './protocol.js'
 import { acquireChatStyles } from './styles.js'
-import { guardHarnessSearchReplay, DshChatBrandName, DshChatChatNavigation, DshChatChatPanel, DshChatLeadingControls, DshChatChatSettings } from './ui.js'
-import type { DshChatUIBridge, DshChatViewState, DshChatViewportRect } from './ui.js'
+import { guardHarnessSearchReplay, DshChatBrandName, DshChatChatNavigation, DshChatChatPanel, DshChatLeadingControls, DshChatChatSettings, DshChatSettingsIcon } from './ui.js'
+import type { DshChatUIBridge, DshChatViewState, DshChatViewportRect, WebsiteNotice } from './ui.js'
 import { DshChatWebSurface } from './web-surface.js'
 import { DshChatWindowDragSurface } from './window-drag-surface.js'
 import type { WindowDragRegion } from './window-drag.js'
 import { emptyNavigation, parseWebsiteNavigation, type WebsiteCommand } from './website-navigation.js'
+import { parseWebsiteDownload, websiteDownloadBlob } from './website-downloads.js'
+import type { WebsiteFile } from './website-downloads.js'
 import { createSidebarBinding } from './sidebar-adapter.js'
-import { bindChatSettingsIcon } from './settings-icon.js'
+import { bindChatSettingsIconSlot, CHAT_SETTINGS_SECTION_ID } from './settings-icon.js'
 import { HOST_ENTRY_ID } from './identity.js'
 import { DEFAULT_SWITCH_PREFERENCES, parseSwitchPreferences, validSwitchLabel, type SwitchPreferences } from './preferences.js'
 import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client'
@@ -85,6 +89,10 @@ export function apply(ctx: Context): void {
   let switchPreferencesStatus: 'loading'|'ready'|'unavailable' = 'loading'
   let switchPreferencesError: string|null = null
   let preferenceWrites = 0
+  let websiteNotice: WebsiteNotice | null = null
+  let websiteNoticeTimer: ReturnType<typeof setTimeout> | undefined
+  let fileActions: FileActions | null = null
+  let websiteFileSaving = false
   let preferencesForm: ConfigForm<SwitchPreferences>|null = null
   let bridge: DshChatUIBridge
   let cached: DshChatViewState
@@ -136,9 +144,22 @@ export function apply(ctx: Context): void {
         ? `dsh-deepseek-chat:website:${state.authorization.accountId}` : null,
       authorizationGeneration, websiteReloadRevision, websiteNavigationRefreshing, websiteNavigationRefreshError, websiteNavigation, showWebsiteNavigation,
       switchPreferences, switchPreferencesStatus, switchPreferencesError, switchPreferencesPending:preferenceWrites>0,
+      websiteNotice,
     }
     sidebar?.sync()
     for (const listener of listeners) listener()
+  }
+  /** Transient, non-blocking feedback; codes never carry site or guest text. */
+  function showWebsiteNotice(notice: WebsiteNotice | null): void {
+    clearTimeout(websiteNoticeTimer); websiteNoticeTimer = undefined
+    if (websiteNotice === notice) return
+    websiteNotice = notice
+    publish()
+    if (notice !== null) websiteNoticeTimer = setTimeout(() => {
+      websiteNoticeTimer = undefined
+      websiteNotice = null
+      publish()
+    }, notice === 'download-saved' || notice === 'download-requested' ? 2500 : 5000)
   }
   function resetNavigationRefresh(): void {
     websiteNavigationRefreshRequest++
@@ -338,7 +359,7 @@ export function apply(ctx: Context): void {
     toggleSidebar: () => { ctx.layout.toggleSidebar() },
     attachViewport: element => { if (!element) { viewport = null; publish() } },
     updateViewport: next => {
-      if (viewport?.left === next?.left && viewport?.top === next?.top && viewport?.width === next?.width && viewport?.height === next?.height && viewport?.borderRadius === next?.borderRadius) return
+      if (viewport?.left === next?.left && viewport?.top === next?.top && viewport?.width === next?.width && viewport?.height === next?.height && viewport?.borderRadius === next?.borderRadius && viewport?.inert === next?.inert) return
       viewport = next; publish()
     },
     updateBrandAnchor: (next, owner) => {
@@ -435,7 +456,7 @@ export function apply(ctx: Context): void {
         && generation === authorizationGeneration && revision === websiteAuthenticationRevision
         && mode.getSnapshot().mode === 'chat' && mode.canEnter() && !settingsOpen && !webLoading
         && !conversationActionPending && !websiteNavigationRefreshing && !logoutRequested && !logoutFailed
-        && cached.viewport === expectedViewport && cached.authorizationStatus === 'authorized'
+        && cached.viewport === expectedViewport && !expectedViewport.inert && cached.authorizationStatus === 'authorized'
         && websiteAuthenticationStatus === 'signed-in' && websiteNavigation.status === 'ready' && websiteNavigation.authenticated === true
       if (!allowed()) return []
       const regions = await binding.handler(expectedViewport)
@@ -577,6 +598,29 @@ export function apply(ctx: Context): void {
       if(websiteSessionStatus==='error' && websiteSessionError===message) return
       websiteSessionStatus='error';websiteSessionError=message;publish()
     },
+    reportWebsiteNotice: (generation, notice) => {
+      if (disposed || generation !== authorizationGeneration) return
+      showWebsiteNotice(notice)
+    },
+    saveWebsiteFile: file => {
+      if (disposed) return
+      const checked = parseWebsiteDownload(file)
+      if (!checked || checked.kind !== 'file' || fileActions === null || websiteFileSaving) {
+        if (!websiteFileSaving) showWebsiteNotice(checked && checked.kind === 'too-large' ? 'download-too-large' : 'download-failed')
+        return
+      }
+      const actions = fileActions
+      websiteFileSaving = true
+      // The bytes travel through the official read callback, never as a page URL.
+      const source = { url: 'data:application/octet-stream;base64,', name: checked.name, mediaType: checked.mediaType,
+        read: async () => websiteDownloadBlob(checked) }
+      void actions.save(source, actions.canSaveAs ? 'saveAs' : 'download').then((result: FileSaveResult) => {
+        if (disposed) return
+        showWebsiteNotice(result.status === 'saved' ? 'download-saved'
+          : result.status === 'cancelled' ? null : 'download-requested')
+      }).catch(() => { if (!disposed) showWebsiteNotice('download-failed') })
+        .finally(() => { websiteFileSaving = false })
+    },
   }
   function failWebsiteLogout(message: string): void {
     clearTimeout(logoutTimer);logoutTimer=undefined
@@ -591,6 +635,13 @@ export function apply(ctx: Context): void {
     if (sidebarAdapted !== ready) { sidebarAdapted = ready; publish() }
   })
   publish()
+  ctx.inject(['fileActions'], child => {
+    child.effect(() => {
+      const actions = child.fileActions
+      fileActions = actions
+      return () => { if (fileActions === actions) fileActions = null }
+    })
+  })
   ctx.inject(['configForms'], child => {
     child.effect(() => {
       const form=child.configForms.get<SwitchPreferences>(HOST_ENTRY_ID)
@@ -621,7 +672,7 @@ export function apply(ctx: Context): void {
     guardSearch()
     const stopSearchGuard = ctx.slots.subscribe('sidebar.workspaces',guardSearch)
     const releaseStyles = typeof document === 'undefined' ? () => {} : acquireChatStyles(document)
-    const releaseSettingsIcon = typeof document === 'undefined' ? () => {} : bindChatSettingsIcon(document)
+    const releaseSettingsIcon = bindChatSettingsIconSlot(ctx.slots, DshChatSettingsIcon, typeof document === 'undefined' ? undefined : document)
     ctx.slots.inject('settings.section', () => {
       let label = ''
       let release = () => {}
@@ -630,7 +681,7 @@ export function apply(ctx: Context): void {
         if (next === label) return
         label = next
         release()
-        release = ctx.slots.register({name:'settings.section',id:'dsh-deepseek-chat.chat-settings',order:80,label,inject:()=>({bridge})}, DshChatChatSettings)
+        release = ctx.slots.register({name:'settings.section',id:CHAT_SETTINGS_SECTION_ID,order:80,label,inject:()=>({bridge})}, DshChatChatSettings)
       }
       syncLabel()
       listeners.add(syncLabel)
@@ -656,6 +707,7 @@ export function apply(ctx: Context): void {
     void refreshAuthorization()
     return () => {
       clearTimeout(logoutTimer)
+      clearTimeout(websiteNoticeTimer); websiteNoticeTimer = undefined
       languageObserver?.disconnect()
       stopSearchGuard(); for (const cleanup of guardedEntries.values()) cleanup(); guardedEntries.clear()
       mode.dispose(); sidebar?.dispose(); releaseSettingsIcon(); releaseStyles(); stopPanel(); stopMode(); disposed = true; lifetime.abort(); listeners.clear()

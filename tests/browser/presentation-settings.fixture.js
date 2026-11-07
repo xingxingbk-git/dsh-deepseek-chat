@@ -1,7 +1,7 @@
 import React from 'react'
 import {createRoot} from 'react-dom/client'
 import {flushSync} from 'react-dom'
-import {DshChatChatSettings,DshChatModeSelector,DshChatBrandName,useDshChat} from '../../src/ui.tsx'
+import {DshChatChatSettings,DshChatModeSelector,DshChatBrandName,DshChatSettingsIcon,DshChatLeadingControls,useDshChat} from '../../src/ui.tsx'
 import {validSwitchLabel} from '../../src/preferences.ts'
 import {attachSidebarAdapter} from '../../src/sidebar-adapter.ts'
 
@@ -24,7 +24,7 @@ window.fixtureDone=(async()=>{
  const h=React.createElement
  function SidebarFixture({id,width,button=false}){return h('div',{id,className:'fixture-sidebar',style:{width}},
   h('div',{className:'fixture-logo-row','data-window-drag':true},h(button?'button':'div',{className:'fixture-brand'},h('div',{className:'fixture-brand-identity','aria-hidden':true},h('span',{className:'fixture-brand-icon'},h('svg',{width:24,height:24})),h('span',{className:'fixture-brand-name'},h('span',{'data-slot':'sidebar.brand.name',style:{display:'contents'}},h(DshChatBrandName,{bridge})))))),h('button',null,'Native new session'))}
- function App(){const snapshot=useDshChat(bridge);return h(React.Fragment,null,h('div',{id:'settings'},h(DshChatChatSettings,{bridge,close:()=>{}})),h(DshChatModeSelector,{bridge,state:snapshot}),h(SidebarFixture,{id:'sidebar-wide',width:420}),h(SidebarFixture,{id:'sidebar-narrow',width:192}),h(SidebarFixture,{id:'sidebar-windows',width:420,button:true}))}
+ function App(){const snapshot=useDshChat(bridge);return h(React.Fragment,null,h('div',{id:'settings'},h(DshChatChatSettings,{bridge,close:()=>{}})),h(DshChatModeSelector,{bridge,state:snapshot}),h(SidebarFixture,{id:'sidebar-wide',width:420}),h(SidebarFixture,{id:'sidebar-narrow',width:192}),h(SidebarFixture,{id:'sidebar-windows',width:420,button:true}),h('div',{id:'public-settings-icon',style:{color:'rgb(24, 80, 128)'}},h(DshChatSettingsIcon,{size:24,active:true})),h('div',{id:'public-sidebar-leading'},h(DshChatLeadingControls,{bridge})))}
  const root=createRoot(document.querySelector('#fixtures'));flushSync(()=>root.render(h(App)));await tick()
  const card=()=>document.querySelector('.dsh-chat-presentation-settings')
  const input=field=>card().querySelectorAll('input')[field==='chatLabel'?0:1]
@@ -32,7 +32,14 @@ window.fixtureDone=(async()=>{
  const setInput=async(field,value)=>{const el=input(field);Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,value);el.dispatchEvent(new Event('input',{bubbles:true}));await tick();return el}
  const choose=async id=>{card().querySelector('.dsh-chat-style-trigger').click();await tick();document.querySelector(`[data-menu-id="${id}"]`).click();await tick()}
  try{
-  check('boxed page title and subtitle are absent',!document.querySelector('.dsh-chat-settings-heading') && !document.querySelector('#settings h2'))
+  const publicIcon=document.querySelector('#public-settings-icon > svg')
+   check('public settings icon honors shell size and inherits selected-row color',publicIcon?.getAttribute('width')==='24' && publicIcon?.getAttribute('height')==='24' && publicIcon?.getAttribute('aria-hidden')==='true' && getComputedStyle(publicIcon.querySelector('path')).stroke==='rgb(24, 80, 128)')
+   check('public settings icon leaves the shell button and label untouched',document.querySelector('#public-settings-icon').children.length===1 && !document.querySelector('#public-settings-icon button') && !document.querySelector('[data-dsh-chat-settings-icon]'))
+   const opener=document.querySelector('#public-sidebar-leading [data-sidebar-opener]')
+   opener?.focus()
+   check('native drawer can restore focus to the plugin sidebar opener',opener?.tagName==='BUTTON' && document.activeElement===opener && opener.getAttribute('aria-label')==='展开侧边栏')
+   opener?.blur()
+   check('boxed page title and subtitle are absent',!document.querySelector('.dsh-chat-settings-heading') && !document.querySelector('#settings h2'))
   check('boxed account heading and login explanation are absent',!document.querySelector('.dsh-chat-settings-card-heading') && !document.querySelector('#settings').textContent.includes('独立的'))
   check('saved-login explanatory block is absent without changing account display',!document.querySelector('.dsh-chat-settings-saved') && document.querySelector('#settings').textContent.includes('Fixture account'))
   const logout=document.querySelector('.dsh-chat-settings-logout'),logoutStyle=getComputedStyle(logout)
