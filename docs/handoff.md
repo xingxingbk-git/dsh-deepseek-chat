@@ -2,7 +2,28 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
-## 当前状态（2026-11-07）
+## 0.2.18 最新候选：搜索/刷新共用圆角规则（2026-11-08）
+
+用户截图指出刷新与搜索悬停色块圆角可能不同。源码确认：搜索为主题 `--dsw-radius-sm`（8px），通用 icon-button 为写死6px。自有CSS将搜索与header刷新合并为同一条sm圆角规则，不改变更多按钮xs（4px）或其他图标。新增三项计算样式验证（8px一致、改token至10px仍同步、更多保持4px），sidebar-rows共48项全过，UI72/类型/分发通过。仍为同轮0.2.18，当前安装包 `artifacts/dsh-deepseek-chat-0.2.18-cb1983e76d01.tgz`（222876bytes/41文件，SHA256 `cb1983e76d01dc11ad20c6aae89a33b6e262c65cb40f8a622282c271d415e20f`），官方安装退出0，41/41文件同包，持久dependency/lock与构建圆角规则已核对。未自动重启/npm/Git，待用户重开看效果；替代下节ca026候选，listArea修复保留。
+
+## 0.2.18 续修候选：补齐 listArea，统一滚动条与行边界（2026-11-08，当前由上节替代）
+
+- 用户截图否定首候选 `673256bc7100` 的滚动条位置和选项宽度，首轮“与原生对齐”的结论撤回。复核本机官方 WorkspaceBrowser JSX（root → listArea → treeBody → list）发现：`listArea` 通过 `margin-right:-edge-inset` 抵消 root 的右 padding。首轮生产代码与回归参考同时漏掉此层，36 项通过不能证明真实 HARNESS 几何。
+- 在 `src/ui.tsx` 补自有 `dsh-chat-navigation-list-area`，在 `src/styles.ts` 对应原生 listArea 的左右 margin/padding、flex/min-height 与 overflow；保留首轮更多按钮的仅变色交互。未改宿主、登录或网页数据。
+- 修正回归参考为官方完整层级（含 header、listArea、treeBody），新增滚动条四边界、真实溢出与滚动后检查：45/45 通过。同一修正基准在首候选代码上有 18 项预期失败（含滚动条位置和行边界），不再使用首轮错误基准。280px 合成侧栏中：CHAT 与 HARNESS 可见背景均为 x=11..269，滚动条均为 x=273..278、y=48..274（相对各自侧栏）；仅为浏览器合成数据，非用户窗口采样。
+- 类型/分发33文件4模块/UI72/sidebar54/切换器对齐7/浮层20/窗口48通过。仍是本轮 0.2.18，不重复增号。
+- 当前安装包 `artifacts/dsh-deepseek-chat-0.2.18-ca026f87cc45.tgz`，222865 bytes / 41 文件；SHA256 `ca026f87cc450701c2efe5ce77667511591969ccb2b49d417eb24c6cdcc85fdb`。官方 desktop CLI 安装成功；41/41同包，持久dependency/lock、listArea markup/CSS已核对。未重启/npm/Git，待用户完整重开复验。
+
+## 0.2.18 首候选历史（已被截图否定，由上节替代）
+
+- 用户要求修复 CHAT 对话行偏长，并让更多图标悬停与 HARNESS 一致（仅变色，不出现独立背景块）。基线 `main/e073147`，工作区此前仅有本轮调查日志；PR #10 已合并，旧节的 OPEN 状态是当时记录。本轮未做 Git 写入。
+- 只改自有 `src/styles.ts`：navigation 根补原生 edge-inset 右 padding；list 对齐原生左侧补偿与 5px gutter/2px 外距；行使用主题 md 圆角、透明 paint-inset 边框与 padding-box 背景；selected/hover/menu-open 共用原生 hover fill；标题组、搜索头与折叠 rail 同步适配。更多按钮保留 24px 点击区，独立覆盖通用 icon-button 的填充悬停，默认 tertiary、hover primary、背景始终透明；键盘焦点内缩可见，刷新按钮仍保留原来的背景悬停。
+- 新增 `check:sidebar-rows`（生产 React/CSS，Menu API stand-in，原生 0.2.2-rc.1 CSS 几何参考与 CDP 强制 hover/focus）：36/36 通过，覆盖 192/280/420px 宽度、8/12/16px inset、长标题、选中/悬停、更多背景/颜色、焦点/菜单/命令、浅色主题、Windows titlebar 标记、禁用与折叠恢复/清理。用 HEAD 旧样式替换后同套检查出现 17 项预期失败（含行边界与更多按钮背景），证明能检出原问题；不是实机截图验收。
+- 0.2.17→0.2.18，本轮只增一次。类型、分发 33 文件/4 模块、兼容 26×4、SDK11、sidebar54、UI72、提示浮层20、切换器对齐7、窗口48 均通过。
+- 包 `artifacts/dsh-deepseek-chat-0.2.18-673256bc7100.tgz`：222799 bytes / 41 文件；SHA256 `673256bc7100d202697ed8d5a184ef2312fc30d28886495009989b908d1151e8`。官方 desktop CLI 安装成功，41/41 安装文件与包一致，持久 dependency/lock 及构建 CSS 已核对。
+- 未自动重启、未 npm 发布、未 Git stage/commit/push；README 保留已公开 0.2.17。待用户完整重开 DSH 验收列表行宽与更多图标交互；如本轮续调仍用 0.2.18，不再次增号。
+
+## 上轮交付状态（2026-11-07，以下为历史快照）
 
 - **已发布**：`dsh-deepseek-chat@0.2.17` 已公开发布到 npm，完整索引与 install-v1 索引 `latest` 均为 0.2.17；公开 tarball 与正式包逐字节一致（222584 bytes / 41 文件，SHA256 `4cb49a0c0a19c7387b3ff3e5c27af32356c3b426c69bf8adfa79d334ec36ba5c`）。正式包 `artifacts/npm-release-0217/`，同名 hash 副本 `artifacts/dsh-deepseek-chat-0.2.17-4cb49a0c0a19.tgz`（均为 ignored）。
 - **本机**：DSH 桌面版 0.2.2-rc.1；desktop profile 安装的是发布前同版本候选（41/41 字节自洽，SHA256 `7af60eed48b0…`），与公开包仅两份 README 不同、运行代码一致，因此未重装、未重启。需要看到圆角/对齐/提示等改动时请完整退出并重开 DSH。
