@@ -6,13 +6,13 @@
 
 - **已发布**：`dsh-deepseek-chat@0.2.17` 已公开发布到 npm，完整索引与 install-v1 索引 `latest` 均为 0.2.17；公开 tarball 与正式包逐字节一致（222584 bytes / 41 文件，SHA256 `4cb49a0c0a19c7387b3ff3e5c27af32356c3b426c69bf8adfa79d334ec36ba5c`）。正式包 `artifacts/npm-release-0217/`，同名 hash 副本 `artifacts/dsh-deepseek-chat-0.2.17-4cb49a0c0a19.tgz`（均为 ignored）。
 - **本机**：DSH 桌面版 0.2.2-rc.1；desktop profile 安装的是发布前同版本候选（41/41 字节自洽，SHA256 `7af60eed48b0…`），与公开包仅两份 README 不同、运行代码一致，因此未重装、未重启。需要看到圆角/对齐/提示等改动时请完整退出并重开 DSH。
-- **Git**：仍未 stage/commit/push。工作区相对 `329e861`（main/HEAD/origin/main）有 48 项改动，包含 0.2.12–0.2.17 全部交付；提交清单见下节。
+- **Git**：0.2.12–0.2.17 的全部改动已提交并推送为分支 `dsh-022-links-downloads-and-switcher`（提交 `92ce606`，49 文件），并已创建 **PR #10**：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/10（base `main`，状态 OPEN、MERGEABLE）。仓库默认分支 `main` 未改动，等待用户审阅合并；合并前请按下方清单复核。
 - **兼容范围**：engine 与 3 个 DSH peers 均为 `0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0`。拒绝 0.2.2 早期预发与全部 0.2.3 预发/正式版。
 - **验证状态**：类型、分发（33 编译文件 / 4 共享模块）、兼容（26 版本×4 字段）、SDK 契约 11、窗口契约 48、sidebar-022 54、UI 72、标题 38、跨平台裁剪 119×5、外链 35、下载 9（CDP 可信点击）、提示浮层 20、切换器对齐 7 均通过。`tests/authorization.test.ts`、`tests/mode.test.ts` 断言更早行为契约、对应源码未改、不在门禁内，属既有陈旧测试；`pnpm test` 基线因视觉 SDK 依赖缺失不可用。
 - **文档结构**：handoff 现只保留当前状态、提交清单与 0.2.12–0.2.17 记录；0.2.11 及更早的旧段落原样归档到 [handoff-archive](handoff-archive.md)。AGENTS 已压缩为入口指南（约 8KB），需求/架构/路线/取证各加了“现行总要求/概览/进度/索引”小节，其余保留为历史记录。
 - **待实机验收**：系统默认浏览器外开、Electron 原生“另存为”对话框、真实账号下的外链/附件流程、Windows 原生拖拽与圆角合成。以上均为合成/Node 证据之外的边界，不要写成已验收。
 
-## 提交 GitHub 前检查清单
+## 提交/合并前检查清单（本次已按此执行，PR 已创建）
 
 1. 重新构建并核对产物（源码/版本有改动时必须）：`pnpm release:prepare`，再 `pnpm check:distribution`（应输出 `Prebuilt distribution passed: dsh-deepseek-chat@0.2.17; 33 compiled files match source inputs`）。
 2. `git status` 应只包含源码、预编译 `lib/`（含 `lib/types/`、`lib/build-manifest.json`）、`scripts/`、`tests/`、`locale/`、`README*.md`、`docs/`、`AGENTS.md`、`package.json`、`pnpm-lock.yaml`；**不要提交** `artifacts/`、`node_modules/`、`.DS_Store`、任何 `.tgz`、临时目录（均已在 `.gitignore`）。

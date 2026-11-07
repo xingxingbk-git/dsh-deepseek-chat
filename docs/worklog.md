@@ -1161,3 +1161,7 @@ fixture补selector与hover-solid亮暗token，新增填充无描边/亮暗取值
 ### 2026-11-07 文档整理（提交 GitHub 前）
 
 用户要求整理文档以便随后提交 GitHub。将 handoff 中 0.2.11 及更早的 1141 行历史段落原样迁至新增 `docs/handoff-archive.md`，handoff 改为当前快照（当前状态、提交清单、0.2.12–0.2.17 记录、历史索引），从 245KB 降到约 21KB；`AGENTS.md` 由 68KB（已触发读取截断）重写为约 8KB 的入口指南（目标、当前状态、目录职责、版本/发布/Git 规则、兼容依据、现行决策与硬约束、文档职责、开工清单、验证命令）；requirements/architecture/roadmap/references 各在文首补充“现行总要求/架构概览/当前进度/取证索引”，历史章节保留并标注为变更记录。全库 117 个相对链接/图片核对无缺失。未改代码与产物，`check:distribution` 仍通过；Git 仍未提交/推送。
+
+### 2026-11-07 创建变更请求（PR #10）
+
+用户要求为本会话变更创建变更请求。基于 `main`/`329e861` 新建分支 `dsh-022-links-downloads-and-switcher`，提交 0.2.12–0.2.17 全部 49 项改动（源码、预编译 lib、scripts/tests、README、docs、AGENTS、package.json/lock）为 `92ce606`，未包含 artifacts/node_modules/tgz；推送后经 `gh` 创建 PR #10（base main，OPEN、MERGEABLE，1 commit/49 files），PR 描述含改动概要与验证矩阵并附 dsh badge。默认分支 main 未被直接修改，等待用户审阅合并。
