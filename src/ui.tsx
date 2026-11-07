@@ -296,16 +296,14 @@ export function DshChatBrandControl({ bridge }: DshChatBridgeProps) {
   const state = useDshChat(bridge)
   const control = useRef<HTMLDivElement>(null)
   const t = (text: string | null | undefined) => translate(state.language, text)
-  const explained = Boolean(state.error) || state.sidebarAdapted === false
   return <div ref={control} className="dsh-chat-brand-control" aria-label={t("dsh-deepseek-chat 模式选择")}
     onClick={event => event.stopPropagation()}>
     <DshChatStyles />
     <DshChatModeSelector bridge={bridge} state={state} />
-    {/* The sidebar brand row clips descendants; keep our own notice outside that ancestor. */}
-    {explained && <DshChatBrandNotice anchor={control} role={state.error ? 'status' : 'alert'}>
-      {state.error && <p>{t(state.error)}</p>}
-      {state.error && <button type="button" className="dsh-chat-text-button" onClick={() => bridge.refreshAuthorization()}>{t("重试连接")}</button>}
-      {state.sidebarAdapted === false && <p className={state.error ? 'dsh-chat-brand-notice-followup' : undefined}>{t("当前侧栏不兼容：顶部新会话仍使用 HARNESS。CHAT 请展开官网导航后新建对话。")}</p>}
+    {/* Session-service failures belong in Chat settings, not over the sidebar.
+        Keep only the independent compatibility alert outside the clipped brand row. */}
+    {state.sidebarAdapted === false && <DshChatBrandNotice anchor={control} role="alert">
+      <p>{t("当前侧栏不兼容：顶部新会话仍使用 HARNESS。CHAT 请展开官网导航后新建对话。")}</p>
     </DshChatBrandNotice>}
   </div>
 }

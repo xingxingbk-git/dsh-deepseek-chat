@@ -2,6 +2,24 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
+## 当前 Git 状态：PR #13 待审阅（2026-11-08）
+
+用户要求为本轮0.2.19变更创建变更请求。已从main（含PR #12合并）基线新建分支fix-settings-only-service-notice，提交b655496（13文件：源码/预编译lib/回归/README/需求与记录），PR #13：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/13，目标main。创建前重新通过类型/分发33文件4模块/品牌27项/UI72/侧栏48/diff检查；未包含artifacts、安装包或凭据。未合并、未重装/重启；工作树干净，npm 0.2.19已按用户授权独立发布。
+
+## 0.2.19 npm 已公开发布（2026-11-08）
+
+用户明确授权发布0.2.19。中英README版本/安装示例更新为0.2.19后，类型/分发33文件4模块通过；正式包222761bytes/41文件，SHA256 `54a3005fe0fa64bb19ed39694b3d73b52c0d517ac98260a3953d431a72f0cfff`。经独立临时配置网页登录与本次publish确认，唯一一次publish退出0；注册表短暂404传播后核验完整/install-v1 latest均0.2.19，公开tarball逐字节同本包、sha512 integrity匹配、41文件和中英README版本正确。临时npm会话已logout、目录核实后删除、PTY关闭，原npm配置未使用。本机desktop安装的仍是发布前0.2.19候选（与公开包仅两份README不同），未重装/重启；发布文档与版本改动本地未提交。
+
+## 0.2.19 已按用户授权安装（2026-11-08）
+
+用户后续明确要求安装试用。已先核对fa12b7ff7b94包SHA256与0.2.19版本，再经官方 `dsh plugin --profile desktop add <candidate> --save-exact` 安装成功（退出0）；41/41安装文件同包，desktop持久dependency与pnpm-lock均指向此候选。未自动重启、未发布npm或Git提交；需用户完整退出并重开DSH确认新Client实际效果。以下“未安装/已卸载”为安装前阶段记录，现已被此状态替代。
+
+## 0.2.19 当前修复：保存服务提示仅在Chat设置显示（2026-11-08）
+
+用户要求移除品牌切换器下方“无法连接CHAT登录保存服务/重试连接”浮框，因为服务断开不影响普通CHAT使用，设置内已有提示。仅删除DshChatBrandControl中state.error的渲染及重试按钮，保留独立sidebarAdapted=false兼容性警告；Chat设置的error/重试入口及登录/连接状态逻辑不改，同时删除不再使用的followup样式。0.2.18→0.2.19递增一次。本机desktop已卸载此插件（依赖与包文件均无），本轮仅构建打包，不擅自安装/重启，不npm/Git发布。卸载残留生命周期问题另见worklog调查，本次不声称修好热卸载。
+
+验证：类型/分发33文件4模块/品牌及设置27项/UI72/sidebar-rows48/窗口48/diff通过。品牌回归现验证HARNESS和CHAT下均无服务错误浮框、设置错误及重试仍有效、官网账号仍可显示、独立兼容警告仍在body portal且清理正常。包 `artifacts/dsh-deepseek-chat-0.2.19-fa12b7ff7b94.tgz`，222762bytes/41文件，SHA256 `fa12b7ff7b94c7e1a7432096dd9ef061e099193fcf89f94675f0b8134a1ec007`，逐文件同源码/产物。已再次确认desktop仍处于卸载状态；当前窗口中的旧Client残留不会因源码变化自动移除。
+
 ## 0.2.18 npm 已公开发布（2026-11-08）
 
 用户明确要求发布0.2.18，完成临时配置网页登录及本次publish网页授权。唯一一次 `npm publish` 已返回 `+ dsh-deepseek-chat@0.2.18` 与 `PUBLISH_EXIT=0`；随后用户要求重新确认，已检查确为成功，未重复publish。经过短暂404传播期后，完整/install-v1索引latest均0.2.18、精确版本可读；公开tarball逐字节同正式包、sha512 integrity匹配、41文件和中英README版本核对通过。中英README已同步0.2.18；正式包222875bytes/41文件，SHA256 `451b5236d214583bc16a94d6083634c5f622892b16b0e72bbd83f405fea60626`，与本机候选仅两份README不同。临时npm会话已logout并核实删除临时目录，PTY已关闭；原npm配置未使用。未重装/重启、未合并PR、未执行本轮Git提交推送。README与发布记录仍为本地未提交修改，PR正文的未发布状态是创建时快照；后续新修复从0.2.19开始。

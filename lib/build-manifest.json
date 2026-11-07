@@ -1,13 +1,13 @@
 {
   "format": 1,
   "name": "dsh-deepseek-chat",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "inputs": {
     "assets/icon.svg": "8ea4f1d75f655c24e7f42fd5ed76763872d2c2c9d0661e14d64bcbc4dc5f84c8",
     "cordis.patch.yml": "d68da47a95a1800cbc29de786bf910d7327564715c13935760e485ee7408bb51",
     "locale/en.json": "c987685110e29638361288e5fc11309d36a14861d7ac19dec2d5958e29e6ae34",
     "locale/zh-CN.json": "746503cf3e3c5175c3e9d26c4e1472eaf46d25efc276bb4b898f925ad019dbc3",
-    "package.json": "94636646ceb39d73758eb5929489c0aefb8a863c7d2902ef8001ce877fcb6286",
+    "package.json": "b5cc1f7c0a04fa62b41e2cf7edd708d37fdaefa2e028b1b13d193dfd2dda828a",
     "pnpm-lock.yaml": "b47388509b9a3dde4e96b0b08dca43973024282e1fae4340ff7728cab002a410",
     "scripts/build.mjs": "715879e3c25382c35b06db2065b3b13815d1185aa4b9267b68a6257cacee30ec",
     "scripts/check-artifact.mjs": "6fec38fb74e41dfeacef7147280c69854087d0665747d7d65137cc98f9dc673b",
@@ -28,9 +28,9 @@
     "src/server.ts": "295c52235fa399967a594b76b1f4c869adccc978ee3c0f3f8f3a12894b81ef9b",
     "src/settings-icon.ts": "dc02d5dabe52999947fdd4905af6001d121786ce3e10d47015524f8b9650e22c",
     "src/sidebar-adapter.ts": "a4537cd4802894e9a1d4900b8010b800dd91753842da013ec34e27ce8020d061",
-    "src/styles.ts": "fe49fc355917913aac9c23b52d833fd2c6346583fea43426b73646cbc6ff54a5",
+    "src/styles.ts": "67806f5f4f16d2aa4d52e1959fa55c55977e12fa73d453b3cf286198d0ce4d02",
     "src/surface-clip.ts": "8a8cd5bb5de919390c6f167a64906b37a8bdad33edb8a47fc77aca52070ca7f5",
-    "src/ui.tsx": "060aca52a7a8245aaba8495ad200279b9fab367b63998810acada4ace4303e4e",
+    "src/ui.tsx": "ba70fa1ba4f65228093d1711a1ff32487c3b08cd14c8cdee2e5d929cf46df067",
     "src/web-surface.tsx": "68cc6947999a0aa6a1c7f69669d004e1975569322f9334d78dc3c84c4dc5c3be",
     "src/website-conversation-actions.ts": "558196cb6ad5c34b8cbffe1ebef4a77a8a0312cfc4bf275fa13c4d9aeaf02f0e",
     "src/website-downloads.ts": "11fee09f910429e9c7f034fac9420088f10374fbefd65c10c8881d89f1d1d903",
@@ -49,7 +49,7 @@
     "tsconfig.json": "1ad0b3b39537564a180dc7f4084ceb3098b567f509320c77d71bc37aaf4f1879"
   },
   "artifacts": {
-    "lib/client.js": "43bed82de9fc5e0e99cd979d8aa3ef9b653616327634e210226776c3fa44632a",
+    "lib/client.js": "3f78ab59df15cb56dec67e8dc626be06cd682cac5310c75dcc70766b8240de05",
     "lib/index.js": "0acccade1e2d0c6294a968a5d5871a50adde59db783296b89ec087fcf6e9aa12",
     "lib/types/authorization.d.ts": "130649eed3635e75c3f50c13de93c52440a27f1b88136ab2297552570c013d49",
     "lib/types/brand-notice.d.ts": "2d877ab37d904025f54c8b0717cdd50bc36aabbb00406f4068335f09d5c14a79",

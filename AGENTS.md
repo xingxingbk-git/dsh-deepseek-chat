@@ -8,9 +8,13 @@
 
 - 入口：`src/index.ts`（Host，Cordis 插件）、`src/client.ts`（Web Client）；`package.json` 的 `dsh.bundle.patch` / `dsh.client` 声明扩展点，`cordis.patch.yml` 是 Cordis layer。
 - 产物：`lib/` 为**预编译分发**（含 `lib/types/`、`lib/build-manifest.json`），与源码一起提交。
-- npm 公开版 **0.2.18**（完整/install-v1 latest、公开包字节与integrity已核对）；本机候选同版本，与公开包仅两份README不同；本机桌面版为 DSH **0.2.2-rc.1**。
+- npm 公开版 **0.2.19**（完整/install-v1 latest、公开包字节与integrity已核对）；本机desktop安装发布前0.2.19候选，与公开包仅两份README不同；本机桌面版为 DSH **0.2.2-rc.1**。
 
 ## 当前状态（2026-11-08）
+- 0.2.19 已于用户网页确认后公开发布：完整/install-v1 latest均0.2.19，公开tarball逐字节同正式包（222761bytes/41文件，SHA256=54a3005fe0fa64bb19ed39694b3d73b52c0d517ac98260a3953d431a72f0cfff），临时认证已logout/删除、PTY关闭。未重装/重启、未Git提交；README/发布记录仍为本地未提交改动，后续新修复0.2.20起。
+
+
+- 当前源码候选0.2.19：按用户要求移除品牌切换器下保存服务错误/重试浮框，仅Chat设置保留；独立侧栏兼容警告不变。品牌/设置27项、UI72、sidebar48、窗口48、类型与分发通过；候选fa12b7ff7b94（41文件）现已按用户后续明确安装指令装入desktop，安装退出0、41/41同包、持久dependency/lock正确；未自动重启/发布/Git提交，待用户完整重开验收。先前卸载状态已由这次授权安装替代；未修热卸载生命周期。
 
 - 0.2.18 已在用户网页确认后公开发布：完整/install-v1 latest均0.2.18，公开tarball与正式包逐字节一致（222875bytes/41文件，SHA256=451b5236d214583bc16a94d6083634c5f622892b16b0e72bbd83f405fea60626），临时认证已logout/删除、PTY关闭。发布时未重装/重启，后续新修复0.2.19起。PR #11现已合并至main/51a8f6a；用户要求将剩余5份发布文档独立创建变更请求，本轮分支docs-npm-release-0218，不重复提交功能或发布npm。以下“未发布”均是各候选当时状态，不代表当前。
 
