@@ -8,13 +8,13 @@
 
 经独立临时 npm 配置完成网页登录与发布确认，唯一一次 publish 退出 0（`+ dsh-deepseek-chat@0.2.21`）。注册表传播后核验：`latest` 与 dist-tags 均为 0.2.21；公开 tarball 逐字节同本包、sha512 integrity 与 sha1 shasum 匹配、43 文件、中英 README 均为 0.2.21。临时会话已 logout、目录核实后删除、PTY 关闭；原 `~/.npmrc` 未使用。
 
-本机 desktop 仍装同代码候选 `f1a6c62f964c`（仅 README 版本行不同），未重装/重启；本轮代码未 Git 提交。
+本机 desktop 仍装同代码候选 `f1a6c62f964c`（仅 README 版本行不同），未重装/重启。
 
 ## 0.2.21 设置文案改为“缓存”（2026-11-09 19:00）
 
 按用户要求调整 Chat 设置文案：标题“离开 CHAT 时网页是否保留”改为“CHAT网页是否缓存”；选项“保留网页”改为“缓存网页”；提示说明改为“缓存网页时，再次切回CHAT模式时无需等待加载，但期间无法打开开发者工具（F12）；立即释放时，在HARNESS下可以使用（F12），但切回CHAT模式时会重新加载网页；延迟释放兼顾两者，会在离开CHAT一段时间后释放缓存。”；下拉 aria-label 同步为“网页缓存方式”。中英 README 与需求现行描述同步使用“缓存”术语。
 
-验证：设置页 77 项（标题/控件/提示交互）通过，其余门禁保持通过。候选 `artifacts/dsh-deepseek-chat-0.2.21-f1a6c62f964c.tgz`（231719 bytes/43文件，SHA256 `f1a6c62f964c4bbba5be5a2a9b9e5885cda85af94c5178408f2aab461b392102`）已装 desktop。未发布 npm、未 Git 提交、未自动重启。
+验证：设置页 77 项（标题/控件/提示交互）通过，其余门禁保持通过。候选 `artifacts/dsh-deepseek-chat-0.2.21-f1a6c62f964c.tgz`（231719 bytes/43文件，SHA256 `f1a6c62f964c4bbba5be5a2a9b9e5885cda85af94c5178408f2aab461b392102`）已装 desktop。未自动重启。
 
 ## 0.2.21 下载通道覆盖普通代码块与图片（2026-11-09 18:30）
 
@@ -31,7 +31,7 @@
 
 验证：下载通道 13 项（原 9 + 普通代码块 .py、直点 .txt、aria-label .jpeg、二进制 .pdf）；外链新增 blob/data 静默用例；header 50、bootstrap 51、guest 14、窗口契约 48、title 38、品牌 27、侧栏 48、设置 77、外链、负对照、5 组窗口×119 通过；类型与分发 35 产物通过。
 
-候选 `artifacts/dsh-deepseek-chat-0.2.21-5ff291bf1748.tgz`（231681 bytes/43文件，SHA256 `5ff291bf1748f466065d9e7043de156163e47e5a9ee06fe2eac7bcf960a69e74`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm（0.2.20 为当前公开版）、未 Git 提交、未自动重启。
+候选 `artifacts/dsh-deepseek-chat-0.2.21-5ff291bf1748.tgz`（231681 bytes/43文件，SHA256 `5ff291bf1748f466065d9e7043de156163e47e5a9ee06fe2eac7bcf960a69e74`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm（0.2.20 为当前公开版）、未自动重启。
 
 ## 0.2.20 已公开发布 npm（2026-11-09 14:53）
 
@@ -39,7 +39,7 @@
 
 经独立临时 npm 配置完成网页登录与发布网页确认，唯一一次 publish 退出 0（`+ dsh-deepseek-chat@0.2.20`）。注册表短暂 404 传播后核验：`latest` 与 dist-tags 均为 0.2.20；公开 tarball 逐字节同本包、sha512 integrity 与 sha1 shasum 匹配、43 文件、中英 README 均为 0.2.20。临时会话已 logout、目录核实后删除、PTY 关闭；原 `~/.npmrc` 未使用。
 
-本机 desktop 仍装同一代码的候选 `b117404ccfea`（仅 README 版本行不同），未重装/重启。代码已随 PR #15 合并至 `main/919bb28`。
+本机 desktop 仍装同一代码的候选 `b117404ccfea`（仅 README 版本行不同），未重装/重启。代码已合并至 `main/919bb28`。
 
 ## 0.2.20 收尾审查：清理残留与补漏（2026-11-09 17:20）
 
@@ -54,7 +54,7 @@
 
 验证：类型；构建/分发 35 产物 4 模块；header50、bootstrap51、guest14、窗口契约48、title38、品牌27、侧栏48、设置77、外链、下载9、负对照、5 组窗口×119 全部通过；`git diff --check` 干净。
 
-候选 `artifacts/dsh-deepseek-chat-0.2.20-b117404ccfea.tgz`（230231 bytes/43文件，SHA256 `b117404ccfea87bab25220235e6f1bc933f88418c4c5cd51708a0f319f29bb3b`）已装 desktop，43/43 同包、依赖与 lock 锁定。npm 0.2.20 已发布，代码经 PR #15 合并至 `main/919bb28`；未自动重启。
+候选 `artifacts/dsh-deepseek-chat-0.2.20-b117404ccfea.tgz`（230231 bytes/43文件，SHA256 `b117404ccfea87bab25220235e6f1bc933f88418c4c5cd51708a0f319f29bb3b`）已装 desktop，43/43 同包、依赖与 lock 锁定。npm 0.2.20 已发布，代码已合并至 `main/919bb28`；未自动重启。
 
 ## 0.2.20 测试脚本不再写入下载目录（2026-11-09 17:00）
 
@@ -66,19 +66,19 @@
 
 按用户要求把 `?` 从悬停 Tooltip 改为点击展开、鼠标移出关闭的说明浮层：`?` 为可聚焦按钮（aria-expanded/Esc 关闭），浮层以标题行相对定位展示在下方，样式沿用卡片描边与主题色；移出标题区域即关闭。
 
-验证：presentation 77 项（点击展开、移出关闭、标题/控件/延迟输入），其余门禁与 5 组窗口×119 通过。候选 `artifacts/dsh-deepseek-chat-0.2.20-480bc247de3f.tgz`（230110 bytes/43文件，SHA256 `480bc247de3f4123ada802fd2094430ec2da9cc2ed2c319a9e2ee78b945fad9c`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+验证：presentation 77 项（点击展开、移出关闭、标题/控件/延迟输入），其余门禁与 5 组窗口×119 通过。候选 `artifacts/dsh-deepseek-chat-0.2.20-480bc247de3f.tgz`（230110 bytes/43文件，SHA256 `480bc247de3f4123ada802fd2094430ec2da9cc2ed2c319a9e2ee78b945fad9c`）已装 desktop，43/43 同包、依赖与 lock 锁定。未自动重启。
 
 ## 0.2.20 提示文案改为说明取舍（2026-11-09 16:20）
 
 按用户要求把提示图标文案改为说明“保留网页”与“立即释放”的区别：保留时切回 CHAT 无需等待加载，但网页存在期间无法打开开发者工具；立即释放时切回 CHAT 需重新加载，但 HARNESS 下可使用开发者工具；延迟释放兼顾两者。
 
-验证：presentation 75 项通过，其余门禁与 5 组窗口×119 保持通过。候选 `artifacts/dsh-deepseek-chat-0.2.20-fb973ba078d0.tgz`（229851 bytes/43文件，SHA256 `fb973ba078d0ba46ee66073d848c2614679e3378104cea22dbd84373c35790ac`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+验证：presentation 75 项通过，其余门禁与 5 组窗口×119 保持通过。候选 `artifacts/dsh-deepseek-chat-0.2.20-fb973ba078d0.tgz`（229851 bytes/43文件，SHA256 `fb973ba078d0ba46ee66073d848c2614679e3378104cea22dbd84373c35790ac`）已装 desktop，43/43 同包、依赖与 lock 锁定。未自动重启。
 
 ## 0.2.20 设置标题样式与提示文案修正（2026-11-09 16:00）
 
 用户反馈新卡片标题“离开 CHAT 时网页是否保留”字号偏大偏粗，未与“切换按钮”一致；提示图标文案过细。原因：h3 样式作用域只覆盖 `.dsh-chat-presentation-settings`，新卡片类名不同，回退到浏览器默认 h3。修正：把 h3 规则扩展到 `.dsh-chat-website-lifetime`；提示文案简化为“控制离开 CHAT 后网页是否继续保留在内存中。”。presentation 75 项通过，其余门禁与 5 组窗口×119 保持通过。
 
-候选 `artifacts/dsh-deepseek-chat-0.2.20-0a3bbbd54b16.tgz`（229731 bytes/43文件，SHA256 `0a3bbbd54b166c88582653f9947ed9bf516e5ebc904fbd7bc8cc83ae0cca3ffb`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+候选 `artifacts/dsh-deepseek-chat-0.2.20-0a3bbbd54b16.tgz`（229731 bytes/43文件，SHA256 `0a3bbbd54b166c88582653f9947ed9bf516e5ebc904fbd7bc8cc83ae0cca3ffb`）已装 desktop，43/43 同包、依赖与 lock 锁定。未自动重启。
 
 ## 0.2.20 CHAT 网页设置与切换控件对齐（2026-11-09 15:30）
 
@@ -91,7 +91,7 @@
 
 验证：presentation 75项（下拉控件、提示图标、标题文案、延迟输入与分割线、非延迟时隐藏）；bootstrap51、guest14、header50、窗口契约48、title38、品牌27、侧栏48、外链、下载9、负对照、5组窗口×119通过。
 
-候选 `artifacts/dsh-deepseek-chat-0.2.20-1dfe5672e7df.tgz`（229818 bytes/43文件，SHA256 `1dfe5672e7df3cf9a2c07a88ff70451f9bdde7e44c40541bb1bbe24f7f8fe8c8`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+候选 `artifacts/dsh-deepseek-chat-0.2.20-1dfe5672e7df.tgz`（229818 bytes/43文件，SHA256 `1dfe5672e7df3cf9a2c07a88ff70451f9bdde7e44c40541bb1bbe24f7f8fe8c8`）已装 desktop，43/43 同包、依赖与 lock 锁定。未自动重启。
 
 ## 0.2.20 CHAT 网页保留方式可配置（2026-11-09 14:50）
 
@@ -101,7 +101,7 @@
 
 验证：bootstrap 51项（默认保留不释放、立即释放、延迟 5 秒后释放、重进恢复、账号/崩溃/停用仍换租约）；guest14；presentation 74（新卡三选项+延迟输入）；header50、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、负对照、5组窗口×119通过。
 
-候选 `artifacts/dsh-deepseek-chat-0.2.20-3c0cbec69bce.tgz`（229828 bytes/43文件，SHA256 `3c0cbec69bcecfea569b6593858f226f01c3174c8ffff083a98848e1f8a302ed`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+候选 `artifacts/dsh-deepseek-chat-0.2.20-3c0cbec69bce.tgz`（229828 bytes/43文件，SHA256 `3c0cbec69bcecfea569b6593858f226f01c3174c8ffff083a98848e1f8a302ed`）已装 desktop，43/43 同包、依赖与 lock 锁定。未自动重启。
 
 ## 0.2.20 切换不再重载（方案 C，2026-11-09 13:30）
 
@@ -111,7 +111,7 @@
 
 验证：bootstrap 47项（离开 CHAT 保留同一 guest、无新 loadURL、重进复用；账号变化/崩溃/停用仍换租约或释放）；guest13（模式不再影响持有，停用/未授权释放）；header50、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、负对照、5组窗口×119通过。
 
-候选 `artifacts/dsh-deepseek-chat-0.2.20-8bab8b05886d.tgz`（227995 bytes/43文件，SHA256 `8bab8b05886d0d8ae67be6988514def234b65009f388ba5a64361f482507dbb3`）已装 desktop，43/43 同包、依赖与 lock 锁定。**F12 是否仍可用需要真实 Electron 窗口实测**；若失效则回退释放方案。未发布 npm、未 Git 提交、未自动重启。
+候选 `artifacts/dsh-deepseek-chat-0.2.20-8bab8b05886d.tgz`（227995 bytes/43文件，SHA256 `8bab8b05886d0d8ae67be6988514def234b65009f388ba5a64361f482507dbb3`）已装 desktop，43/43 同包、依赖与 lock 锁定。**F12 是否仍可用需要真实 Electron 窗口实测**；若失效则回退释放方案。未自动重启。
 
 ## 0.2.20 首次窄窗补采分享尺寸（2026-11-09 13:10）
 
@@ -123,7 +123,7 @@
 
 验证：bootstrap45项（含“未启动不消耗机会”“站内切换重置预算”“新文档重置”），header50、guest13、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、负对照、5组窗口×119通过。fixture 等待上限 3s→8s，避免慢机误报。
 
-候选 `artifacts/dsh-deepseek-chat-0.2.20-bb92409c1656.tgz`（227933 bytes/43文件，SHA256 `bb92409c1656ca9545b12862d0c73cfccd52ce6e00ab5baea9bc9eafdc48a7b7`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+候选 `artifacts/dsh-deepseek-chat-0.2.20-bb92409c1656.tgz`（227933 bytes/43文件，SHA256 `bb92409c1656ca9545b12862d0c73cfccd52ce6e00ab5baea9bc9eafdc48a7b7`）已装 desktop，43/43 同包、依赖与 lock 锁定。未自动重启。
 
 ## 0.2.20 分享几何三档统一（2026-11-09 10:50）
 
@@ -135,7 +135,7 @@
 
 验证：`check:website-header` 50项（三档背景统一为同一测量值、图标16、外框28、响应式对话/首页行）；bootstrap42、guest13、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、负对照、5组窗口×119通过。
 
-候选 `artifacts/dsh-deepseek-chat-0.2.20-77b0c70ca387.tgz`（227901 bytes/43文件，SHA256 `77b0c70ca3876147d42f3286a7ca6b5135046e17b58f602da0ce42d90413bb3d`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+候选 `artifacts/dsh-deepseek-chat-0.2.20-77b0c70ca387.tgz`（227901 bytes/43文件，SHA256 `77b0c70ca3876147d42f3286a7ca6b5135046e17b58f602da0ce42d90413bb3d`）已装 desktop，43/43 同包、依赖与 lock 锁定。未自动重启。
 
 ## 0.2.20 响应式顶部行接管（2026-11-09 10:40）
 
@@ -151,7 +151,7 @@
 
 验证：`check:website-header` 50项（新增响应式对话行/首页行、菜单隐藏、48px、标题内缩、分享28px）；bootstrap42、guest13、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、负对照、5组窗口×119均通过。
 
-候选 `artifacts/dsh-deepseek-chat-0.2.20-4ddb8e280b43.tgz`（227774 bytes/43文件，SHA256 `4ddb8e280b4354e01027ddbfad33288d95748a0944b2fd86b5f01b290cf035e8`）已装 desktop，43/43 文件同包、依赖与 lock 锁定 hash。未发布 npm、未 Git 提交、未自动重启；请完整退出重开后按“启动即窄窗切 CHAT”复测。
+候选 `artifacts/dsh-deepseek-chat-0.2.20-4ddb8e280b43.tgz`（227774 bytes/43文件，SHA256 `4ddb8e280b4354e01027ddbfad33288d95748a0944b2fd86b5f01b290cf035e8`）已装 desktop，43/43 文件同包、依赖与 lock 锁定 hash。未发布 npm、未自动重启；请完整退出重开后按“启动即窄窗切 CHAT”复测。
 
 ## 0.2.20 显示门槛与分享样式修正（2026-11-09 10:xx）
 
@@ -167,7 +167,7 @@
 
 验证：类型；显式构建/分发35产物4模块；`check:website-header` 42项（含宽屏原生34px悬停背景不被替换、窄屏归一为28px、无收起/无分享证据仍 desktopReady）；`check:website-bootstrap` 42项；guest13、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、两个负对照通过；窗口识别5组视口×119项通过。
 
-候选 `artifacts/dsh-deepseek-chat-0.2.20-304347d400e5.tgz`（227183 bytes/43文件，SHA256 `304347d400e5e0c0b4be9669096859429c9d73e5f125374ec681ee8527051ded`）已用官方 desktop CLI 安装：43/43 文件同包，dependency 与 lock 锁定 hash。未发布 npm、未 Git 提交、未自动重启；需完整退出重开 DSH 后实测三种宽度下的分享按钮与首次进入。
+候选 `artifacts/dsh-deepseek-chat-0.2.20-304347d400e5.tgz`（227183 bytes/43文件，SHA256 `304347d400e5e0c0b4be9669096859429c9d73e5f125374ec681ee8527051ded`）已用官方 desktop CLI 安装：43/43 文件同包，dependency 与 lock 锁定 hash。未发布 npm、未自动重启；需完整退出重开 DSH 后实测三种宽度下的分享按钮与首次进入。
 
 ## 0.2.20 续审当前快照（2026-11-09）
 
