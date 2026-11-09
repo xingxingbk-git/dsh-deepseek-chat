@@ -1,3 +1,7 @@
+## 2026-11-09 0.2.20 变更请求 #15
+
+用户要求为本会话变更创建变更请求。从origin/main（34d46bb）建分支feat/chat-website-lifetime，提交8c28429（46文件，源码/lib/测试/脚本/README/docs），推送并创建PR #15（目标main），未合并。提交前类型/构建35产物/header50/bootstrap51/diff通过；未包含artifacts或凭据。
+
 ## 2026-11-09 0.2.20 已公开发布 npm
 
 用户明确要求发布。同步中英 README 版本/安装示例为 0.2.20，类型与构建通过；正式包230230bytes/43文件SHA256=efe114d9fc872a1cf2fd35c770216393112a1b97435a682651230735473260d0。临时npm配置网页登录后唯一一次publish退出0；传播后核验latest/dist-tags=0.2.20、公开tarball逐字节同包、integrity/shasum匹配、43文件、中英README均0.2.20。临时会话logout、目录删除、PTY关闭；未使用原npmrc。本机desktop仍为同代码候选b117404ccfea（仅README版本行不同），未重装/重启；未Git提交推送。
