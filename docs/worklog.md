@@ -1,7 +1,3 @@
-## 2026-11-09 0.2.21 变更请求 #16
-
-用户要求为本会话变更创建变更请求。从origin/main（461059c）建分支feat/chat-downloads-and-copy，提交bd8ff32（源码/lib/下载与外链回归/README 0.2.21/docs），推送并创建PR #16（目标main），待合并。提交前类型/分发35产物/下载13/外链/设置77/diff通过；未包含artifacts或凭据。
-
 ## 2026-11-09 0.2.21 已公开发布 npm
 
 用户明确要求发布。同步中英README版本/安装示例为0.2.21，类型与构建通过；正式包231718bytes/43文件SHA256=2fb95234ef3d3bc925a4221b18db1c659e52e1b99bc9f9bc833ec5c35f9ce0d4。临时npm配置网页登录后唯一一次publish退出0；传播后核验latest/dist-tags=0.2.21、公开tarball逐字节同包、integrity/shasum匹配、43文件、中英README均0.2.21。临时会话logout、目录删除、PTY关闭；未使用原npmrc。本机desktop仍为同代码候选f1a6c62f964c（仅README版本行不同），未重装/重启；未Git提交。
@@ -13,10 +9,6 @@
 ## 2026-11-09 0.2.21 下载通道覆盖普通代码块与图片
 
 用户反馈普通代码块下载按钮无反应（此前仅 Mermaid 三项菜单）。扩展授权：代码块“下载”按钮或 aria-label 下载、直接点击的 a[download]；文本/代码扩展名按 text/plain，jpeg/gif/webp/bmp 校验头后按实际 MIME；再补二进制附件（pdf/doc/zip/音视频等）按 octet-stream 原样保存、data URL 放宽 image/*、blob/data 弹窗不再误报失效链接。下载回归13项（含二进制 .pdf）、外链新增生成资源用例、其余门禁与5组窗口×119通过。候选5ff291bf1748（231681bytes/43文件）已装desktop，未发布/未Git/未重启。未覆盖：文件上传对话框、语音权限、右键另存为、iframe/程序化下载。
-
-## 2026-11-09 0.2.20 变更请求 #15
-
-用户要求为本会话变更创建变更请求。从origin/main（34d46bb）建分支feat/chat-website-lifetime，提交8c28429（46文件，源码/lib/测试/脚本/README/docs），推送并创建PR #15（目标main）；PR 已合并为 `main/919bb28`。提交前类型/构建35产物/header50/bootstrap51/diff通过；未包含artifacts或凭据。
 
 ## 2026-11-09 0.2.20 已公开发布 npm
 
@@ -113,17 +105,9 @@
 
 本文件记录全项目的关键工作历史及理由，包含需求、调研、设计、实现、验证、失败尝试、协作和 Git 交付。当前状态以 [handoff.md](handoff.md) 为准，详细需求/架构不在此重复全文。只追加有实质影响的阶段摘要，不复制完整聊天或敏感数据。
 
-## 2026-11-08 发布文档独立变更请求
-
-用户要求提交剩余5份发布文档。已确认功能PR #11合并至main/51a8f6a，从该基线建立docs-npm-release-0218，仅同步README中英发布版/安装示例与AGENTS/handoff/worklog的npm验证记录及Git状态；不包含源码/预编译产物，不重复发布npm，不直接修改main或自动合并。检查文档差异与分发清单后提交推送并创建独立PR，结果以该分支对应GitHub变更请求为准。
-
 ## 2026-11-08 0.2.18 已公开发布 npm
 
 用户明确授权发布0.2.18。中英README的版本及安装示例更新后，类型/分发33文件4模块通过；正式包222875bytes/41文件，SHA256=451b5236d214583bc16a94d6083634c5f622892b16b0e72bbd83f405fea60626，与本机cb1983候选仅两份README不同。通过独立临时配置完成web登录/本次publish网页确认，唯一publish退出0；用户再要求确认时检测到已成功，未重复publish。公开接口短暂404后，有界轮询确认完整/install-v1 latest均0.2.18，精确版本与41文件tarball可读、字节同本包、sha512匹配、中英安装示例为0.2.18。临时npm logout成功、目录核实后删除、PTY关闭，原npm配置未使用；未重装/重启、未合并PR #11或执行Git提交推送。README/发布记录留本地待后续Git同步，不把npm发布当作PR合并；后续修复0.2.19起。
-
-## 2026-11-08 创建 PR #11（0.2.18）
-
-按用户本轮明确授权，从main/e073147创建fix-chat-sidebar-alignment分支，提交bbbb313并推送；PR #11：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/11，base main。11文件包含源码/预编译lib/回归/内部文档，不含artifacts/node_modules/tgz。创建前重新通过类型/分发33文件4模块/sidebar-rows48项/diff检查；PR正文记录首候选基准遗漏及未实机验收边界，并附官方dsh badge。未直接改main、未合并、未发布npm或重启DSH。
 
 ## 2026-11-08 搜索/刷新圆角统一（同轮0.2.18，当前cb1983e76d01）
 
@@ -1299,7 +1283,3 @@ fixture补selector与hover-solid亮暗token，新增填充无描边/亮暗取值
 ### 2026-11-07 文档整理（提交 GitHub 前）
 
 用户要求整理文档以便随后提交 GitHub。将 handoff 中 0.2.11 及更早的 1141 行历史段落原样迁至新增 `docs/handoff-archive.md`，handoff 改为当前快照（当前状态、提交清单、0.2.12–0.2.17 记录、历史索引），从 245KB 降到约 21KB；`AGENTS.md` 由 68KB（已触发读取截断）重写为约 8KB 的入口指南（目标、当前状态、目录职责、版本/发布/Git 规则、兼容依据、现行决策与硬约束、文档职责、开工清单、验证命令）；requirements/architecture/roadmap/references 各在文首补充“现行总要求/架构概览/当前进度/取证索引”，历史章节保留并标注为变更记录。全库 117 个相对链接/图片核对无缺失。未改代码与产物，`check:distribution` 仍通过；Git 仍未提交/推送。
-
-### 2026-11-07 创建变更请求（PR #10）
-
-用户要求为本会话变更创建变更请求。基于 `main`/`329e861` 新建分支 `dsh-022-links-downloads-and-switcher`，提交 0.2.12–0.2.17 全部 49 项改动（源码、预编译 lib、scripts/tests、README、docs、AGENTS、package.json/lock）为 `92ce606`，未包含 artifacts/node_modules/tgz；推送后经 `gh` 创建 PR #10（base main，OPEN、MERGEABLE，1 commit/49 files），PR 描述含改动概要与验证矩阵并附 dsh badge。默认分支 main 未被直接修改，等待用户审阅合并。
