@@ -44,6 +44,8 @@ try {
   const target = await send('Target.createTarget', { url: 'about:blank' })
   session = (await send('Target.attachToTarget', { targetId: target.targetId, flatten: true })).sessionId
   await send('Page.enable', {}, session)
+  // Never let a fixture write into the user's Downloads folder.
+  await send('Browser.setDownloadBehavior',{behavior:'deny'}).catch(()=>{})
   await send('Fetch.enable', { patterns: [{ urlPattern: '*' }] }, session)
   await send('Page.navigate', { url: 'https://chat.deepseek.com/synthetic-title-stability' }, session)
   const evaluation = await send('Runtime.evaluate', { expression: 'new Promise((resolve,reject)=>{const run=()=>{if(window.fixtureDone)window.fixtureDone.then(resolve,reject);else if(document.readyState==="complete")reject(new Error("fixture did not initialize"));else setTimeout(run,10)};run()})', awaitPromise: true, returnByValue: true }, session)

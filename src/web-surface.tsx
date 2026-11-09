@@ -10,6 +10,9 @@ import { parseWebsiteSession, websiteSessionCaptureScript, websiteSessionRestore
 import { handleWebsiteLink } from './website-links.js'
 import { parseWebsiteDownload, websiteDownloadScript } from './website-downloads.js'
 import type { WebsiteFile } from './website-downloads.js'
+import { holdsWebsiteGuest, resumeWebsiteUrl } from './website-guest.js'
+import { DEFAULT_SWITCH_PREFERENCES } from './preferences.js'
+import { createWebsiteBootstrap, WEBSITE_DESKTOP_WIDTH } from './website-bootstrap.js'
 
 const WEBSITE_URL = 'https://chat.deepseek.com/'
 
@@ -80,7 +83,7 @@ export function getDesktopBrowserBridge(): DesktopBrowserBridge | undefined {
     && typeof browser.onOpenRequested === 'function' ? browser : undefined
 }
 
-/** A persistent overlay occupant. Navigation back to Harness hides the native document, preserving drafts. */
+/** Stable overlay owner: layout changes reuse the guest; leaving CHAT releases it for DevTools. */
 export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell.overlay'> & DshChatBridgeProps & {
   readonly nativeBrowser?: DesktopBrowserBridge
 }) {
@@ -94,8 +97,31 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
   const previousMode = useRef(state.mode)
   const guest = useRef<WebsiteWebview | null>(null)
   const guestEvents = useRef<AbortController | null>(null)
-  const retryGuestSession = useRef<(() => void) | null>(null)
+  const reloadGuest = useRef<(() => void) | null>(null)
   const lastReload = useRef(state.websiteReloadRevision)
+  // Released with the guest when CHAT closes; reused to reopen the same conversation.
+  const lastWebsiteUrl = useRef<string | null>(null)
+  const lastAccountKey = useRef<string | null>(null)
+  // Guest ownership depends on account/mode only. Desktop bootstrap belongs to
+  // each attached document below, never to viewport-dependent effect callbacks.
+
+  const websiteLifetime = state.switchPreferences?.websiteLifetime ?? 'retain'
+  const releaseDelaySeconds = state.switchPreferences?.websiteReleaseDelay ?? DEFAULT_SWITCH_PREFERENCES.websiteReleaseDelay
+  const [lifetimeReleased, setLifetimeReleased] = useState(() =>
+    websiteLifetime === 'immediate' && state.mode !== 'chat' && !state.settingsOpen)
+  useEffect(() => {
+    const showing = state.mode === 'chat' || state.settingsOpen
+    if (showing || websiteLifetime === 'retain') { setLifetimeReleased(false); return }
+    if (websiteLifetime === 'immediate') { setLifetimeReleased(true); return }
+    // Delayed: keep the page while the user is likely to come back soon.
+    setLifetimeReleased(false)
+    const timer = setTimeout(() => setLifetimeReleased(true), Math.max(1, releaseDelaySeconds) * 1000)
+    return () => clearTimeout(timer)
+  }, [state.mode, state.settingsOpen, websiteLifetime, releaseDelaySeconds])
+  const guestWanted = holdsWebsiteGuest({
+    mode: state.mode, modeEnabled: state.modeEnabled, settingsOpen: state.settingsOpen,
+    authorizationStatus: state.authorizationStatus, accountStorageKey: state.accountStorageKey,
+  }, lifetimeReleased)
 
   useEffect(() => {
     if ((state.mode === 'chat' && state.modeEnabled || state.settingsOpen) && state.authorizationStatus === 'authorized') {
@@ -110,10 +136,14 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     let held: DesktopBrowserReservation | undefined
     setReservation(null)
     setPresentationReady(false)
-    if (nativeBrowser === undefined || state.accountStorageKey === null
+    if (nativeBrowser === undefined || state.accountStorageKey === null || !guestWanted
       || requestedGeneration !== state.authorizationGeneration) return
     const generation = state.authorizationGeneration
     const storageKey = state.accountStorageKey
+    if (lastAccountKey.current !== storageKey) {
+      lastAccountKey.current = storageKey
+      lastWebsiteUrl.current = null
+    }
     needsRecovery.current = false
     bridge.reportWebsiteState(generation, { loading: true, error: null })
     const release = (value: DesktopBrowserReservation) => {
@@ -134,21 +164,30 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
       guestEvents.current?.abort()
       guestEvents.current = null
       guest.current = null
-      retryGuestSession.current = null
+      reloadGuest.current = null
       if (held !== undefined) release(held)
     }
-  }, [bridge, nativeBrowser, requestedGeneration, state.authorizationGeneration, state.accountStorageKey, recoveryRevision])
+  }, [bridge, nativeBrowser, requestedGeneration, state.authorizationGeneration, state.accountStorageKey, recoveryRevision, guestWanted])
 
   const attachGuest = useCallback((element: HTMLElement | null) => {
     guestEvents.current?.abort()
     guestEvents.current = null
     guest.current = null
-    retryGuestSession.current = null
+    reloadGuest.current = null
     if (element === null || reservation === null || nativeBrowser === undefined) return
     const current = element as WebsiteWebview
     const events = new AbortController()
     guestEvents.current = events
     guest.current = current
+    // Remember the last in-site page so releasing the guest on leaving CHAT can reopen it.
+    const rememberWebsiteUrl = () => {
+      try {
+        const url = current.getURL()
+        if (resumeWebsiteUrl(url, '') !== '') lastWebsiteUrl.current = url
+      } catch { /* the guest is already gone */ }
+    }
+    current.addEventListener('did-navigate', rememberWebsiteUrl, { signal: events.signal })
+    current.addEventListener('did-navigate-in-page', rememberWebsiteUrl, { signal: events.signal })
     const generation = reservation.generation
     let bootstrapped = false
     let lastError: string | null = null
@@ -171,19 +210,44 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
       navigationRefresh=null;clearTimeout(navigationRefreshTimer);navigationRefreshTimer=undefined
       bridge.reportWebsiteNavigationRefresh(generation,{requestId:request.requestId,refreshing:false,error})
     }
-    retryGuestSession.current=()=>{finishNavigationRefresh(null);restorationAttempted=false;restoredFromVault=false;restoreDeadline=0}
     const report = (loading: boolean, error: string | null = null) => {
       if (loading) lastError = null
       else if (error !== null) lastError = error
       if (!events.signal.aborted) bridge.reportWebsiteState(generation, { loading, error: lastError })
       if (error) finishNavigationRefresh('官网对话列表刷新失败，请检查网络后重试。')
     }
+    let documentReady = false
+    let websiteWasSignIn = false
+    let bootstrapTimedOut = false
+    // Bounded same-document desktop measurements for the first conversation that
+    // appears after a headerless start. Only a real start consumes a chance.
+    let desktopChromeTries = 0
+    const DESKTOP_CHROME_LIMIT = 2
+    const bootstrap = createWebsiteBootstrap({
+      desktop: enabled => {
+        if (enabled) { current.style.opacity = '0'; current.style.pointerEvents = 'none' }
+        current.style.minWidth = enabled ? `${WEBSITE_DESKTOP_WIDTH}px` : ''
+      },
+      timeout: () => {
+        if (events.signal.aborted) return
+        bootstrapTimedOut = true
+        setPresentationReady(false)
+        report(false, 'CHAT 界面适配超时，请点击「重试网页」。')
+      },
+    })
+    events.signal.addEventListener('abort', () => bootstrap.dispose(), { once: true })
     const resetDocumentPresentation = () => {
-      documentRevision++
-      documentPresented=false
+      documentRevision = bootstrap.begin()
+      documentReady = false
+      desktopChromeTries = 0
+      bootstrapTimedOut = false
+      documentPresented = false
       setPresentationReady(false)
       bridge.reportWebsiteNavigation(generation, emptyNavigation(), true)
     }
+    // about:blank is only the lease attachment. Its events/old bridge snapshots
+    // can never count as the new website document being ready.
+    resetDocumentPresentation()
     let reading = false
     let queued = Promise.resolve()
     const executeScript = async (script: string) => {
@@ -216,7 +280,8 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
       if(restorationAttempted) return true
       restorationAttempted=true
       const authenticationRevision=bridge.getSnapshot().websiteAuthenticationRevision
-      const sameRecovery=()=>active()
+      const recoveryDocument = documentRevision
+      const sameRecovery=()=>active() && recoveryDocument === documentRevision
         && bridge.getSnapshot().websiteAuthenticationRevision===authenticationRevision
         && !['signing-in','signing-out'].includes(bridge.getSnapshot().websiteAuthenticationStatus)
       try {
@@ -231,7 +296,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
         if(!sameRecovery()) return true
         if(result==='restored') {
           restoredFromVault=true;restoreDeadline=Date.now()+15_000
-          setPresentationReady(false);report(true);current.reload();return false
+          reloadDocument();return false
         }
         if(result!=='present') bridge.reportWebsiteSessionError(generation,'当前官网未能恢复已保存的登录，请在网页中重新登录。')
         return true
@@ -262,7 +327,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     const stopDragSampler = bridge.bindWindowDragSampler(generation, async viewport => {
       const snapshot=bridge.getSnapshot(), revision=documentRevision
       const authenticationRevision=snapshot.websiteAuthenticationRevision
-      if (!active() || !approvedOrigin() || snapshot.viewport!==viewport || snapshot.mode!=='chat' || snapshot.settingsOpen
+      if (!documentPresented || !active() || !approvedOrigin() || snapshot.viewport!==viewport || snapshot.mode!=='chat' || snapshot.settingsOpen
         || snapshot.webLoading || snapshot.websiteNavigation.status!=='ready' || snapshot.websiteNavigation.authenticated!==true) return []
       const leading=document.querySelector('.dsh-chat-leading')?.getBoundingClientRect()
       const nativeInset=Math.max(headerInset(viewport),leading && leading.width>0 ? Math.ceil(leading.right-viewport.left)+16 : 0)
@@ -281,7 +346,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
       const currentDocument=()=>active() && requestDocumentRevision===documentRevision
       const currentProjection=()=>currentDocument() && bridge.getSnapshot().websiteAuthenticationRevision===requestAuthenticationRevision
       if(command.type==='snapshot') command={...command,headerInset:headerInset(snapshot.viewport)}
-      if (events.signal.aborted || snapshot.authorizationGeneration !== generation || snapshot.authorizationStatus !== 'authorized') return
+      if (!documentReady || events.signal.aborted || snapshot.authorizationGeneration !== generation || snapshot.authorizationStatus !== 'authorized') return
       if (snapshot.websiteAuthenticationStatus==='signing-out' && command.type!=='logout' && command.type!=='snapshot') return
       try {
         if(!approvedOrigin() || !await prepareSession() || !currentProjection()) return
@@ -293,13 +358,34 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
         if (result.status!==lastNavigationStatus) { lastNavigationStatus=result.status;fastPollingUntil=Date.now()+8000 }
         if(result.status==='sign-in' && restoredFromVault && Date.now()<restoreDeadline) return
         if (currentDocument()) {
-          if(result.status!=='loading') documentPresented=true
-          // Publish account/login/navigation before vault I/O. Both login surfaces
-          // observe the same website state without waiting for a save or Settings open.
-          bridge.reportWebsiteNavigation(generation,result);if(result.status!=='loading' || !documentPresented) setPresentationReady(result.status==='ready' || result.status==='sign-in' || result.layoutReady===true)
-          if (navigationRefresh && requestDocumentRevision>navigationRefresh.documentRevision) {
-            if (result.status==='ready' && result.authenticated===true) finishNavigationRefresh(null)
-            else if (result.status==='sign-in') finishNavigationRefresh('官网登录已失效，请重新登录后刷新列表。')
+          if (result.needsDesktopChrome && desktopChromeTries < DESKTOP_CHROME_LIMIT
+            && bootstrap.recheck(requestDocumentRevision)) {
+            desktopChromeTries++
+            documentPresented = false
+            setPresentationReady(false)
+          }
+          const expectedWidth = current.closest('.dsh-chat-web-surface')?.getBoundingClientRect().width ?? 0
+          const presentation = bootstrap.project(requestDocumentRevision, result, expectedWidth)
+          // Releasing the desktop minimum width makes the site rebuild its
+          // responsive top row. Re-adapt immediately so the website's own menu,
+          // new-chat and Share chrome never flash before the next poll.
+          if (presentation === 'resized') {
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              if (!events.signal.aborted && requestDocumentRevision === documentRevision) syncNavigation()
+            }))
+          }
+          // Publish identity before vault I/O, but never paint a freshly loaded
+          // desktop document until a second projection confirms the actual width.
+          bridge.reportWebsiteNavigation(generation, result)
+          if (presentation === 'ready') {
+            documentPresented = true
+            if (bootstrapTimedOut) { bootstrapTimedOut = false; lastError = null; report(false) }
+            setPresentationReady(true)
+          } else if (!documentPresented) setPresentationReady(false)
+          else if (result.status === 'unsupported' && !result.layoutReady) setPresentationReady(false)
+          if (navigationRefresh && requestDocumentRevision > navigationRefresh.documentRevision && presentation === 'ready') {
+            if (result.status === 'ready' && result.authenticated === true) finishNavigationRefresh(null)
+            else if (result.status === 'sign-in') finishNavigationRefresh('官网登录已失效，请重新登录后刷新列表。')
           }
         }
         if(result.authenticated===true) {
@@ -366,7 +452,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
               finishNavigationRefresh('官网对话列表同步超时，请点击「重新加载」。',refreshRequest)
               report(false)
             },30_000)
-            report(true);current.reload()
+            reloadDocument()
           } catch {
             if (!sameRequest()) return
             report(false)
@@ -380,6 +466,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     events.signal.addEventListener('abort', () => { clearInterval(timer); finishNavigationRefresh('网页已关闭，刷新未完成。'); stopCommands() }, { once: true })
     const navigate = (url: string) => {
       const revision = ++navigationRevision
+      resetDocumentPresentation()
       report(true)
       void current.loadURL(url).catch((error: unknown) => {
         if (revision !== navigationRevision || events.signal.aborted) return
@@ -387,29 +474,73 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
         report(false, 'DeepSeek 网页加载失败。请检查网络后重试。')
       })
     }
+    // All actual loads share the same document transaction. Geometry, snapshots,
+    // theme updates, SPA conversation selection and drawer locks never call this.
+    const reloadDocument = () => {
+      if (events.signal.aborted) return
+      resetDocumentPresentation()
+      report(true)
+      if (current.getURL().startsWith('about:blank')) navigate(resumeWebsiteUrl(lastWebsiteUrl.current, WEBSITE_URL))
+      else current.reload()
+    }
+    reloadGuest.current = () => {
+      finishNavigationRefresh(null)
+      restorationAttempted = false; restoredFromVault = false; restoreDeadline = 0
+      try { reloadDocument() } catch {
+        needsRecovery.current = true
+        report(false, '无法刷新当前网页，请点击「重试网页」。')
+      }
+    }
     current.addEventListener('dom-ready', () => {
-      if (!bootstrapped) { bootstrapped = true; navigate(WEBSITE_URL) }
-      else { resetDocumentPresentation(); syncNavigation() }
+      if (!bootstrapped) { bootstrapped = true; navigate(resumeWebsiteUrl(lastWebsiteUrl.current, WEBSITE_URL)) }
+      else if (approvedOrigin()) {
+        websiteWasSignIn = /^\/sign_in\/?$/.test(new URL(current.getURL()).pathname)
+        documentReady = true
+        bootstrap.domReady(documentRevision)
+        syncNavigation()
+      }
+    }, { signal: events.signal })
+    current.addEventListener('did-finish-load', () => {
+      if (!documentReady || !approvedOrigin()) return
+      bootstrap.loaded(documentRevision)
+      syncNavigation()
     }, { signal: events.signal })
     current.addEventListener('did-start-navigation', event => {
       const navigation = event as Event & { readonly isMainFrame?: boolean; readonly isInPlace?: boolean }
       // Only a new main document loses its adapter/preference markers. Loading
       // activity in other frames must not hide or clear an already ready page.
       if (navigation.isMainFrame !== true || navigation.isInPlace !== false) return
+      navigationRevision++
       resetDocumentPresentation(); report(true)
     }, { signal: events.signal })
-    current.addEventListener('did-start-loading', () => { report(true) }, { signal: events.signal })
+    current.addEventListener('did-start-loading', () => {
+      // This event also includes subframes/resource activity. It is not proof of
+      // a new document and must not erase a failed bootstrap's retryable error.
+      if (!documentPresented && !bootstrapTimedOut) report(true)
+    }, { signal: events.signal })
     current.addEventListener('did-navigate-in-page', event => {
-      if ((event as Event & { readonly isMainFrame?: boolean }).isMainFrame !== true) return
+      if ((event as Event & { readonly isMainFrame?: boolean }).isMainFrame !== true || !approvedOrigin()) return
+      const isSignIn = /^\/sign_in\/?$/.test(new URL(current.getURL()).pathname)
+      // Login may return to the app through SPA routing. Prepare its desktop DOM
+      // once, without reloading the new conversation or losing a composer draft.
+      if (websiteWasSignIn && !isSignIn && bootstrap.recheck(documentRevision)) {
+        documentPresented = false
+        setPresentationReady(false)
+      }
+      websiteWasSignIn = isSignIn
+      // A new in-site conversation may introduce the Share control that a
+      // headerless start could not measure. Allow a fresh bounded attempt.
+      desktopChromeTries = 0
       fastPollingUntil=Date.now()+8000;syncNavigation()
     }, { signal: events.signal })
-    current.addEventListener('did-stop-loading', () => { report(false); syncNavigation() }, { signal: events.signal })
+    current.addEventListener('did-stop-loading', () => { if (bootstrapped && approvedOrigin()) { report(false); syncNavigation() } }, { signal: events.signal })
     current.addEventListener('did-fail-load', event => {
       const failure = event as Event & { readonly isMainFrame?: boolean; readonly errorCode?: number }
       if (failure.isMainFrame === true && failure.errorCode !== -3) report(false, 'DeepSeek 网页加载失败。请检查网络后重试。')
     }, { signal: events.signal })
     current.addEventListener('render-process-gone', () => {
       needsRecovery.current = true
+      setPresentationReady(false)
       bridge.reportWebsiteNavigation(generation, { status: 'unsupported', conversations: [], selectedHref: null, canCreate: false, error: null })
       report(false, '网页进程已退出，请点击「重试网页」。')
     }, { signal: events.signal })
@@ -431,9 +562,12 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
       const enabled = snapshot.mode === 'chat' && !snapshot.settingsOpen
       if (!active() || !approvedOrigin()) return
       downloadPolling = true
+      const requestDocument = documentRevision, requestAuthentication = snapshot.websiteAuthenticationRevision
       try {
         const value = parseWebsiteDownload(await executeScript(websiteDownloadScript('poll', enabled)))
-        if (value === null) return
+        const latest = bridge.getSnapshot()
+        if (!active() || !approvedOrigin() || requestDocument !== documentRevision || requestAuthentication !== latest.websiteAuthenticationRevision
+          || latest.mode !== 'chat' || latest.settingsOpen || value === null) return
         if (value.kind === 'file') bridge.saveWebsiteFile(value)
         else if (value.kind !== 'busy') bridge.reportWebsiteNotice(generation, value.kind === 'too-large' ? 'download-too-large' : 'download-failed')
       } catch {
@@ -457,21 +591,12 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
       }
       return
     }
-    bridge.reportWebsiteState(reservation.generation, { loading: true, error: null })
-    retryGuestSession.current?.()
-    try {
-      if (current.getURL().startsWith('about:blank')) {
-        void current.loadURL(WEBSITE_URL).catch(() => bridge.reportWebsiteState(reservation.generation, { loading: false, error: 'DeepSeek 网页加载失败。' }))
-      } else current.reload()
-    } catch {
-      needsRecovery.current = true
-      bridge.reportWebsiteState(reservation.generation, { loading: false, error: '无法刷新当前网页，请点击「重试网页」。' })
-    }
+    reloadGuest.current?.()
   }, [bridge, nativeBrowser, reservation, state.websiteReloadRevision, state.modeEnabled, state.authorizationStatus])
 
   useEffect(() => {
     if((state.mode==='chat' || state.settingsOpen) && state.authorizationStatus==='authorized') bridge.commandWebsite({type:'snapshot',showOriginal:state.showWebsiteNavigation,headerInset:headerInset(state.viewport)})
-  }, [bridge,state.mode,state.settingsOpen,state.viewport?.left,state.language,state.authorizationStatus])
+  }, [bridge,state.mode,state.settingsOpen,state.viewport?.left,state.viewport?.width,state.language,state.authorizationStatus])
 
   useEffect(() => () => { guestEvents.current?.abort() }, [])
 
@@ -481,9 +606,10 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
   const rect = inSettings
     ? state.viewport ?? {left:0,top:0,width:globalThis.innerWidth,height:globalThis.innerHeight}
     : state.viewport
+
   const visible = !inSettings && state.mode === 'chat' && state.modeEnabled
     && rect !== null && rect.width > 0 && rect.height > 0
-  const activeReservation = reservation !== null && reservation.generation === state.authorizationGeneration
+  const activeReservation = guestWanted && reservation !== null && reservation.generation === state.authorizationGeneration
     && reservation.storageKey === state.accountStorageKey ? reservation : null
   const clearance = 0
   const borderRadius = rect?.borderRadius ?? '0px'

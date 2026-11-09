@@ -1,15 +1,26 @@
 # 架构与可行性
 
-## 现行架构概览（2026-11-07）
+## 现行架构概览（2026-11-09）
 
 - **Host（`src/index.ts` → `src/server.ts`）**：Cordis 插件，暴露 `dshDeepseekChat` 远程方法（授权、登录记忆、会话刷新等），经 typert/gateway 与 Client 通信；不清点或代理聊天内容。
 - **Client 控制器（`src/client.ts`）**：持有模式状态、授权代次、导航投影、viewpanel 几何、侧栏适配与设置表单；所有跨 guest 的数据都经最小投影（枚举/布尔/锚点几何），不导出正文。
 - **模式（`src/core/mode.ts`）**：CHAT/HARNESS 的进入/退出与主面板恢复；CHAT 由插件自有 slot 覆盖 main，不主动开关右栏。
-- **官网浮层（`src/web-surface.tsx`）**：body portal + 固定几何（跟随主槽裁剪祖先圆角），同一 webview 租约（acquire/release）跨模式保留；负责适配命令、导航投影、外链路由与 Mermaid 导出下载桥。
+- **官网浮层（[web-surface](../src/web-surface.tsx)）**：body portal + 固定几何（跟随主槽裁剪祖先圆角），CHAT 内布局变化保留同一 webview/租约；离开 CHAT 且设置未打开时释放（issue #14），回到 CHAT 重建并恢复同站 URL。负责文档适配、导航投影、外链路由与 Mermaid 导出下载桥。
 - **附属面**：`window-drag-surface`/`window-drag`（CHAT 顶部原生拖拽行与命中洞）、`sidebar-adapter`（品牌/新会话限定适配）、`settings-icon`（公开 `settings.section.icon` 优先，旧壳 fallback）、`brand-notice`（body portal 提示浮层）。
 - **数据边界**：官网登录仅三个固定 key；导航只保留当前授权代次内存；外链与下载不落盘、不进日志、不进模型输入。
-- **构建**：`scripts/build.mjs` 产 Host ESM、`.d.ts` 与 lazy-CJS Client；`check-distribution.mjs` 用 `lib/build-manifest.json` 校验预编译产物与源码一致（当前 33 编译文件 / 4 共享模块）。
+- **构建**：`scripts/build.mjs` 产 Host ESM、`.d.ts` 与 lazy-CJS Client；`check-distribution.mjs` 用 `lib/build-manifest.json` 校验预编译产物与源码一致（当前 35 编译文件 / 4 共享模块）。
 - **验证分层**：Node 契约/浏览器合成（CDP 可信点击）/跨窗口 DPI 裁剪；Electron 原生合成与真实账号流程不在自动化范围。
+
+### 0.2.20：guest、文档、布局是三个不同生命周期
+
+- **Guest 所有权**仅依赖模式/设置需求、账号与授权代次、Browser bridge、显式崩溃恢复；尺寸不能进入 acquire effect 或 ref callback 的依赖。窗口/侧栏/圆角/inert 更新只投影几何并请求快照。
+- **主文档事务**由 [website-bootstrap](../src/website-bootstrap.ts) 管理。初次 `loadURL`、列表刷新、显式重试、登录恢复后 `reload` 全部经同一入口；native 主文档导航也开始新 revision，子帧和站内导航不换文档。每个 revision 单独记录 DOM ready、加载完成和实际 guest `innerWidth` 回执。解除 `min-width:1024px` 后仍先遮蔽，直到 guest 尺寸回执与宿主内容框一致；普通已呈现文档 resize 不重走 bootstrap。超时只报告固定错误，不缩窄并暴露未适配页面。
+
+呈现门槛是“身份已验证 + 原侧栏已隐藏 + 顶部行已接管”。顶部行由 [website-header](<src/website-header.ts>) 统一识别：桌面结构优先用已知类名，响应式结构按几何（内容区顶部行）与公开语义（标题文本/可编辑标题/分享 aria-label）识别；对话页保留标题与唯一分享并隐藏官网菜单按钮，新会话页把该行标记为空行、隐藏其子控件并保留 48px。完全检测不到顶部行时以“缺失”放行，检测到但无法接管则保持等待并给重试。标题适配、原生收起控件、分享尺寸仍是增强证据。解除桌面最小宽度后立即再适配一次，覆盖站点重建响应式顶部行的瞬间。
+- **首次迟到的 chrome**：headerless 首页完成后，若首条会话才创建 Share，或登录页通过 SPA 返回应用，可在同一文档内暂时宽布局测量再恢复，保留 URL、草稿和会话状态，不调用 reload/acquire。该测量有界（每文档 ≤2 次），且只有真正启动时才计入预算；站点尚未就绪而被跳过的机会不算消耗，站内切换会话可重新获得预算。原生收起、身份、标题/分享尺寸不能用一般 `status:ready` 代替证明。
+- **分享尺寸**：[website-header](../src/website-header.ts) 优先选择已验证标题行的唯一原生分享控件，排除隐藏重名按钮/歧义匿名图标。在桌面 `--l` 分支测量实际 SVG 与 padding（拒绝尚未提交的 `--xl`），只缓存有界几何。三种宽度共用一组采样几何：图标尺寸与 `.ds-button__background` 宽高取自桌面按钮，悬停背景以按钮中心对齐，避免官网按 `--xl` 断点放大。官网 tooltip（按钮外的“分享”文字）不受影响。不改颜色、点击目标或无障碍语义。已确认的原生行深度选择器让 React 换节点时也立即继承尺寸；不再强制任意20px。标题骨架行不能命中网站按钮组隐藏规则。
+- **异步结果**：导航、凭据恢复、下载完成都检查 owner/document/auth fence。迟到的旧 loadURL 错误、旧投影或导出结果不能跨文档/租约污染状态或触发保存。
+- **回归**：实际执行 controller 与生产 React Surface（唯一 fake lease + 事件计数），另测 realistic DIV/role/图标 wrapper 的1024/800/768/767/640/420/320/240尺寸与串行化命令。负对照仅在内存恢复旧尺寸依赖/去掉图标保护，测试须失败。依旧不将合成 DOM、模拟 Electron 事件或旧公开站点 bundle 称为当前线上/原生验收。
 
 > 以下按版本倒序记录各阶段机制、证据与限制；长期结论以本节概览与 [requirements](requirements.md) 为准。
 

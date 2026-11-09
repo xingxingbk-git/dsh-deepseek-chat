@@ -10,7 +10,7 @@
 
 DeepSeek Chat 是一款 **DSH 桌面插件**。选择 **CHAT**，即可在 DSH 内使用真实的 [DeepSeek Chat 官网](https://chat.deepseek.com/)；选择 **HARNESS**，随时返回原来的工作区。
 
-当前发布版 **0.2.19** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
+当前发布版 **0.2.20** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
 
 ## 功能预览
 
@@ -52,13 +52,13 @@ DeepSeek Chat 是一款 **DSH 桌面插件**。选择 **CHAT**，即可在 DSH �
 在 DSH 插件安装输入框中输入：
 
 ```text
-dsh-deepseek-chat@0.2.19
+dsh-deepseek-chat@0.2.20
 ```
 
 也可以使用命令行：
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.19
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.20
 ```
 
 首次安装和更新已有插件均可使用。刚发布的版本若被 DSH 的发布时间策略暂时拦截，可稍后重试。
@@ -84,7 +84,7 @@ dsh plugin --profile desktop add https://github.com/xingxingbk-git/dsh-deepseek-
 将 `.tgz` 安装包交给 DSH 插件管理器，或使用命令行：
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.19.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.20.tgz
 ```
 
 将路径替换为实际安装包位置。
@@ -103,7 +103,9 @@ dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.19.tgz
 - **运行环境：**适用于 DSH 桌面版，兼容 0.2.0-rc.2、从 0.2.1-rc.1 开始的 0.2.1 发布线，以及从 0.2.2-rc.1 开始的 0.2.2 发布线；0.2.2 的早期预发版和 0.2.3 及以上版本需要适配，暂不支持 DSH Web。
 - **对话列表：**列表和搜索仅包含官网已加载的导航内容。官网页面结构变化可能影响账号或列表识别，可根据界面提示重试。
 - **登录状态：**登录记忆仅用于同一 DSH 配置环境；授权过期、撤销或官网登录机制变化后，可能需要重新登录，不保证永久免登录。
-- **草稿与刷新：**模式切换会保留网页，但刷新、停用、卸载或退出 DSH 前，请先保留未发送内容。插件不会额外备份草稿。
+- **草稿与刷新：**调整窗口大小、展开或收起 DSH 侧栏不会重载网页；列表刷新、重试网页、停用或卸载时会重新加载。
+- **CHAT 网页保留方式：****设置 → Chat 设置 → CHAT 网页** 可选三种：保留网页（默认，切换更快且保留未发送内容，但开发者工具快捷键可能暂时不可用）、立即释放（离开 CHAT 即释放，开发者工具快捷键始终可用，再进入会重新加载）、延迟释放（离开后等待设定秒数再释放，等待期间切换很快）。
+- **窄窗口：**新页面先按宽布局识别并收起官网侧栏，再确认实际窗口宽度下的适配结果；不缩放整页。正常宽度完整保留官网分享按钮自身样式；窄窗口只把响应式替换后的分享图标归一到本次测得的尺寸。无法确认安全布局时保留加载或错误提示，不自动展示原网页侧栏。
 - **快捷键与网页能力：**Harness 原有的新会话快捷键和菜单仍作用于 HARNESS；CHAT 请使用其顶部“新会话”按钮。附件保存只覆盖 Mermaid 代码块的 SVG/PNG/源码导出；其他下载、设备权限和部分弹窗仍受 DSH 的浏览器安全策略限制。
 
 ## 隐私与数据

@@ -24,7 +24,7 @@ import type { WebsiteFile } from './website-downloads.js'
 import { createSidebarBinding } from './sidebar-adapter.js'
 import { bindChatSettingsIconSlot, CHAT_SETTINGS_SECTION_ID } from './settings-icon.js'
 import { HOST_ENTRY_ID } from './identity.js'
-import { DEFAULT_SWITCH_PREFERENCES, parseSwitchPreferences, validSwitchLabel, type SwitchPreferences } from './preferences.js'
+import { DEFAULT_SWITCH_PREFERENCES, parseSwitchPreferences, validSwitchLabel, WEBSITE_RELEASE_DELAY_MAX, WEBSITE_RELEASE_DELAY_MIN, type SwitchPreferences } from './preferences.js'
 import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client'
 
 export const name = 'dsh-deepseek-chat'
@@ -503,21 +503,36 @@ export function apply(ctx: Context): void {
       settingsOpen=next;publish()
     },
     setSwitchPreference: async (field,value) => {
-      if(disposed || !['switchStyle','chatLabel','harnessLabel'].includes(field))return false
-      if(field==='switchStyle' ? !['text','icon'].includes(value) : !validSwitchLabel(value))return false
+      if(disposed || !['switchStyle','chatLabel','harnessLabel','websiteLifetime','websiteReleaseDelay'].includes(field))return false
+      if(typeof value==='number') {
+        if(field!=='websiteReleaseDelay' || !Number.isInteger(value) || value<5 || value>3600) return false
+      } else {
+        if(field==='websiteReleaseDelay') return false
+        if(field==='switchStyle' ? !['text','icon'].includes(value)
+          : field==='websiteLifetime' ? !['retain','immediate','delayed'].includes(value)
+          : !validSwitchLabel(value)) return false
+      }
       const form=preferencesForm
       if(!form || switchPreferencesStatus!=='ready' || !form.getSnapshot().writable) {
         switchPreferencesError='设置服务尚未就绪，请重启 DSH 后重试。';publish();return false
       }
       preferenceWrites++;switchPreferencesError=null;publish()
       try {
-        const accepted=await form.set(field,value)
+        const accepted=await form.set(field as never, value as never)
+        let applied=accepted
         if(!disposed && preferencesForm===form) {
           switchPreferences=parseSwitchPreferences(form.getSnapshot().value)
-          switchPreferencesError=accepted ? null : '切换按钮设置保存失败，请重试。'
+          // A volatile write may report false while the value is already stored.
+          applied = accepted
+            || (field==='websiteLifetime' && switchPreferences.websiteLifetime===value)
+            || (field==='websiteReleaseDelay' && switchPreferences.websiteReleaseDelay===value)
+            || (field==='switchStyle' && switchPreferences.switchStyle===value)
+            || (field==='chatLabel' && switchPreferences.chatLabel===value)
+            || (field==='harnessLabel' && switchPreferences.harnessLabel===value)
+          switchPreferencesError=applied ? null : 'CHAT 设置保存失败，请重试。'
         }
-        return accepted
-      } catch {if(!disposed && preferencesForm===form)switchPreferencesError='切换按钮设置保存失败，请重试。';return false}
+        return applied
+      } catch {if(!disposed && preferencesForm===form)switchPreferencesError='CHAT 设置保存失败，请重试。';return false}
       finally {preferenceWrites--;publish()}
     },
     logoutWebsite: () => {
