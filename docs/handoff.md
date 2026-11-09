@@ -2,6 +2,12 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
+## 变更请求 #16（2026-11-09 19:10）
+
+用户要求为本会话变更创建变更请求。从 `origin/main`（461059c）建立分支 `feat/chat-downloads-and-copy`，提交 bd8ff32（源码、预编译 lib、下载/外链/设置回归、README 0.2.21 与 docs），推送到 origin 并创建 PR #16：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/16，目标 main。
+
+提交前通过类型、分发 35 产物、下载 13、外链、设置 77 与 `git diff --check`；未包含 artifacts、安装包或凭据。PR 待合并；npm 0.2.21 已按用户授权独立发布。
+
 ## 0.2.21 已公开发布 npm（2026-11-09 19:20）
 
 用户明确要求发布。发布前中英 README 的发布版与安装示例同步为 0.2.21；类型与 `release:prepare` 通过；正式包 `artifacts/release-0221/dsh-deepseek-chat-0.2.21.tgz`（231718 bytes/43文件，SHA256 `2fb95234ef3d3bc925a4221b18db1c659e52e1b99bc9f9bc833ec5c35f9ce0d4`）。
