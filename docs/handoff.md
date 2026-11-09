@@ -6,7 +6,7 @@
 
 用户要求为本会话变更创建变更请求。从 `origin/main`（34d46bb，含 PR #13）建立分支 `feat/chat-website-lifetime`，提交 8c28429（46 文件：源码、预编译 lib、测试、脚本、README 与 docs），推送到 origin 并创建 PR #15：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/15，目标 main。
 
-提交前重新通过类型、显式构建/分发 35 产物、header 50、bootstrap 51 与 `git diff --check`；未包含 artifacts、安装包或凭据。PR 未合并；npm 0.2.20 已按用户授权独立发布。
+提交前重新通过类型、显式构建/分发 35 产物、header 50、bootstrap 51 与 `git diff --check`；未包含 artifacts、安装包或凭据。PR 已合并（merge commit `919bb28`），npm 0.2.20 已按用户授权独立发布。
 
 ## 0.2.20 已公开发布 npm（2026-11-09 14:53）
 
@@ -14,7 +14,7 @@
 
 经独立临时 npm 配置完成网页登录与发布网页确认，唯一一次 publish 退出 0（`+ dsh-deepseek-chat@0.2.20`）。注册表短暂 404 传播后核验：`latest` 与 dist-tags 均为 0.2.20；公开 tarball 逐字节同本包、sha512 integrity 与 sha1 shasum 匹配、43 文件、中英 README 均为 0.2.20。临时会话已 logout、目录核实后删除、PTY 关闭；原 `~/.npmrc` 未使用。
 
-本机 desktop 仍装同一代码的候选 `b117404ccfea`（仅 README 版本行不同），未重装/重启。未 Git 提交或推送。
+本机 desktop 仍装同一代码的候选 `b117404ccfea`（仅 README 版本行不同），未重装/重启。代码已随 PR #15 合并至 `main/919bb28`。
 
 ## 0.2.20 收尾审查：清理残留与补漏（2026-11-09 17:20）
 
@@ -29,7 +29,7 @@
 
 验证：类型；构建/分发 35 产物 4 模块；header50、bootstrap51、guest14、窗口契约48、title38、品牌27、侧栏48、设置77、外链、下载9、负对照、5 组窗口×119 全部通过；`git diff --check` 干净。
 
-候选 `artifacts/dsh-deepseek-chat-0.2.20-b117404ccfea.tgz`（230231 bytes/43文件，SHA256 `b117404ccfea87bab25220235e6f1bc933f88418c4c5cd51708a0f319f29bb3b`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+候选 `artifacts/dsh-deepseek-chat-0.2.20-b117404ccfea.tgz`（230231 bytes/43文件，SHA256 `b117404ccfea87bab25220235e6f1bc933f88418c4c5cd51708a0f319f29bb3b`）已装 desktop，43/43 同包、依赖与 lock 锁定。npm 0.2.20 已发布，代码经 PR #15 合并至 `main/919bb28`；未自动重启。
 
 ## 0.2.20 测试脚本不再写入下载目录（2026-11-09 17:00）
 
