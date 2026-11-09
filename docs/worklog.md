@@ -1,3 +1,15 @@
+## 2026-11-09 0.2.21 已公开发布 npm
+
+用户明确要求发布。同步中英README版本/安装示例为0.2.21，类型与构建通过；正式包231718bytes/43文件SHA256=2fb95234ef3d3bc925a4221b18db1c659e52e1b99bc9f9bc833ec5c35f9ce0d4。临时npm配置网页登录后唯一一次publish退出0；传播后核验latest/dist-tags=0.2.21、公开tarball逐字节同包、integrity/shasum匹配、43文件、中英README均0.2.21。临时会话logout、目录删除、PTY关闭；未使用原npmrc。本机desktop仍为同代码候选f1a6c62f964c（仅README版本行不同），未重装/重启；未Git提交。
+
+## 2026-11-09 0.2.21 设置文案改为“缓存”
+
+按用户要求：标题改“CHAT网页是否缓存”、选项改“缓存网页”、提示改为缓存/立即释放/延迟释放的对比（含F12）；下拉aria-label同步。中英README与需求同步“缓存”术语。设置页77项通过，其余门禁保持。候选f1a6c62f964c（231719bytes/43文件）已装desktop，未发布/未Git/未重启。
+
+## 2026-11-09 0.2.21 下载通道覆盖普通代码块与图片
+
+用户反馈普通代码块下载按钮无反应（此前仅 Mermaid 三项菜单）。扩展授权：代码块“下载”按钮或 aria-label 下载、直接点击的 a[download]；文本/代码扩展名按 text/plain，jpeg/gif/webp/bmp 校验头后按实际 MIME；再补二进制附件（pdf/doc/zip/音视频等）按 octet-stream 原样保存、data URL 放宽 image/*、blob/data 弹窗不再误报失效链接。下载回归13项（含二进制 .pdf）、外链新增生成资源用例、其余门禁与5组窗口×119通过。候选5ff291bf1748（231681bytes/43文件）已装desktop，未发布/未Git/未重启。未覆盖：文件上传对话框、语音权限、右键另存为、iframe/程序化下载。
+
 ## 2026-11-09 0.2.20 变更请求 #15
 
 用户要求为本会话变更创建变更请求。从origin/main（34d46bb）建分支feat/chat-website-lifetime，提交8c28429（46文件，源码/lib/测试/脚本/README/docs），推送并创建PR #15（目标main）；PR 已合并为 `main/919bb28`。提交前类型/构建35产物/header50/bootstrap51/diff通过；未包含artifacts或凭据。

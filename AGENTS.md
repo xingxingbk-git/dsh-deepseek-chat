@@ -8,9 +8,10 @@
 
 - 入口：`src/index.ts`（Host，Cordis 插件）、`src/client.ts`（Web Client）；`package.json` 的 `dsh.bundle.patch` / `dsh.client` 声明扩展点，`cordis.patch.yml` 是 Cordis layer。
 - 产物：`lib/` 为**预编译分发**（含 `lib/types/`、`lib/build-manifest.json`），与源码一起提交。
-- npm 公开版 **0.2.20**（latest/dist-tags、公开包字节与 integrity/shasum 已核对）；本机 desktop 装同一代码的候选 b117404ccfea（仅 README 版本行不同）；本机桌面版为 DSH **0.2.2-rc.1**。
+- npm 公开版 **0.2.21**（latest/dist-tags、公开包字节与 integrity/shasum 已核对）；本机 desktop 装同一代码的候选 f1a6c62f964c（仅 README 版本行不同）；本机桌面版为 DSH **0.2.2-rc.1**。
 
 ## 当前状态（2026-11-09）
+- 0.2.21 候选：下载通道覆盖普通代码块“下载”、aria-label 下载按钮、直接点击的 a[download] 与二进制附件（pdf/doc/zip/音视频等按 octet-stream 原样保存；文本/代码 text/plain；图片校验头后按实际 MIME），Mermaid 三项菜单不变；blob/data 生成资源不再误报失效外链。未授权程序化下载、iframe 下载、右键另存为、文件上传对话框与语音权限仍受宿主限制。下载回归13、外链生成资源用例、header50、bootstrap51、guest14、窗口契约48、title38、品牌27、侧栏48、设置77、负对照、5组窗口×119通过。候选f1a6c62f964c（231719bytes/43文件，43文件同包、依赖/lock锁定）已装desktop；0.2.21 已公开发布npm（231718bytes/43文件，公开tarball逐字节一致）；未Git提交、未自动重启。设置文案为“CHAT网页是否缓存/缓存网页”，提示说明对比缓存、立即释放与延迟释放（含F12）。请完整重开后在 CHAT 里点普通代码块“下载”和消息图片下载复测，并查看新文案。
 - 0.2.20 已公开发布 npm（latest/dist-tags=0.2.20）：CHAT 网页保留方式可在 Chat 设置配置（保留/延迟/立即，延迟 5–3600 秒），默认保留；设置卡与“切换按钮”同布局，`?` 点击展开、移出关闭；窄窗顶部行与分享尺寸已统一。正式包230230bytes/43文件，公开tarball逐字节一致、integrity/shasum匹配、中英README均0.2.20。本机desktop仍装同代码候选b117404ccfea（仅README版本行不同），未重启；代码经 PR #15 合并至 `main/919bb28`。
 
 - 0.2.19 已于用户网页确认后公开发布：完整/install-v1 latest均0.2.19，公开tarball逐字节同正式包（222761bytes/41文件，SHA256=54a3005fe0fa64bb19ed39694b3d73b52c0d517ac98260a3953d431a72f0cfff），临时认证已logout/删除、PTY关闭。未重装/重启、未Git提交；README/发布记录仍为本地未提交改动，后续新修复0.2.20起。
@@ -27,7 +28,7 @@
 - 0.2.12–0.2.17 已完成并发布：0.2.2 系列适配、外链改系统浏览器、Mermaid 导出附件保存、侧栏提示浮层、提示文案、切换器圆角与右对齐。
 - 0.2.17 公开 tarball 已验证与正式包逐字节一致（历史发布证据）；当前本机已升级未发布的 0.2.18 候选。
 - **Git**：0.2.12–0.2.17 经 PR #10 合并至 `main/e073147`；0.2.18 经 PR #11 合并至 `main/51a8f6a`；0.2.19 经 PR #13 合并至 `main/34d46bb`；0.2.20 经 PR #15 合并至 `main/919bb28`（功能提交 8c28429，PR 记录 d3c70f3）。
-- 未实机验收：系统浏览器外开、Electron 原生“另存为”、真实账号流程、Windows 原生拖拽/圆角合成。详见 handoff。
+- 未实机验收：系统浏览器外开、Electron 原生“另存为”、真实账号流程、Windows 原生拖拽/圆角合成、CHAT 内文件上传对话框、语音输入权限、右键另存为。详见 handoff。
 
 ## 目录与职责（简）
 
@@ -60,12 +61,12 @@
 
 ## 已确认产品决策（现行）
 
-- CHAT/HARNESS 可逆，共用同一个网页 guest 与 body portal；网页保留方式可配置（Chat 设置 → CHAT 网页）：保留（默认，秒切）、立即释放（DevTools 快捷键始终可用）、延迟释放（离开后按设定秒数释放，5–3600）。停用/未授权/账号变化仍释放或换租约。
+- CHAT/HARNESS 可逆，共用同一个网页 guest 与 body portal；网页缓存策略可配置（Chat 设置 →「CHAT网页是否缓存」）：缓存（默认，切回免加载但期间无 F12）、立即释放（HARNESS 下可用 F12，切回重载）、延迟释放（离开后按设定秒数释放缓存，5–3600）。停用/未授权/账号变化仍释放或换租约。
 - 官网登录与 DSH 账号独立：未登录也能进入 CHAT；登录记忆只保存官网授权的三个固定 key，经官方 credentials 按 profile 派生 key 保存；退出走 barrier，迟到保存/恢复不得复活旧会话。
 - 语言、明暗主题与正文/输入字号跟随 DSH；不提供音色功能（已整体撤回，不要重新引入）。
 - CHAT 不打开 HARNESS 右侧栏，也不改变其面板状态；侧栏品牌/新会话适配仅在严格识别时生效，未知结构不猜测。
 - CHAT 中的外链交给**系统默认浏览器**（官方 `window.open(...)` 契约），失败只做非阻断提示，不写成网页加载错误。
-- 附件保存只覆盖 **Mermaid 代码块**的 SVG/PNG/源码导出：仅在用户可信点击导出菜单后，于 guest 内有界读取该次下载，再经官方 `ctx.fileActions` 保存；其他下载仍受宿主策略限制（已知限制）。
+- 附件保存覆盖用户可信点击的下载：Mermaid 导出菜单、普通代码块“下载”、带下载语义的按钮（含 aria-label）、直接点击的 `a[download]`、图片与常见二进制附件（pdf/office/zip/音视频等）。只在 guest 内有界读取该次下载（≤16 MB），再经官方 `ctx.fileActions` 保存；无用户手势的程序化下载、iframe 内下载、右键“另存为”、非白名单扩展名、文件上传对话框与语音权限仍受宿主限制（已知限制）。
 - 插件自有提示改为 body portal 的 fixed 浮层；切换器圆角 8px（内层 7px）、右缘与原生“新会话”同表达式对齐。
 
 ## 实现约束（硬性）

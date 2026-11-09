@@ -2,6 +2,37 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
+## 0.2.21 已公开发布 npm（2026-11-09 19:20）
+
+用户明确要求发布。发布前中英 README 的发布版与安装示例同步为 0.2.21；类型与 `release:prepare` 通过；正式包 `artifacts/release-0221/dsh-deepseek-chat-0.2.21.tgz`（231718 bytes/43文件，SHA256 `2fb95234ef3d3bc925a4221b18db1c659e52e1b99bc9f9bc833ec5c35f9ce0d4`）。
+
+经独立临时 npm 配置完成网页登录与发布确认，唯一一次 publish 退出 0（`+ dsh-deepseek-chat@0.2.21`）。注册表传播后核验：`latest` 与 dist-tags 均为 0.2.21；公开 tarball 逐字节同本包、sha512 integrity 与 sha1 shasum 匹配、43 文件、中英 README 均为 0.2.21。临时会话已 logout、目录核实后删除、PTY 关闭；原 `~/.npmrc` 未使用。
+
+本机 desktop 仍装同代码候选 `f1a6c62f964c`（仅 README 版本行不同），未重装/重启；本轮代码未 Git 提交。
+
+## 0.2.21 设置文案改为“缓存”（2026-11-09 19:00）
+
+按用户要求调整 Chat 设置文案：标题“离开 CHAT 时网页是否保留”改为“CHAT网页是否缓存”；选项“保留网页”改为“缓存网页”；提示说明改为“缓存网页时，再次切回CHAT模式时无需等待加载，但期间无法打开开发者工具（F12）；立即释放时，在HARNESS下可以使用（F12），但切回CHAT模式时会重新加载网页；延迟释放兼顾两者，会在离开CHAT一段时间后释放缓存。”；下拉 aria-label 同步为“网页缓存方式”。中英 README 与需求现行描述同步使用“缓存”术语。
+
+验证：设置页 77 项（标题/控件/提示交互）通过，其余门禁保持通过。候选 `artifacts/dsh-deepseek-chat-0.2.21-f1a6c62f964c.tgz`（231719 bytes/43文件，SHA256 `f1a6c62f964c4bbba5be5a2a9b9e5885cda85af94c5178408f2aab461b392102`）已装 desktop。未发布 npm、未 Git 提交、未自动重启。
+
+## 0.2.21 下载通道覆盖普通代码块与图片（2026-11-09 18:30）
+
+用户反馈普通代码块（非 Mermaid）右上角“下载”无反应——此前下载通道只识别 Mermaid 的三项导出菜单。扩展同一受限通道：
+
+- 代码块内文本为“下载/Download”、或按钮 `aria-label` 含“下载/download”时授权后续 `a[download]`；Mermaid 仍走原三项菜单路径，普通代码块直接下载。
+- 直接点击的 `a[download]` 下载链接无需前置菜单，凭可信点击授权。
+- 文本/代码扩展名白名单（py/js/ts/json/yaml/html/sql 等）按 `text/plain` 保存；图片 jpeg/gif/webp/bmp 校验文件头后按实际 MIME 保存；16 MB 上限、文件名与内容校验不变。
+- 其他程序化下载（无用户手势）仍不接管，保持宿主策略。
+- 二进制附件（pdf/doc/docx/xls/xlsx/ppt/pptx/zip/rar/7z/gz/tar/音视频/电子书等）按 `application/octet-stream` 原样保存；data URL 来源放宽到常见 `image/*`，不再误拒图片。
+- `window.open('blob:…'/'data:…')` 不再被当成失效外链报“无法打开该链接”（生成的资源不是可导航链接）。
+
+**未覆盖/待实测**：文件选择上传依赖宿主对话框；语音输入依赖宿主麦克风权限；右键“另存为”、iframe 内下载、无用户手势的程序化下载、非白名单扩展名均不接管。普通“复制”走官网原生剪贴板（只对分享 URL 有 fallback），若复制无反应需另查。
+
+验证：下载通道 13 项（原 9 + 普通代码块 .py、直点 .txt、aria-label .jpeg、二进制 .pdf）；外链新增 blob/data 静默用例；header 50、bootstrap 51、guest 14、窗口契约 48、title 38、品牌 27、侧栏 48、设置 77、外链、负对照、5 组窗口×119 通过；类型与分发 35 产物通过。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.21-5ff291bf1748.tgz`（231681 bytes/43文件，SHA256 `5ff291bf1748f466065d9e7043de156163e47e5a9ee06fe2eac7bcf960a69e74`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm（0.2.20 为当前公开版）、未 Git 提交、未自动重启。
+
 ## 变更请求 #15（2026-11-09 15:00）
 
 用户要求为本会话变更创建变更请求。从 `origin/main`（34d46bb，含 PR #13）建立分支 `feat/chat-website-lifetime`，提交 8c28429（46 文件：源码、预编译 lib、测试、脚本、README 与 docs），推送到 origin 并创建 PR #15：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/15，目标 main。
