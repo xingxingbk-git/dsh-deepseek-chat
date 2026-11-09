@@ -29,3 +29,8 @@ export function handleWebsiteLink(value: unknown, open: WebsiteLinkOpener): Webs
     return { kind: 'external' }
   } catch { return { kind: 'failed' } }
 }
+
+/** Page-generated resources (downloads, previews) must never be treated as external links. */
+export function isGeneratedResourceUrl(value: unknown): boolean {
+  return typeof value === 'string' && /^(?:blob|data):/i.test(value.trim())
+}

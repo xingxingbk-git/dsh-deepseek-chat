@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {handleWebsiteLink,routeWebsiteLink,type WebsiteLinkOpener} from '../src/website-links.js'
+import {handleWebsiteLink,isGeneratedResourceUrl,routeWebsiteLink,type WebsiteLinkOpener} from '../src/website-links.js'
 
 // All destinations and credentials below are fictional. The opener is always a local stub.
 const routes:[string,string,'same-site'|'external',string][]=[
@@ -100,6 +100,13 @@ test('same-site results return to the existing guest and never call the external
   assert.deepEqual(handleWebsiteLink('https://chat.deepseek.com/',open),{kind:'same-site',url:'https://chat.deepseek.com/'})
   assert.equal(calls,0)
 })
+test('page-generated blob and data resources never count as external links',()=>{
+  for(const value of ['blob:https://chat.deepseek.com/fictional','data:image/png;base64,fictional','  BLOB:https://chat.deepseek.com/fictional','DATA:text/plain,fictional'])
+    assert.equal(isGeneratedResourceUrl(value),true)
+  for(const value of ['https://chat.deepseek.com/',' file:///fictional','javascript:void(0)','',null,42])
+    assert.equal(isGeneratedResourceUrl(value),false)
+})
+
 test('a synchronous public opener exception returns a fixed nonfatal failed result',()=>{
   const result=handleWebsiteLink('https://references.invalid/private-looking-fixture?q=not-real',()=>{throw new Error('fictional secret-looking error detail')})
   assert.deepEqual(result,{kind:'failed'})

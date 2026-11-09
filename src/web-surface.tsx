@@ -7,7 +7,7 @@ import { translate } from './i18n.js'
 import { parseWindowDragGeometry, websiteWindowDragScript } from './window-drag.js'
 import { emptyNavigation, parseWebsiteNavigation, websiteCommandScript, type WebsiteCommand } from './website-navigation.js'
 import { parseWebsiteSession, websiteSessionCaptureScript, websiteSessionRestoreScript } from './website-session.js'
-import { handleWebsiteLink } from './website-links.js'
+import { handleWebsiteLink, isGeneratedResourceUrl } from './website-links.js'
 import { parseWebsiteDownload, websiteDownloadScript } from './website-downloads.js'
 import type { WebsiteFile } from './website-downloads.js'
 import { holdsWebsiteGuest, resumeWebsiteUrl } from './website-guest.js'
@@ -546,6 +546,9 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     }, { signal: events.signal })
     const offOpen = nativeBrowser.onOpenRequested(reservation.native.lease, url => {
       if (events.signal.aborted) return
+      // Generated blob/data resources are not navigable links; reporting them as a
+      // broken external link only confuses users who clicked a download control.
+      if (isGeneratedResourceUrl(url)) return
       const route = handleWebsiteLink(url, (target, name, features) => window.open(target, name, features))
       if (route.kind === 'same-site') { navigate(route.url); return }
       // External pages go to the system browser: the right-Sidebar browser belongs to

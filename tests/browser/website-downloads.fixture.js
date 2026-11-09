@@ -53,6 +53,75 @@ const exportFile = label => {
   setTimeout(() => { link.remove(); URL.revokeObjectURL(url) }, 200)
   outcome = { kind, name, bytes: bytes.length }
 }
+/** A plain code block: no Mermaid tab switch, so the download button exports directly. */
+const exportPlain = (name, text) => {
+  const bytes = new TextEncoder().encode(text)
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }))
+  const link = document.createElement('a')
+  link.href = url; link.download = name
+  document.body.append(link)
+  link.click()
+  setTimeout(() => { link.remove(); URL.revokeObjectURL(url) }, 200)
+  outcome = { kind: 'plain', name, bytes: bytes.length }
+}
+const plainBlock = () => {
+  const code = document.createElement('div')
+  code.className = 'md-code-block'
+  code.innerHTML = `<div class="md-code-block-banner-wrap"><div class="md-code-block-banner md-code-block-banner-lite">`
+    + `<div class="ds-button" role="button" style="${box(20, 20, 120, 30)}"><span class="code-info-button-text">下载</span></div>`
+    + `</div></div>`
+  stage.append(code)
+  code.querySelector('.ds-button').addEventListener('click', () => exportPlain('notes.py', 'print(1)\n'))
+  return code
+}
+/** A download link the user can click directly, without any code-block button. */
+const direct = () => {
+  const url = URL.createObjectURL(new Blob(['hello'], { type: 'text/plain' }))
+  const link = document.createElement('a')
+  link.href = url; link.download = 'notes.txt'
+  link.textContent = 'download'
+  link.style.cssText = box(400, 300, 120, 30)
+  document.body.append(link)
+  return link
+}
+/** A message image download button identified only by aria-label. */
+const exportImage = (name, bytes, type) => {
+  const url = URL.createObjectURL(new Blob([bytes], { type }))
+  const link = document.createElement('a')
+  link.href = url; link.download = name
+  document.body.append(link)
+  link.click()
+  setTimeout(() => { link.remove(); URL.revokeObjectURL(url) }, 200)
+  outcome = { kind: 'image', name, bytes: bytes.length }
+}
+const imageBlock = () => {
+  const holder = document.createElement('div')
+  holder.style.cssText = box(600, 300, 200, 60)
+  holder.innerHTML = `<button aria-label="下载" style="${box(600, 300, 100, 30)}">下载</button>`
+  stage.append(holder)
+  holder.querySelector('button').addEventListener('click', () => {
+    exportImage('photo.jpeg', new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46]), 'image/jpeg')
+  })
+  return holder
+}
+/** A binary attachment download (for example a PDF) triggered by an ordinary button. */
+const fileBlock = () => {
+  const holder = document.createElement('div')
+  holder.style.cssText = box(600, 420, 200, 60)
+  holder.innerHTML = `<button style="${box(600, 420, 100, 30)}">下载</button>`
+  stage.append(holder)
+  holder.querySelector('button').addEventListener('click', () => {
+    const bytes = new TextEncoder().encode('%PDF-1.4\n%\u00e2\u00e3\u00cf\u00d3\n1 0 obj\n<<>>\nendobj\n')
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }))
+    const link = document.createElement('a')
+    link.href = url; link.download = 'report.pdf'
+    document.body.append(link)
+    link.click()
+    setTimeout(() => { link.remove(); URL.revokeObjectURL(url) }, 200)
+    outcome = { kind: 'binary', name: 'report.pdf', bytes: bytes.length }
+  })
+  return holder
+}
 const poll = () => {
   const value = evaluate('poll', true)
   let valid = null
@@ -65,7 +134,10 @@ const poll = () => {
   return { raw: value ? { kind: value.kind } : null, valid }
 }
 window.fixture = {
-  results, reset, block, poll,
+  results, reset, block, plainBlock, direct, imageBlock, fileBlock, poll,
+  directPoint: () => ({ x: 460, y: 315 }),
+  imagePoint: () => ({ x: 650, y: 315 }),
+  filePoint: () => ({ x: 650, y: 435 }),
   install: () => evaluate('poll', true),
   untrusted: index => {
     stage.querySelector('.ds-button')?.click()

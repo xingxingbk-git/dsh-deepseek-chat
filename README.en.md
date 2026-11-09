@@ -10,7 +10,7 @@
 
 DeepSeek Chat is a **DSH Desktop plugin**. Choose **CHAT** to use the real [DeepSeek Chat website](https://chat.deepseek.com/) inside DSH, or choose **HARNESS** to return to your original workspace.
 
-Published release: **0.2.20** · Built for **DSH Desktop** · The CHAT website’s language, appearance and text size follow DSH.
+Published release: **0.2.21** · Built for **DSH Desktop** · The CHAT website’s language, appearance and text size follow DSH.
 
 ## Features
 
@@ -52,13 +52,13 @@ After a normal sign-in, the plugin attempts to save the website grant and restor
 Enter this in the DSH plugin installer:
 
 ```text
-dsh-deepseek-chat@0.2.20
+dsh-deepseek-chat@0.2.21
 ```
 
 Or use the CLI:
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.20
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.21
 ```
 
 Use the same method for a first installation or an update. If DSH’s release age policy temporarily blocks a newly published version, retry later.
@@ -84,7 +84,7 @@ This installs the version already pushed to the repository, with no manual build
 Give the `.tgz` package to the DSH plugin manager, or run:
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.20.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.21.tgz
 ```
 
 Replace the path with your package location.
@@ -104,7 +104,7 @@ Replace the path with your package location.
 - **Conversation list:** The list and search cover only navigation content already loaded by the website. Website layout changes may affect account or list recognition; use the retry action shown in the interface.
 - **Sign-in:** Login memory is specific to the same DSH profile. Expired or revoked grants, or changes to the website’s sign-in mechanism, may require signing in again. Permanent sign-in is not guaranteed.
 - **Drafts and refresh:** Resizing the window or opening/closing the DSH sidebar does not reload the page; refreshing the list, retrying the page, disabling or uninstalling reloads it.
-- **Website lifetime:** Choose **Settings → Chat settings → CHAT website**: keep the page (default; faster switching and unsent text is kept, but Developer Tools shortcuts may be temporarily unavailable), release immediately (leaving CHAT frees the page so Developer Tools always works; reentry reloads), or release after a delay (the page is kept for the configured number of seconds).
+- **CHAT website caching:** Choose **Settings → Chat settings → CHAT website**: cache the page (default; returning to CHAT needs no reload, but Developer Tools F12 is unavailable while cached), release immediately (HARNESS can use F12; reentry to CHAT reloads), or release after a delay (the cache is kept for the configured seconds, balancing both).
 - **Narrow windows:** A new page is identified at desktop width and its website sidebar collapsed before the adapted layout is confirmed at the actual window width. The page is not scaled. At normal widths the website's own Share control styling is left untouched; in narrow windows only the responsive Share replacement is normalized to the measured desktop icon size. If a safe layout cannot be confirmed, a loading/error view remains instead of revealing the original website sidebar.
 - **Shortcuts and website capabilities:** Existing Harness new-session shortcuts and menus still act on HARNESS. Use CHAT’s top New Chat button for website conversations. Attachment saving covers only the SVG/PNG/source export of Mermaid code blocks; other downloads, device permissions and some popups remain limited by DSH’s browser security policies.
 

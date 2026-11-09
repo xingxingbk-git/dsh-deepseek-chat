@@ -583,7 +583,7 @@ function WebsiteLifetimeSettings({bridge,state}:{bridge:DshChatUIBridge;state:Ds
   const [saving,setSaving]=useState(false)
   useEffect(()=>{setDelay(String(preferences.websiteReleaseDelay))},[preferences.websiteReleaseDelay])
   const options: {id: WebsiteLifetime; label: string}[]=[
-    {id:'retain',label:'保留网页'},
+    {id:'retain',label:'缓存网页'},
     {id:'delayed',label:'延迟释放'},
     {id:'immediate',label:'立即释放'},
   ]
@@ -605,13 +605,13 @@ function WebsiteLifetimeSettings({bridge,state}:{bridge:DshChatUIBridge;state:Ds
     <div className="dsh-chat-preference-row">
       <div className="dsh-chat-preference-heading-wrap" onMouseLeave={()=>setHintOpen(false)}>
         <h3 id={headingId} className="dsh-chat-preference-heading">
-          <span>{t('离开 CHAT 时网页是否保留')}</span>
+          <span>{t('CHAT网页是否缓存')}</span>
           <button type="button" className="dsh-chat-preference-hint" aria-label={t('各选项说明')} aria-expanded={hintOpen}
             onClick={()=>setHintOpen(open=>!open)} onBlur={()=>setHintOpen(false)}
             onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();setHintOpen(false)}}}>?</button>
         </h3>
         {hintOpen && <div role="tooltip" className="dsh-chat-preference-hint-popover">
-          {t('保留网页时，切回 CHAT 无需等待加载，但网页存在期间无法打开开发者工具；立即释放时，切回 CHAT 会重新加载，但 HARNESS 下可以使用开发者工具。延迟释放会在离开一段时间后释放，兼顾两者。')}
+          {t('缓存网页时，再次切回CHAT模式时无需等待加载，但期间无法打开开发者工具（F12）；立即释放时，在HARNESS下可以使用（F12），但切回CHAT模式时会重新加载网页；延迟释放兼顾两者，会在离开CHAT一段时间后释放缓存。')}
         </div>}
       </div>
       <div className="dsh-chat-preference-select">
@@ -620,7 +620,7 @@ function WebsiteLifetimeSettings({bridge,state}:{bridge:DshChatUIBridge;state:Ds
           items={options.map(option=>({id:option.id,label:t(option.label)}))}
           onClose={()=>setMenuOpen(false)} onSelect={optionId=>{setMenuOpen(false);if(optionId==='retain' || optionId==='delayed' || optionId==='immediate')void choose(optionId)}}
           anchor={<Button className="dsh-chat-style-trigger" variant="outline" disabled={!enabled || saving}
-            aria-label={t('网页保留方式')} aria-haspopup="menu" aria-expanded={menuOpen && enabled && !saving}
+            aria-label={t('网页缓存方式')} aria-haspopup="menu" aria-expanded={menuOpen && enabled && !saving}
             onClick={()=>setMenuOpen(open=>!open)} onKeyDown={event=>{if(event.key==='ArrowDown' || event.key==='ArrowUp'){event.preventDefault();setMenuOpen(true)}}}>
             <span>{t(current.label)}</span><IconChevronDownOutlineRegular size={16}/>
           </Button>}/>

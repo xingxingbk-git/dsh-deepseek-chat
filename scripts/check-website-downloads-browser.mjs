@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const code = (await build({ absWorkingDir: root, entryPoints: ['tests/browser/website-downloads.fixture.js'], bundle: true, write: false, format: 'iife', platform: 'browser', target: 'chrome130' })).outputFiles[0].text
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#fff}</style></head><body><script>${code.replaceAll('</script', '<\\/script')}</script></body></html>`
-const expected = 9
+const expected = 13
 const prefix = path.join(tmpdir(), 'dsh-website-downloads-')
 const profile = await mkdtemp(prefix)
 const chrome = process.env.CHROME_PATH || (process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : 'google-chrome')
@@ -104,6 +104,30 @@ try {
   await click(await evaluate('window.fixture.optionPoint(0)'))
   const rejectedBlock = await evaluate('window.fixture.poll()')
   await evaluate(`window.fixture.check('a code block without the Mermaid tab switch never arms an export', ${JSON.stringify(rejectedBlock.raw === null)})`)
+
+  // Plain code blocks (no Mermaid tab switch) download directly.
+  await evaluate('window.fixture.reset(); window.fixture.plainBlock(); window.fixture.install()')
+  await click(points)
+  const plain = await settle()
+  await evaluate(`window.fixture.check('a plain code block download is captured as text', ${JSON.stringify(Boolean(plain.valid && plain.valid.name === 'notes.py' && plain.valid.mediaType === 'text/plain'))})`)
+
+  // A download link the user clicks directly needs no preceding menu gesture.
+  await evaluate('window.fixture.reset(); window.fixture.direct(); window.fixture.install()')
+  await click(await evaluate('window.fixture.directPoint()'))
+  const directLink = await settle()
+  await evaluate(`window.fixture.check('a directly clicked download link is captured', ${JSON.stringify(Boolean(directLink.valid && directLink.valid.name === 'notes.txt'))})`)
+
+  // An image download button with only an aria-label is recognized too.
+  await evaluate('window.fixture.reset(); window.fixture.imageBlock(); window.fixture.install()')
+  await click(await evaluate('window.fixture.imagePoint()'))
+  const image = await settle()
+  await evaluate(`window.fixture.check('an aria-labelled image download keeps its JPEG bytes', ${JSON.stringify(Boolean(image.valid && image.valid.name === 'photo.jpeg' && image.valid.mediaType === 'image/jpeg' && image.valid.type === 'image/jpeg' && image.valid.size > 0))})`)
+
+  // A binary attachment is saved unchanged with its original extension.
+  await evaluate('window.fixture.reset(); window.fixture.fileBlock(); window.fixture.install()')
+  await click(await evaluate('window.fixture.filePoint()'))
+  const binary = await settle()
+  await evaluate(`window.fixture.check('a binary attachment keeps its bytes and extension', ${JSON.stringify(Boolean(binary.valid && binary.valid.name === 'report.pdf' && binary.valid.mediaType === 'application/octet-stream' && binary.valid.size > 0))})`)
 
   // A download helper call with no user gesture stays untouched.
   await evaluate('window.fixture.reset(); window.fixture.block(); window.fixture.install()')
