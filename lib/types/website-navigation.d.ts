@@ -13,6 +13,12 @@ export interface WebsiteNavigation {
     readonly identityUnconfirmed?: boolean;
     /** A currently verified CHAT layout still hides the original website sidebar. */
     readonly layoutReady?: boolean;
+    /** Fresh desktop DOM proof: hidden sidebar, attempted native collapse and verified header. */
+    readonly desktopReady?: boolean;
+    /** The first conversation header arrived after a headerless new-chat page. */
+    readonly needsDesktopChrome?: boolean;
+    /** Numeric DOM viewport acknowledgement; no website content or host internals. */
+    readonly viewportWidth?: number;
     readonly conversations: readonly WebsiteConversation[];
     readonly selectedHref: string | null;
     readonly canCreate: boolean;

@@ -36,6 +36,8 @@ try {
   const target=await send('Target.createTarget',{url:'about:blank'})
   const session=(await send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId
   await send('Page.enable',{},session);await send('Runtime.enable',{},session)
+  // Never let a fixture write into the user's Downloads folder.
+  await send('Browser.setDownloadBehavior',{behavior:'deny'}).catch(()=>{})
   await send('Fetch.enable',{patterns:[{urlPattern:'*'}]},session)
   const frame=(await send('Page.getFrameTree',{},session)).frameTree.frame.id
   await send('Page.setDocumentContent',{frameId:frame,html},session)

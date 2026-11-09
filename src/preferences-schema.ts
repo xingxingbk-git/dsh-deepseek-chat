@@ -6,4 +6,6 @@ export const SwitchPreferencesConfig = schema.object({
   switchStyle: schema.union(['text','icon']).default('text').volatile(),
   chatLabel: schema.string().max(20).pattern(SWITCH_LABEL_PATTERN).default('CHAT').volatile(),
   harnessLabel: schema.string().max(20).pattern(SWITCH_LABEL_PATTERN).default('HARNESS').volatile(),
+  websiteLifetime: schema.union(['retain','immediate','delayed']).default('retain').volatile(),
+  websiteReleaseDelay: schema.number().min(5).max(3600).step(1).default(60).volatile(),
 })

@@ -2,7 +2,159 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
-## 当前 Git 状态：PR #13 待审阅（2026-11-08）
+## 变更请求 #15（2026-11-09 15:00）
+
+用户要求为本会话变更创建变更请求。从 `origin/main`（34d46bb，含 PR #13）建立分支 `feat/chat-website-lifetime`，提交 8c28429（46 文件：源码、预编译 lib、测试、脚本、README 与 docs），推送到 origin 并创建 PR #15：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/15，目标 main。
+
+提交前重新通过类型、显式构建/分发 35 产物、header 50、bootstrap 51 与 `git diff --check`；未包含 artifacts、安装包或凭据。PR 未合并；npm 0.2.20 已按用户授权独立发布。
+
+## 0.2.20 已公开发布 npm（2026-11-09 14:53）
+
+用户明确要求发布。发布前中英 README 的发布版与安装示例同步为 0.2.20；类型与 `release:prepare` 通过；正式包 `artifacts/release-0220/dsh-deepseek-chat-0.2.20.tgz`（230230 bytes/43文件，SHA256 `efe114d9fc872a1cf2fd35c770216393112a1b97435a682651230735473260d0`）。
+
+经独立临时 npm 配置完成网页登录与发布网页确认，唯一一次 publish 退出 0（`+ dsh-deepseek-chat@0.2.20`）。注册表短暂 404 传播后核验：`latest` 与 dist-tags 均为 0.2.20；公开 tarball 逐字节同本包、sha512 integrity 与 sha1 shasum 匹配、43 文件、中英 README 均为 0.2.20。临时会话已 logout、目录核实后删除、PTY 关闭；原 `~/.npmrc` 未使用。
+
+本机 desktop 仍装同一代码的候选 `b117404ccfea`（仅 README 版本行不同），未重装/重启。未 Git 提交或推送。
+
+## 0.2.20 收尾审查：清理残留与补漏（2026-11-09 17:20）
+
+逐项复查本轮改动，处理掉以下遗留：
+
+- **失效注释**：`website-guest` 仍描述“离开 CHAT 释放”，与可配置生命周期不符；`website-navigation` 的就绪注释仍写“只要求身份+隐藏侧栏”，实际还要求顶部行已接管。两处已改为当前行为。
+- **常量漂移**：`5/3600/60` 在 client、ui、web-surface 各写一份；统一引用 `preferences.ts` 的 `WEBSITE_RELEASE_DELAY_MIN/MAX` 与 `DEFAULT_SWITCH_PREFERENCES.websiteReleaseDelay`。
+- **首帧空值**：延迟输入初值可能为 `undefined` 字符串，改为回退默认 60 秒。
+- **重复错误**：保存失败的提示会同时出现在“切换按钮”和“CHAT 网页”两张卡；移除新卡里的重复渲染，统一在偏好卡显示一次。
+- **无谓 acquire**：立即释放模式下以 HARNESS 启动时首帧会先创建再释放网页；初始化即置为已释放。
+- **旧样式**：确认 `dsh-chat-lifetime-options/choice/delay*` 等上一版类名在样式与 JSX 中均已无残留；9 个启动 Chrome 的测试脚本全部带下载拦截。
+
+验证：类型；构建/分发 35 产物 4 模块；header50、bootstrap51、guest14、窗口契约48、title38、品牌27、侧栏48、设置77、外链、下载9、负对照、5 组窗口×119 全部通过；`git diff --check` 干净。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.20-b117404ccfea.tgz`（230231 bytes/43文件，SHA256 `b117404ccfea87bab25220235e6f1bc933f88418c4c5cd51708a0f319f29bb3b`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+
+## 0.2.20 测试脚本不再写入下载目录（2026-11-09 17:00）
+
+用户反馈优化过程会启动多个浏览器并在“下载”文件夹留下大量文件。核查：headless Chrome 测试用例触发了下载，Chrome 默认保存到系统下载目录，强制结束后留下 33 个 53 字节的 `未确认 *.crdownload`；无 headless 进程残留。
+
+处理：清理该 33 个测试残留；给 9 个启动 Chrome 的测试脚本统一加 `Browser.setDownloadBehavior{behavior:'deny'}`，fixture 不再写下载目录。验证依次跑下载/设置/标题/窗口（5 组）测试后，下载目录仍为 0、无 headless 残留。脚本不进入 npm 包，无需重装。
+
+## 0.2.20 提示改为点击展开、移出关闭（2026-11-09 16:40）
+
+按用户要求把 `?` 从悬停 Tooltip 改为点击展开、鼠标移出关闭的说明浮层：`?` 为可聚焦按钮（aria-expanded/Esc 关闭），浮层以标题行相对定位展示在下方，样式沿用卡片描边与主题色；移出标题区域即关闭。
+
+验证：presentation 77 项（点击展开、移出关闭、标题/控件/延迟输入），其余门禁与 5 组窗口×119 通过。候选 `artifacts/dsh-deepseek-chat-0.2.20-480bc247de3f.tgz`（230110 bytes/43文件，SHA256 `480bc247de3f4123ada802fd2094430ec2da9cc2ed2c319a9e2ee78b945fad9c`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+
+## 0.2.20 提示文案改为说明取舍（2026-11-09 16:20）
+
+按用户要求把提示图标文案改为说明“保留网页”与“立即释放”的区别：保留时切回 CHAT 无需等待加载，但网页存在期间无法打开开发者工具；立即释放时切回 CHAT 需重新加载，但 HARNESS 下可使用开发者工具；延迟释放兼顾两者。
+
+验证：presentation 75 项通过，其余门禁与 5 组窗口×119 保持通过。候选 `artifacts/dsh-deepseek-chat-0.2.20-fb973ba078d0.tgz`（229851 bytes/43文件，SHA256 `fb973ba078d0ba46ee66073d848c2614679e3378104cea22dbd84373c35790ac`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+
+## 0.2.20 设置标题样式与提示文案修正（2026-11-09 16:00）
+
+用户反馈新卡片标题“离开 CHAT 时网页是否保留”字号偏大偏粗，未与“切换按钮”一致；提示图标文案过细。原因：h3 样式作用域只覆盖 `.dsh-chat-presentation-settings`，新卡片类名不同，回退到浏览器默认 h3。修正：把 h3 规则扩展到 `.dsh-chat-website-lifetime`；提示文案简化为“控制离开 CHAT 后网页是否继续保留在内存中。”。presentation 75 项通过，其余门禁与 5 组窗口×119 保持通过。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.20-0a3bbbd54b16.tgz`（229731 bytes/43文件，SHA256 `0a3bbbd54b166c88582653f9947ed9bf516e5ebc904fbd7bc8cc83ae0cca3ffb`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+
+## 0.2.20 CHAT 网页设置与切换控件对齐（2026-11-09 15:30）
+
+用户反馈：切换选项时出现“切换按钮设置保存失败”；错误文案贴近分割线；选项样式与上方“切换按钮”不一致；要求标题为“离开 CHAT 时网页是否保留”、选项“保留网页/延迟释放/立即释放”，延迟释放时像文字样式一样出现分割线+数字输入（默认60秒）+保存，去掉小字描述，标题后加提示图标悬停显示说明。
+
+修正：
+- 保存结果改为与存储快照比对（volatile 写入可能返回 false 但值已生效），错误文案统一为“CHAT 设置保存失败，请重试。”；错误块与分割线间距加大。
+- 设置卡改为与“切换按钮”相同的标题行+右侧下拉控件；标题加 `?` 提示图标（Tooltip 显示三种模式的说明）；顺序为保留/延迟/立即；延迟模式显示分割线与数字输入、保存按钮；去掉所有选项下的小字描述。
+- 新增样式 `dsh-chat-preference-heading/hint`、`dsh-chat-lifetime-editor`，复用现有 preference-row/divider/labels 布局。
+
+验证：presentation 75项（下拉控件、提示图标、标题文案、延迟输入与分割线、非延迟时隐藏）；bootstrap51、guest14、header50、窗口契约48、title38、品牌27、侧栏48、外链、下载9、负对照、5组窗口×119通过。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.20-1dfe5672e7df.tgz`（229818 bytes/43文件，SHA256 `1dfe5672e7df3cf9a2c07a88ff70451f9bdde7e44c40541bb1bbe24f7f8fe8c8`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+
+## 0.2.20 CHAT 网页保留方式可配置（2026-11-09 14:50）
+
+用户实测方案 C 后开发者工具仍失效，要求改为可配置：Chat 设置新增“CHAT 网页”，默认保留，可改立即释放或延迟释放（输入秒数），每项带说明。
+
+实现：偏好新增 `websiteLifetime`（retain/immediate/delayed，默认 retain）与 `websiteReleaseDelay`（默认 60，5–3600），经官方 settings 持久化；`holdsWebsiteGuest` 增加 released 参数；web-surface 在 HARNESS 下按偏好保留、立即释放或启动延迟计时（切回 CHAT/设置页会取消计时）。设置卡复用现有 `dsh-chat-settings-card` 布局与 `preference-row`/`note` 样式，选项为单选列表并附说明，延迟输入仅延迟模式显示。
+
+验证：bootstrap 51项（默认保留不释放、立即释放、延迟 5 秒后释放、重进恢复、账号/崩溃/停用仍换租约）；guest14；presentation 74（新卡三选项+延迟输入）；header50、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、负对照、5组窗口×119通过。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.20-3c0cbec69bce.tgz`（229828 bytes/43文件，SHA256 `3c0cbec69bcecfea569b6593858f226f01c3174c8ffff083a98848e1f8a302ed`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+
+## 0.2.20 切换不再重载（方案 C，2026-11-09 13:30）
+
+用户反馈每次 HARNESS→CHAT 都重新加载，希望恢复秒切。原因：0.2.20 为修 issue #14 在离开 CHAT 时释放网页，再进入必然重建。用户选择方案 C：保留网页进程，切走时主动失焦，尝试兼顾 F12。
+
+修正：`holdsWebsiteGuest` 不再因模式切换返回 false（停用/未授权仍释放）；离开 CHAT 且设置未开时对 webview 调用 `blur()` 并 `window.focus()`，把键盘焦点交还 embedder。页面隐藏但不销毁，切回 CHAT 直接复用同一租约与文档。
+
+验证：bootstrap 47项（离开 CHAT 保留同一 guest、无新 loadURL、重进复用；账号变化/崩溃/停用仍换租约或释放）；guest13（模式不再影响持有，停用/未授权释放）；header50、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、负对照、5组窗口×119通过。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.20-8bab8b05886d.tgz`（227995 bytes/43文件，SHA256 `8bab8b05886d0d8ae67be6988514def234b65009f388ba5a64361f482507dbb3`）已装 desktop，43/43 同包、依赖与 lock 锁定。**F12 是否仍可用需要真实 Electron 窗口实测**；若失效则回退释放方案。未发布 npm、未 Git 提交、未自动重启。
+
+## 0.2.20 首次窄窗补采分享尺寸（2026-11-09 13:10）
+
+用户重开后直接最窄切 CHAT、再进会话：分享仍是移动版大尺寸；把窗口调宽再缩窄就正常。
+
+根因：首次宽加载若落在新会话页（无分享），`share-metrics` 未采到；点进会话是站内跳转、视口已窄，需要“同文档补测”。但适配器在发现“窄窗且无尺寸”时**立即**打上一次性标记，而网页侧是否真正启动补测取决于启动控制器是否已就绪；未就绪被跳过时机会已被消耗，该文档永不再试。调宽时宽布局直接采样，故再缩窄正常。
+
+修正：适配器只报告“需要补测”，不再消耗机会；由 Surface 在真正启动补测时计数（每文档≤2 次），新文档重置，站内切换会话重置预算。补测期间保持遮罩，测完恢复。
+
+验证：bootstrap45项（含“未启动不消耗机会”“站内切换重置预算”“新文档重置”），header50、guest13、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、负对照、5组窗口×119通过。fixture 等待上限 3s→8s，避免慢机误报。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.20-bb92409c1656.tgz`（227933 bytes/43文件，SHA256 `bb92409c1656ca9545b12862d0c73cfccd52ce6e00ab5baea9bc9eafdc48a7b7`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+
+## 0.2.20 分享几何三档统一（2026-11-09 10:50）
+
+用户确认顶部行已修好，只剩分享按钮：三档宽度下图标大小和悬停背景圆不一致，“分享”二字是官网悬停 tooltip、不需要调整。
+
+根因：上一版只在 ≤767px 归一，且只选 `.ds-button__icon/.ds-icon/svg`；正常宽度仍由官网断点样式控制，窄屏内部结构不匹配时归一等于没盖住，悬停背景也没有尺寸基准。
+
+修正：三档共用同一组实测几何——图标宽高与 `.ds-button__background` 宽高都从桌面按钮采一次，悬停背景以按钮中心对齐；桌面/窄屏都使用这组值，不再分断点。按钮外框仍 28×28，tooltip 保持官网行为。
+
+验证：`check:website-header` 50项（三档背景统一为同一测量值、图标16、外框28、响应式对话/首页行）；bootstrap42、guest13、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、负对照、5组窗口×119通过。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.20-77b0c70ca387.tgz`（227901 bytes/43文件，SHA256 `77b0c70ca3876147d42f3286a7ca6b5135046e17b58f602da0ce42d90413bb3d`）已装 desktop，43/43 同包、依赖与 lock 锁定。未发布 npm、未 Git 提交、未自动重启。
+
+## 0.2.20 响应式顶部行接管（2026-11-09 10:40）
+
+用户重开 DSH 后直接缩小窗口切 CHAT：官网菜单（收起侧栏）图标、新会话图标重新露出，分享图标仍是移动版大尺寸。先宽后窄则正常。
+
+根因：顶部行接管只认桌面结构（`._2be88ba` 等）。窄布局加载时官网给的是响应式 DOM，适配器识别失败并清空标记，官网原始顶部控件直接暴露；首页（无标题行）此前从未被接管。
+
+修正：
+- 顶部行识别增加响应式分支：按内容区顶部几何 + 公开语义识别。对话页保留真实标题与唯一分享、隐藏官网菜单按钮；新会话页把该行标记为空行、隐藏其子控件并保留 48px 行高。
+- 呈现门槛加“顶部行已接管”：检测到但接管失败时保持等待并可重试，不暴露原始控件；完全检测不到顶部行（中间页）以“缺失”放行，避免死锁。
+- 解除桌面最小宽度后立即再适配一次，覆盖站点重建响应式顶部行的瞬间。
+- 分享尺寸仍只在桌面采一次、窄屏归一，正常宽度零覆写。
+
+验证：`check:website-header` 50项（新增响应式对话行/首页行、菜单隐藏、48px、标题内缩、分享28px）；bootstrap42、guest13、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、负对照、5组窗口×119均通过。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.20-4ddb8e280b43.tgz`（227774 bytes/43文件，SHA256 `4ddb8e280b4354e01027ddbfad33288d95748a0944b2fd86b5f01b290cf035e8`）已装 desktop，43/43 文件同包、依赖与 lock 锁定 hash。未发布 npm、未 Git 提交、未自动重启；请完整退出重开后按“启动即窄窗切 CHAT”复测。
+
+## 0.2.20 显示门槛与分享样式修正（2026-11-09 10:xx）
+
+用户重开后实测两个问题：首次切换 CHAT 右侧显示“CHAT 界面适配超时”；分享按钮悬停背景偏移、三种宽度不一致。
+
+根因（代码可证）：
+- 上一轮把“官网原生收起按钮存在”和“已采到桌面分享尺寸”放进了 `desktopReady` 硬门禁。真实官网可能没有该收起控件，或分享按钮的 `--l` class 假设不成立，于是 `ready` 永远不成立，30 秒后报超时并遮蔽整页。这是呈现门槛过严，不是页面加载失败。
+- 宽窗口也被注入了分享 `padding` 和 `.ds-button__background{inset/width/height}` 覆写。该背景在官网使用 `left/top:50% + transform` 居中；覆写与原生 transform 叠加后背景圆被二次偏移，表现为悬停背景跑偏，同时正常宽度被改坏。
+
+修正：
+- 呈现门槛收敛为“身份已验证 + 原侧栏已隐藏”（与旧版一致）。标题适配、原生收起控件、分享尺寸样本降级为增强证据，缺失不再阻塞呈现；同文档宽测量只做一次（`data-dsh-chat-desktop-chrome-tried`），失败即放弃，不循环遮蔽。
+- 正常宽度完全不覆写分享控件内部（padding/icon/背景/焦点/悬停均保留官网原生）。仅 ≤767px 的响应式替换节点归一为采样图标尺寸，悬停背景同步对齐到固定外框。
+
+验证：类型；显式构建/分发35产物4模块；`check:website-header` 42项（含宽屏原生34px悬停背景不被替换、窄屏归一为28px、无收起/无分享证据仍 desktopReady）；`check:website-bootstrap` 42项；guest13、窗口契约48、title38、品牌27、侧栏48、设置72、外链、下载9、两个负对照通过；窗口识别5组视口×119项通过。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.20-304347d400e5.tgz`（227183 bytes/43文件，SHA256 `304347d400e5e0c0b4be9669096859429c9d73e5f125374ec681ee8527051ded`）已用官方 desktop CLI 安装：43/43 文件同包，dependency 与 lock 锁定 hash。未发布 npm、未 Git 提交、未自动重启；需完整退出重开 DSH 后实测三种宽度下的分享按钮与首次进入。
+
+## 0.2.20 续审当前快照（2026-11-09）
+
+- 用户报告分享图标仍不一致，窗口/侧栏尺寸变化会重载。重新审查确认：旧 `armWideBootstrap` 捕获 viewport.width 且进入 acquire effect 依赖；列表刷新分支直接 reload 未经过 bootstrap；旧 ready/blank finish/6秒宽度兜底并非新文档适配成功证据。此前8项是正则接线检查，不能证明这些行为。
+- 已将 guest、文档、几何分离。CHAT 内 resize/分栏侧栏/抽屉开合仅投影布局，身份/模式/显式进程恢复决定租约。初载、真实列表刷新、重试和凭据恢复统一走文档事务；新页面先保持不小于1024px，DOM/主文档加载/桌面隐藏侧栏与标题尺寸证明通过后，确认 guest 的真实尺寸回执再显示。30秒超时遮蔽并给出重试，不露原始网页。headerless首页的首条会话/SPA登录返回可同文档临时测量，不重载。
+- 分享控件按已验证的桌面 `--l` 分支实际 SVG/padding 取基准，保留原28px外框，不再写死20px；排除旧 `--xl`、隐藏重名Share、附近匿名图标。补充骨架标题行保护，以及迟到下载/凭据恢复/旧导航错误的 owner/document fence。
+- 已通过：类型；显式构建与分发35文件/4共享模块；controller+生产React Surface行为42项；响应式标题/Share33项；两个内存负对照能抓回旧bug；guest规则13、title38、兼容/SDK/sidebar022/窗口契约48、品牌27/侧栏48/切换器、设置72、外链、下载9。完整5组窗口/DPI各119项（共595）通过，日志为证据目录的`window-final.log`。前置失败属于旧fixture的冻结时钟/文档事件与假guest尺寸回执未更新，已修正fixture并保留失败日志，不当成原生验收。
+- 证据目录：`artifacts/audit-0220-qBWSpM/`。本轮仍为0.2.20连续调试；正式候选`artifacts/dsh-deepseek-chat-0.2.20-c452c39c5dc7.tgz`，227045 bytes/43文件，SHA256 `c452c39c5dc768ae3868a0eba0f620653234ba38760f978904d793a2b2fdf762`。逐项核对包与源码/产物后，经官方desktop CLI安装；43/43安装文件同包，持久dependency与lock指向不可变hash包。未发布npm、未Git提交/推送、未自动重启；当前运行中GUI仍需用户完整退出重开才算加载新Client。
+- 实际版本：DSH 0.2.2-rc.1（Info.plist），Cordis4.1.0、React18.3.1、TypeScript5.8.3、Node24.21.0；项目显式pnpm10.33.2，官方desktop安装器使用pnpm11.28.5。
+- 真实待验收：冷启动直接窄窗、首页首条会话、SPA登录返回、三种原生侧栏状态、反复刷新、分享悬停及Electron/DPI尺寸回执；当前线上站点必须仍满足公开DOM契约。自动化不读取实际聊天或凭据，不能代替实机验收。
+
+## 当前 Git 状态：PR #13 创建时快照（2026-11-08）
 
 用户要求为本轮0.2.19变更创建变更请求。已从main（含PR #12合并）基线新建分支fix-settings-only-service-notice，提交b655496（13文件：源码/预编译lib/回归/README/需求与记录），PR #13：https://github.com/xingxingbk-git/dsh-deepseek-chat/pull/13，目标main。创建前重新通过类型/分发33文件4模块/品牌27项/UI72/侧栏48/diff检查；未包含artifacts、安装包或凭据。未合并、未重装/重启；工作树干净，npm 0.2.19已按用户授权独立发布。
 
@@ -13,6 +165,12 @@
 ## 0.2.19 已按用户授权安装（2026-11-08）
 
 用户后续明确要求安装试用。已先核对fa12b7ff7b94包SHA256与0.2.19版本，再经官方 `dsh plugin --profile desktop add <candidate> --save-exact` 安装成功（退出0）；41/41安装文件同包，desktop持久dependency与pnpm-lock均指向此候选。未自动重启、未发布npm或Git提交；需用户完整退出并重开DSH确认新Client实际效果。以下“未安装/已卸载”为安装前阶段记录，现已被此状态替代。
+
+## 0.2.20 初期候选：离开 CHAT 释放网页（历史，2026-11-08）
+
+> 此段保留初期尝试背景，不代表当前实现或验收。旧8项bootstrap仅检查源码字符串；旧6秒恢复宽度、对列表刷新已覆盖的结论已由本页续审纠正。候选指纹以后续实测记录为准。
+
+针对 issue #14 实现方案 A：新增 `src/website-guest.ts`（`holdsWebsiteGuest`/`resumeWebsiteUrl`），`src/web-surface.tsx` 的租约 effect 以 `guestWanted` 为门槛并在离开 CHAT 时释放 guest、卸载 webview；进入时记录/恢复上次官网会话 URL，账号变化时清空。`check:website-guest` 13 项通过（纯规则 + 生产源码接线）；类型、分发34文件4模块、品牌27、UI72、侧栏48、外链、下载9、diff通过。0.2.19→0.2.20；包 `artifacts/dsh-deepseek-chat-0.2.20-3bc17156203e.tgz`（223878bytes/42文件，SHA256 `3bc17156203ea5df8c56eb2d86435301f2239ddf9ca885dcf422253da78d5486`）已装 desktop，42/42文件一致、依赖/lock 正确。未自动重启/发布/Git；F12 恢复需用户完整重开后实测，合成检查不能代替 Electron 窗口验收。代价：切回 CHAT 重载页面、草稿丢失，README 已说明。窄窗口最终方案（按用户指出的根因重做）：此前窄窗口分支是在错误前提上打补丁。实际原因是宽窗口先加载桌面布局再适配并收起官网侧栏，而窄窗口一进入就用响应式布局加载，适配器从未见过桌面 DOM。现在 guest 始终先以 1024px 桌面宽度挂载并完成识别/收起/标题适配，新 guest 完成 did-finish-load 且识别 ready 后才恢复；首次进入、刷新/重载与恢复都会重新进入宽加载（armWideBootstrap），等价于“在 CHAT 中缩窗”这条已验证路径；6 秒未就绪超时恢复。窄窗口专用 adapter 分支、隐藏抽屉与几何兜底全部移除，`src/website-navigation.ts` 回到单一宽布局逻辑；不缩放、不显示官网侧栏。新增 check:website-bootstrap 8项；类型/分发34文件4模块、品牌27、侧栏48、外链、下载9通过。旧候选 101518abf124（224469bytes/42文件，SHA256 101518abf1244af3e28e62608e10272a0fd28bc9df8a2ec51041e10ca64658ac）已装入 desktop（42文件同包、依赖锁定）。
 
 ## 0.2.19 当前修复：保存服务提示仅在Chat设置显示（2026-11-08）
 

@@ -16,7 +16,7 @@ import type { WebsiteCommand, WebsiteNavigation } from './website-navigation.js'
 import type { ChatLanguage } from './website-settings.js'
 import type { WebsiteSession } from './protocol.js'
 import type { WindowDragRegion } from './window-drag.js'
-import { DEFAULT_SWITCH_PREFERENCES, SWITCH_LABEL_LIMIT, switchLabelWidth, validSwitchLabel, type SwitchPreferences } from './preferences.js'
+import { DEFAULT_SWITCH_PREFERENCES, DEFAULT_WEBSITE_RELEASE_DELAY, SWITCH_LABEL_LIMIT, WEBSITE_RELEASE_DELAY_MAX, WEBSITE_RELEASE_DELAY_MIN, switchLabelWidth, validSwitchLabel, type SwitchPreferences, type WebsiteLifetime } from './preferences.js'
 
 export type DshChatMode = 'chat' | 'harness'
 
@@ -94,7 +94,7 @@ export interface DshChatUIBridge {
   renameWebsiteConversation(href: string, title: string): Promise<void>
   toggleWebsiteNavigation(): void
   setSettingsOpen(open: boolean): void
-  setSwitchPreference?(field: keyof SwitchPreferences, value: string): Promise<boolean>
+  setSwitchPreference?(field: keyof SwitchPreferences, value: string | number): Promise<boolean>
   logoutWebsite(): void
   loadWebsiteSession(generation: number): Promise<WebsiteSession | null>
   saveWebsiteSession(generation: number, session: WebsiteSession): Promise<boolean>
@@ -572,6 +572,78 @@ function ChatPresentationSettings({bridge,state}: {bridge:DshChatUIBridge;state:
   </section>
 }
 
+/** Website lifetime: same control style as the switch-button preference. */
+function WebsiteLifetimeSettings({bridge,state}:{bridge:DshChatUIBridge;state:DshChatViewState}) {
+  const t=(text:string|null|undefined)=>translate(state.language,text)
+  const preferences=state.switchPreferences ?? DEFAULT_SWITCH_PREFERENCES
+  const enabled=state.switchPreferencesStatus==='ready' && Boolean(bridge.setSwitchPreference)
+  const [menuOpen,setMenuOpen]=useState(false)
+  const [hintOpen,setHintOpen]=useState(false)
+  const [delay,setDelay]=useState(String(preferences.websiteReleaseDelay ?? DEFAULT_WEBSITE_RELEASE_DELAY))
+  const [saving,setSaving]=useState(false)
+  useEffect(()=>{setDelay(String(preferences.websiteReleaseDelay))},[preferences.websiteReleaseDelay])
+  const options: {id: WebsiteLifetime; label: string}[]=[
+    {id:'retain',label:'保留网页'},
+    {id:'delayed',label:'延迟释放'},
+    {id:'immediate',label:'立即释放'},
+  ]
+  const current=options.find(option=>option.id===preferences.websiteLifetime) ?? options[0]!
+  const choose=async(id:WebsiteLifetime)=>{
+    if(!enabled || saving || id===preferences.websiteLifetime) return
+    setSaving(true)
+    try { await bridge.setSwitchPreference?.('websiteLifetime',id) } finally { setSaving(false) }
+  }
+  const value=Number(delay)
+  const validDelay=Number.isInteger(value) && value>=WEBSITE_RELEASE_DELAY_MIN && value<=WEBSITE_RELEASE_DELAY_MAX
+  const saveDelay=async()=>{
+    if(!enabled || saving || !validDelay || value===preferences.websiteReleaseDelay) return
+    setSaving(true)
+    try { await bridge.setSwitchPreference?.('websiteReleaseDelay',value) } finally { setSaving(false) }
+  }
+  const headingId=useId()
+  return <section className="dsh-chat-settings-card dsh-chat-website-lifetime" aria-labelledby={headingId}>
+    <div className="dsh-chat-preference-row">
+      <div className="dsh-chat-preference-heading-wrap" onMouseLeave={()=>setHintOpen(false)}>
+        <h3 id={headingId} className="dsh-chat-preference-heading">
+          <span>{t('离开 CHAT 时网页是否保留')}</span>
+          <button type="button" className="dsh-chat-preference-hint" aria-label={t('各选项说明')} aria-expanded={hintOpen}
+            onClick={()=>setHintOpen(open=>!open)} onBlur={()=>setHintOpen(false)}
+            onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();setHintOpen(false)}}}>?</button>
+        </h3>
+        {hintOpen && <div role="tooltip" className="dsh-chat-preference-hint-popover">
+          {t('保留网页时，切回 CHAT 无需等待加载，但网页存在期间无法打开开发者工具；立即释放时，切回 CHAT 会重新加载，但 HARNESS 下可以使用开发者工具。延迟释放会在离开一段时间后释放，兼顾两者。')}
+        </div>}
+      </div>
+      <div className="dsh-chat-preference-select">
+        <Menu open={menuOpen && enabled && !saving} portal minWidthFromAnchor autoFocus align="end"
+          className="dsh-chat-style-menu" selectedId={preferences.websiteLifetime}
+          items={options.map(option=>({id:option.id,label:t(option.label)}))}
+          onClose={()=>setMenuOpen(false)} onSelect={optionId=>{setMenuOpen(false);if(optionId==='retain' || optionId==='delayed' || optionId==='immediate')void choose(optionId)}}
+          anchor={<Button className="dsh-chat-style-trigger" variant="outline" disabled={!enabled || saving}
+            aria-label={t('网页保留方式')} aria-haspopup="menu" aria-expanded={menuOpen && enabled && !saving}
+            onClick={()=>setMenuOpen(open=>!open)} onKeyDown={event=>{if(event.key==='ArrowDown' || event.key==='ArrowUp'){event.preventDefault();setMenuOpen(true)}}}>
+            <span>{t(current.label)}</span><IconChevronDownOutlineRegular size={16}/>
+          </Button>}/>
+      </div>
+    </div>
+    {preferences.websiteLifetime==='delayed' && <>
+      <hr className="dsh-chat-preference-divider"/>
+      <form className="dsh-chat-preference-labels" onSubmit={event=>{event.preventDefault();void saveDelay()}}>
+        <div className="dsh-chat-lifetime-editor" data-invalid={!validDelay}>
+          <Input className="dsh-chat-lifetime-input" type="number" min={WEBSITE_RELEASE_DELAY_MIN} max={WEBSITE_RELEASE_DELAY_MAX} step={1} value={delay}
+            disabled={!enabled || saving} aria-label={t('延迟释放时间（秒）')} aria-invalid={!validDelay}
+            style={{paddingInlineEnd:44}}
+            onChange={event=>setDelay(event.target.value)}/>
+          <span className="dsh-chat-label-count" aria-hidden="true">{t('秒')}</span>
+        </div>
+        <Button className="dsh-chat-label-save" variant="primary" type="submit"
+          disabled={!enabled || saving || !validDelay || value===preferences.websiteReleaseDelay}>{t('保存')}</Button>
+      </form>
+    </>}
+    {!enabled && <p className="dsh-chat-preference-note">{t('设置服务尚未就绪，请重启 DSH 后重试。')}</p>}
+  </section>
+}
+
 export function DshChatChatSettings({bridge,close}: PropsRuntime<'settings.section'> & DshChatBridgeProps) {
   const state = useDshChat(bridge)
   const t = (text: string | null | undefined) => translate(state.language, text)
@@ -616,5 +688,6 @@ export function DshChatChatSettings({bridge,close}: PropsRuntime<'settings.secti
       {enabled && showAccount && settings?.error && <div className="dsh-chat-settings-error" role="alert"><p>{t(settings.error)}</p><Button variant="outline" disabled={Boolean(settings.pending)} onClick={()=>bridge.commandWebsite({type:'settings-retry'})}>{t("重试同步")}</Button></div>}
     </section>
     <ChatPresentationSettings bridge={bridge} state={state}/>
+    <WebsiteLifetimeSettings bridge={bridge} state={state}/>
   </section>
 }

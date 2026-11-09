@@ -58,6 +58,8 @@ try {
   const target = await send('Target.createTarget', { url: 'about:blank' })
   session = (await send('Target.attachToTarget', { targetId: target.targetId, flatten: true })).sessionId
   await send('Page.enable', {}, session)
+  // Never let a fixture write into the user's Downloads folder.
+  await send('Browser.setDownloadBehavior',{behavior:'deny'}).catch(()=>{})
   await send('Fetch.enable', { patterns: [{ urlPattern: '*' }] }, session)
   await send('Page.navigate', { url: 'https://synthetic.invalid/sidebar-rows' }, session)
   const evaluate = async expression => {

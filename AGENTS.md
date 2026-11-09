@@ -4,13 +4,15 @@
 
 ## 项目与目标
 
-为 DSH 桌面版提供可逆的 **CHAT / HARNESS** 模式切换：CHAT 在 DSH 内使用真实 DeepSeek 官网（chat.deepseek.com）聊天，HARNESS 恢复用户原来的工作区；切换不丢 Harness 状态、网页草稿和登录。
+为 DSH 桌面版提供可逆的 **CHAT / HARNESS** 模式切换：CHAT 在 DSH 内使用真实 DeepSeek 官网（chat.deepseek.com）聊天，HARNESS 恢复用户原来的工作区；切换不丢 Harness 状态和登录（离开 CHAT 会释放网页，见 issue #14 修复）。
 
 - 入口：`src/index.ts`（Host，Cordis 插件）、`src/client.ts`（Web Client）；`package.json` 的 `dsh.bundle.patch` / `dsh.client` 声明扩展点，`cordis.patch.yml` 是 Cordis layer。
 - 产物：`lib/` 为**预编译分发**（含 `lib/types/`、`lib/build-manifest.json`），与源码一起提交。
-- npm 公开版 **0.2.19**（完整/install-v1 latest、公开包字节与integrity已核对）；本机desktop安装发布前0.2.19候选，与公开包仅两份README不同；本机桌面版为 DSH **0.2.2-rc.1**。
+- npm 公开版 **0.2.20**（latest/dist-tags、公开包字节与 integrity/shasum 已核对）；本机 desktop 装同一代码的候选 b117404ccfea（仅 README 版本行不同）；本机桌面版为 DSH **0.2.2-rc.1**。
 
-## 当前状态（2026-11-08）
+## 当前状态（2026-11-09）
+- 0.2.20 已公开发布 npm（latest/dist-tags=0.2.20）：CHAT 网页保留方式可在 Chat 设置配置（保留/延迟/立即，延迟 5–3600 秒），默认保留；设置卡与“切换按钮”同布局，`?` 点击展开、移出关闭；窄窗顶部行与分享尺寸已统一。正式包230230bytes/43文件，公开tarball逐字节一致、integrity/shasum匹配、中英README均0.2.20。本机desktop仍装同代码候选b117404ccfea（仅README版本行不同），未重启；未Git提交推送。
+
 - 0.2.19 已于用户网页确认后公开发布：完整/install-v1 latest均0.2.19，公开tarball逐字节同正式包（222761bytes/41文件，SHA256=54a3005fe0fa64bb19ed39694b3d73b52c0d517ac98260a3953d431a72f0cfff），临时认证已logout/删除、PTY关闭。未重装/重启、未Git提交；README/发布记录仍为本地未提交改动，后续新修复0.2.20起。
 
 
@@ -24,7 +26,7 @@
 
 - 0.2.12–0.2.17 已完成并发布：0.2.2 系列适配、外链改系统浏览器、Mermaid 导出附件保存、侧栏提示浮层、提示文案、切换器圆角与右对齐。
 - 0.2.17 公开 tarball 已验证与正式包逐字节一致（历史发布证据）；当前本机已升级未发布的 0.2.18 候选。
-- **Git**：0.2.12–0.2.17 经 PR #10 合并至 `main/e073147`。0.2.18功能提交 `bbbb313` 已经PR #11合并至main/51a8f6a。本轮仅交付发布文档，分支docs-npm-release-0218；各候选阶段“未Git/未发布”仅为历史状态。
+- **Git**：0.2.12–0.2.17 经 PR #10 合并至 `main/e073147`；0.2.18 经 PR #11 合并至 `main/51a8f6a`；0.2.19 经 PR #13 合并至 `main/34d46bb`；0.2.20 变更位于分支 `feat/chat-website-lifetime`（提交 8c28429，PR #15，未合并）。
 - 未实机验收：系统浏览器外开、Electron 原生“另存为”、真实账号流程、Windows 原生拖拽/圆角合成。详见 handoff。
 
 ## 目录与职责（简）
@@ -58,7 +60,7 @@
 
 ## 已确认产品决策（现行）
 
-- CHAT/HARNESS 可逆，共用同一个网页 guest 与 body portal；切回 HARNESS 恢复原主面板，再进 CHAT 回到同一页面。
+- CHAT/HARNESS 可逆，共用同一个网页 guest 与 body portal；网页保留方式可配置（Chat 设置 → CHAT 网页）：保留（默认，秒切）、立即释放（DevTools 快捷键始终可用）、延迟释放（离开后按设定秒数释放，5–3600）。停用/未授权/账号变化仍释放或换租约。
 - 官网登录与 DSH 账号独立：未登录也能进入 CHAT；登录记忆只保存官网授权的三个固定 key，经官方 credentials 按 profile 派生 key 保存；退出走 barrier，迟到保存/恢复不得复活旧会话。
 - 语言、明暗主题与正文/输入字号跟随 DSH；不提供音色功能（已整体撤回，不要重新引入）。
 - CHAT 不打开 HARNESS 右侧栏，也不改变其面板状态；侧栏品牌/新会话适配仅在严格识别时生效，未知结构不猜测。
@@ -102,6 +104,10 @@ pnpm check:window-contracts && pnpm check:sidebar-022
 pnpm check:website-links && pnpm check:website-downloads
 pnpm check:brand-notice && pnpm check:switcher-alignment
 pnpm check:sidebar-rows
+pnpm check:website-guest
+pnpm check:website-bootstrap && pnpm check:website-header
+node scripts/check-website-bootstrap.mjs --negative-control
+node scripts/check-website-header.mjs --negative-control
 node scripts/check-presentation-settings-browser.mjs
 node scripts/check-title-stability-browser.mjs
 node scripts/check-window-recognition-headless.mjs   # 5 组窗口/DPI；--quick 单组

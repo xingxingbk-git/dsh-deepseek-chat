@@ -36,11 +36,13 @@ try {
     const target=await send('Target.createTarget',{url:'about:blank'})
     const session=(await send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId
     await send('Page.enable',{},session)
+    // Never let a fixture write into the user's Downloads folder.
+    await send('Browser.setDownloadBehavior',{behavior:'deny'}).catch(()=>{})
     await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor,mobile:false},session)
     await send('Fetch.enable',{patterns:[{urlPattern:'*'}]},session)
     await send('Page.addScriptToEvaluateOnNewDocument',{source:`window.addEventListener('error',e=>window.fixtureError=String(e.error?.stack||e.message));window.addEventListener('unhandledrejection',e=>window.fixtureError=String(e.reason?.stack||e.reason));`},session)
     await send('Page.navigate',{url:fixture.url},session)
-    const result=await send('Runtime.evaluate',{expression:`new Promise((resolve,reject)=>{const start=performance.now();const check=()=>{if(window.fixtureError)reject(new Error(window.fixtureError));else if(window.fixtureResults)resolve(window.fixtureResults);else if(performance.now()-start>15000)reject(new Error('Fixture did not finish'));else setTimeout(check,25)};check()})`,awaitPromise:true,returnByValue:true,timeout:20000},session)
+    const result=await send('Runtime.evaluate',{expression:`new Promise((resolve,reject)=>{const start=performance.now();const check=()=>{if(window.fixtureError)reject(new Error(window.fixtureError));else if(window.fixtureResults)resolve(window.fixtureResults);else if(performance.now()-start>15000)reject(new Error('Fixture did not finish: '+JSON.stringify({debug:window.fixtureSurfaceDebug?.(),last:window.fixtureProgress?.at(-1),failures:window.fixtureProgress?.filter(r=>!r.passed)})));else setTimeout(check,25)};check()})`,awaitPromise:true,returnByValue:true,timeout:20000},session)
     if(result.exceptionDetails)throw new Error(JSON.stringify(result.exceptionDetails))
     const cases=result.result.value
     const passed=Array.isArray(cases) && cases.length===WINDOW_RECOGNITION_CASES && cases.every(r=>r.passed)

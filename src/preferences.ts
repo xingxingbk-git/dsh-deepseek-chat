@@ -1,10 +1,16 @@
 /** Non-secret, profile-owned mode-switch UI preferences. */
+export type WebsiteLifetime = 'retain' | 'immediate' | 'delayed'
+export const WEBSITE_RELEASE_DELAY_MIN = 5
+export const WEBSITE_RELEASE_DELAY_MAX = 3600
+export const DEFAULT_WEBSITE_RELEASE_DELAY = 60
 export interface SwitchPreferences {
   readonly switchStyle: 'text' | 'icon'
   readonly chatLabel: string
   readonly harnessLabel: string
+  readonly websiteLifetime: WebsiteLifetime
+  readonly websiteReleaseDelay: number
 }
-export const DEFAULT_SWITCH_PREFERENCES: SwitchPreferences = Object.freeze({switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS'})
+export const DEFAULT_SWITCH_PREFERENCES: SwitchPreferences = Object.freeze({switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS',websiteLifetime:'retain',websiteReleaseDelay:DEFAULT_WEBSITE_RELEASE_DELAY})
 export const SWITCH_LABEL_LIMIT = 10
 /** Printable ASCII costs one; all other Unicode code points cost two. Never split surrogates. */
 export function switchLabelWidth(value: string): number {
@@ -23,5 +29,9 @@ export function parseSwitchPreferences(value: unknown): SwitchPreferences {
     switchStyle: v.switchStyle === 'icon' ? 'icon' : 'text',
     chatLabel: validSwitchLabel(v.chatLabel) ? v.chatLabel : DEFAULT_SWITCH_PREFERENCES.chatLabel,
     harnessLabel: validSwitchLabel(v.harnessLabel) ? v.harnessLabel : DEFAULT_SWITCH_PREFERENCES.harnessLabel,
+    websiteLifetime: v.websiteLifetime === 'immediate' || v.websiteLifetime === 'delayed' ? v.websiteLifetime : 'retain',
+    websiteReleaseDelay: typeof v.websiteReleaseDelay === 'number' && Number.isInteger(v.websiteReleaseDelay)
+      && v.websiteReleaseDelay >= WEBSITE_RELEASE_DELAY_MIN && v.websiteReleaseDelay <= WEBSITE_RELEASE_DELAY_MAX
+      ? v.websiteReleaseDelay : DEFAULT_WEBSITE_RELEASE_DELAY,
   }
 }

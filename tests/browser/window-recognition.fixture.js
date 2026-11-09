@@ -4,6 +4,7 @@ import { websiteRefreshReadiness } from '/refresh.js'
 import { mountSettings, mountSurface, mountDragSurface, mountPanel } from '/settings-ui.js'
 // Fictional website DOM only. No requests to DeepSeek, credentials or real conversation data.
 const results=[]
+window.fixtureProgress=results
 const check=(name,passed)=>results.push({name,passed:Boolean(passed)})
 const origin='https://chat.deepseek.com'
 const page={origin,pathname:'/a/chat/s/fixture-id'}
@@ -18,7 +19,7 @@ function fixture({profile=true,avatars=1,names=1,overflow=false,top=null,host=do
  document.documentElement.setAttribute('data-dsh-chat-theme-complete','dark')
  document.documentElement.setAttribute('data-dsh-chat-settings-theme-target','dark')
  now+=10000
- host.innerHTML=`<div id="layout"><aside id="sidebar"><button id="new">New chat</button><a id="history" href="/a/chat/s/fixture-id">Fictional title</a><div id="profile"></div></aside><main id="content" class="${overflow?'overflow':''}"><div class="_2be88ba"><div class="the-header"><div class="_9fcbeda"><span class="afa34042">Fictional title</span></div></div><button class="_57370c5" aria-label="Share"><svg width="16" height="16"></svg></button></div><textarea id="composer"></textarea></main></div>`
+ host.innerHTML=`<div id="layout"><aside id="sidebar"><button id="new">New chat</button><button aria-label="Collapse sidebar" style="position:absolute;right:8px;top:16px;width:24px;height:24px"><svg width="16" height="16"></svg></button><a id="history" href="/a/chat/s/fixture-id">Fictional title</a><div id="profile"></div></aside><main id="content" class="${overflow?'overflow':''}"><div class="_2be88ba"><div class="the-header"><div class="_9fcbeda"><span class="afa34042">Fictional title</span></div></div><button class="_57370c5" aria-label="Share"><svg width="16" height="16"></svg></button></div><textarea id="composer"></textarea></main></div>`
  const footer=document.getElementById('profile')
  if(profile){
   for(let i=0;i<avatars;i++){const img=document.createElement('img');img.alt='Fictional avatar';img.src='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"/>';footer.append(img)}
@@ -156,7 +157,7 @@ const surfaceBridge=new Proxy({
  reportWebsiteNavigation(generation,value){if(generation===surfaceState.authorizationGeneration)patchSurface({websiteNavigation:parseWebsiteNavigation(value)})},
  loadWebsiteSession:async()=>null,
 },{get(target,key){return key in target?target[key]:(...args)=>{surfaceCalls.push(String(key))}}})
-const nativeFixture={acquire:async()=>{acquired++;return{lease:'fixture-lease',partition:'fixture-partition'}},release:async()=>{released++},onOpenRequested:()=>()=>{}}
+const nativeFixture={acquire:async()=>{acquired++;return{lease:`fixture-lease-${acquired}`,partition:'fixture-partition'}},release:async()=>{released++},onOpenRequested:()=>()=>{}}
 // Fictional native main-content clipping container. The actual main slot measures it.
 const nativeFrame=document.createElement('div')
 nativeFrame.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden;border-radius:0px'
@@ -170,9 +171,11 @@ const disposePanel=mountPanel(surfaceBridge,nativePanel)
 await settle()
 const disposeSurface=mountSurface(surfaceBridge,nativeFixture,uiHost)
 await settle()
+patchSurface({websiteNavigation:{status:'unsupported',authenticated:true,conversations:[],canCreate:false,error:'暂未识别官网界面，请稍后重新识别。'}});await settle()
 const surface=document.getElementById('dsh-chat-website-surface'),retainedGuest=surface.querySelector('webview')
 const platformRoot=document.documentElement
 const surfaceRect=()=>{const r=surface.getBoundingClientRect();return [r.left,r.top,r.width,r.height].join(',')}
+window.fixtureSurfaceDebug=()=>({mode:surfaceState.mode,settings:surfaceState.settingsOpen,navigation:surfaceState.websiteNavigation,viewport:surfaceState.viewport,guest:retainedGuest.style.cssText,surface:surfaceRect(),acquired,released,samplerBinds})
 const originalSurfaceRect=surfaceRect()
 const squareSurface=()=>{const css=getComputedStyle(surface);return css.borderTopLeftRadius==='0px' && css.borderTopRightRadius==='0px' && css.borderBottomLeftRadius==='0px' && css.borderBottomRightRadius==='0px' && css.clipPath==='none'}
 const clippedSurface=()=>{const css=getComputedStyle(surface);return css.borderTopLeftRadius==='16px' && css.borderTopRightRadius==='0px' && css.borderBottomLeftRadius==='0px' && css.borderBottomRightRadius==='0px' && css.overflow==='hidden' && css.clipPath==='inset(0px round 16px 0px 0px)'}
@@ -206,10 +209,10 @@ platformRoot.removeAttribute('data-fullscreen')
 nativeFrame.style.left='80px';nativeFrame.style.top='40px';nativeFrame.style.width='calc(100% - 80px)';nativeFrame.style.height='calc(100% - 40px)';await settle()
 const movedRect=surface.getBoundingClientRect()
 check('resized and sidebar-offset Windows surface keeps its radius at the current viewport corner',clippedSurface() && movedRect.left===80 && movedRect.top===40 && movedRect.width===innerWidth-80 && !surface.contains(document.elementFromPoint(81,41)) && surface.contains(document.elementFromPoint(100,41)))
-patchSurface({mode:'harness'});await settle()
-check('corner styling never keeps the website visible in HARNESS',getComputedStyle(surface).display==='none')
-nativeFrame.style.left='0';nativeFrame.style.top='0';nativeFrame.style.width='100%';nativeFrame.style.height='100%';patchSurface({mode:'chat'});await settle()
-check('returning to CHAT reuses the same guest with the Windows corner intact',clippedSurface() && surface.querySelector('webview')===retainedGuest && acquired===1 && released===0)
+patchSurface({mode:'harness',settingsOpen:true});await settle()
+check('account observation never keeps the website visible in HARNESS',getComputedStyle(surface).visibility==='hidden' && surface.style.opacity==='0')
+nativeFrame.style.left='0';nativeFrame.style.top='0';nativeFrame.style.width='100%';nativeFrame.style.height='100%';patchSurface({mode:'chat',settingsOpen:false});await settle()
+check('settings account observation retains the shared guest before returning to CHAT',clippedSurface() && surface.querySelector('webview')===retainedGuest && acquired===1 && released===0)
 platformRoot.dataset.platform='darwin';platformRoot.removeAttribute('data-windows-titlebar');nativeFrame.style.borderRadius='0px';await settle()
 check('returning to macOS removes Windows clipping and restores its original rectangle',squareSurface() && surfaceRect()===originalSurfaceRect && surface.contains(document.elementFromPoint(1,1)))
 check('corner adaptation never reloads, replaces or releases the retained guest',surface.querySelector('webview')===retainedGuest && acquired===1 && released===0 && !surfaceCalls.some(name=>['reloadWebsite','logoutWebsite','clearWebsiteSession'].includes(name)))
@@ -234,11 +237,18 @@ retainedGuest.executeJavaScript=async script=>{
   const inset=script.match(/\)\(document,location\.origin,(-?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)\)$/i)?.[1]
   return readWebsiteWindowDragGeometry(document,origin,inset===undefined?undefined:Number(inset))
  }
- return script.includes('adaptWebsiteSession') ? null : step()
+ // The stand-in shares the host origin; serialized guest proof has its own HTTPS test.
+ return script.includes('adaptWebsiteSession') ? null : {...step(),desktopReady:true,viewportWidth:Math.max(Number.parseFloat(retainedGuest.style.minWidth)||0,surfaceState.viewport?.width ?? innerWidth)}
 }
 retainedGuest.reload=()=>surfaceCalls.push('fixture-reload')
 retainedGuest.dispatchEvent(new Event('dom-ready'))
+retainedGuest.dispatchEvent(new Event('dom-ready'))
+retainedGuest.dispatchEvent(new Event('did-finish-load'))
 retainedGuest.dispatchEvent(new Event('did-stop-loading'))
+// Date.now is deliberately frozen for direct adapter deadline tests above.
+// Drive both projections explicitly instead of relying on the polling clock.
+await navigationHandler({type:'snapshot',showOriginal:false})
+await navigationHandler({type:'snapshot',showOriginal:false})
 await until(()=>surfaceState.websiteNavigation.status==='ready' && retainedGuest.style.opacity==='1')
 check('actual ready Surface restores baseline focus attributes and binds one owned sampler',samplerBinds===1 && Boolean(sampler) && acquired===1 && !retainedGuest.inert && !retainedGuest.hasAttribute('tabindex'))
 platformRoot.dataset.platform='win32';platformRoot.dataset.windowsTitlebar='';nativeFrame.style.borderRadius='16px 0 0 0';await settle()
@@ -355,13 +365,13 @@ const abortedRow=dragRow();controller.abort()
 check('AbortSignal synchronously hides and removes only its own drag marker before React commit',Boolean(abortedRow) && abortedRow.style.display==='none' && !abortedRow.hasAttribute('data-window-drag') && rowMarkers().length===0)
 const readsAfterAbort=dragReads;await settle();await pause(250)
 check('aborted drag components remove every child and cannot resume sampling later',dragNodes().length===0 && dragReads===readsAfterAbort)
-patchSurface({mode:'harness'});await settle()
+patchSurface({mode:'harness',settingsOpen:true});await settle()
 check('HARNESS mode contains zero plugin native drag nodes',dragNodes().length===0)
 disposeDrag()
-patchSurface({mode:'chat'});const nextController=new AbortController();disposeDrag=mountDragSurface(surfaceBridge,nextController.signal,dragMount)
+patchSurface({mode:'chat',settingsOpen:false});const nextController=new AbortController();disposeDrag=mountDragSurface(surfaceBridge,nextController.signal,dragMount)
 await until(()=>rowMarkers().length===1)
 check('re-entering CHAT uses a fresh signal and creates only one verified row',rowMarkers().length===1 && acquired===1 && surface.querySelector('webview')===retainedGuest)
-nextController.abort();patchSurface({mode:'harness'});await settle()
+nextController.abort();patchSurface({mode:'harness',settingsOpen:true});await settle()
 check('a second CHAT to HARNESS transition leaves zero native markers or hole nodes',rowMarkers().length===0 && dragNodes().length===0)
 check('abort and mode cleanup never modify another host-owned drag element',hostSentinel.getAttribute('data-window-drag')==='fixture-host-owned' && hostSentinel.style.display==='block')
 disposeDrag();disposeSurface();await settle()

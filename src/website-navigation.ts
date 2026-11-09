@@ -20,6 +20,12 @@ export interface WebsiteNavigation {
   readonly identityUnconfirmed?: boolean
   /** A currently verified CHAT layout still hides the original website sidebar. */
   readonly layoutReady?: boolean
+  /** Fresh desktop DOM proof: hidden sidebar, attempted native collapse and verified header. */
+  readonly desktopReady?: boolean
+  /** The first conversation header arrived after a headerless new-chat page. */
+  readonly needsDesktopChrome?: boolean
+  /** Numeric DOM viewport acknowledgement; no website content or host internals. */
+  readonly viewportWidth?: number
   readonly conversations: readonly WebsiteConversation[]
   readonly selectedHref: string | null
   readonly canCreate: boolean
@@ -60,8 +66,8 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
   const conversationError = '该对话不在当前官网列表，请刷新列表。'
   const styleId = 'dsh-chat-website-navigation-style'
   const preparingStyleId = 'dsh-chat-website-preparing-style'
-  const owned = [marker, presentedMarker, missingSidebarMarker, fallbackMarker, fallbackErrorMarker, profileMarker, profileProofMarker, profileAvatarMarker, missingProfileMarker, navigationWidthMarker, expandingMarker, compactToggleMarker, 'data-dsh-chat-native-collapse-attempt', 'data-dsh-chat-action-menu', 'data-dsh-chat-conversation-error', 'data-dsh-chat-layout', 'data-dsh-chat-content', 'data-dsh-chat-web-chrome', 'data-dsh-chat-settings-dialog', 'data-dsh-chat-settings-host', 'data-dsh-chat-settings-tabs', 'data-dsh-chat-settings-pane', 'data-dsh-chat-settings-layout', 'data-dsh-chat-settings-chrome', 'data-dsh-chat-settings-appearance', 'data-dsh-chat-header-row', 'data-dsh-chat-header-title', 'data-dsh-chat-header-share', 'data-dsh-chat-header-title-host', 'data-dsh-chat-header-editor', 'data-dsh-chat-header-native-depth', 'data-dsh-chat-header-motion-until', 'data-dsh-chat-header-motion-complete']
-  const empty = (status: WebsiteNavigation['status']): WebsiteNavigation => ({ status, ...(status === 'sign-in' ? { authenticated: false } : {}), conversations: [], selectedHref: null, canCreate: false, error: null })
+  const owned = [marker, presentedMarker, missingSidebarMarker, fallbackMarker, fallbackErrorMarker, profileMarker, profileProofMarker, profileAvatarMarker, missingProfileMarker, navigationWidthMarker, expandingMarker, compactToggleMarker, 'data-dsh-chat-native-collapse-attempt', 'data-dsh-chat-action-menu', 'data-dsh-chat-conversation-error', 'data-dsh-chat-layout', 'data-dsh-chat-content', 'data-dsh-chat-web-chrome', 'data-dsh-chat-settings-dialog', 'data-dsh-chat-settings-host', 'data-dsh-chat-settings-tabs', 'data-dsh-chat-settings-pane', 'data-dsh-chat-settings-layout', 'data-dsh-chat-settings-chrome', 'data-dsh-chat-settings-appearance', 'data-dsh-chat-header-row', 'data-dsh-chat-header-title', 'data-dsh-chat-header-share', 'data-dsh-chat-header-title-host', 'data-dsh-chat-header-editor', 'data-dsh-chat-header-native-depth', 'data-dsh-chat-header-share-metrics', 'data-dsh-chat-header-empty', 'data-dsh-chat-header-absent', 'data-dsh-chat-desktop-chrome-tried', 'data-dsh-chat-header-motion-until', 'data-dsh-chat-header-motion-complete']
+  const empty = (status: WebsiteNavigation['status']): WebsiteNavigation => ({ status, viewportWidth: doc.defaultView?.innerWidth, ...(status === 'sign-in' ? { authenticated: false } : {}), conversations: [], selectedHref: null, canCreate: false, error: null })
   const clearSettings = (preserveConfirmedSettings = false) => {
     const confirmed = ['data-dsh-chat-language', 'data-dsh-chat-language-complete', 'data-dsh-chat-settings-language-target', 'data-dsh-chat-theme', 'data-dsh-chat-theme-complete', 'data-dsh-chat-settings-theme-target']
     for (const attr of [...doc.documentElement.attributes]) if (/^data-dsh-chat-(settings-|language$|language-complete$|theme$|theme-complete$|dark-complete$)/.test(attr.name)
@@ -479,6 +485,7 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
     scrollable?.scrollTo({ top: scrollable.scrollHeight, behavior: 'instant' })
   }
   const selected = conversations.find(item => item.href === safeHref(page.pathname))
+  let headerReady = false
   if (command.type === 'snapshot' && command.showOriginal) restore()
   else {
     if (trackRect.width >= 160 && trackRect.width <= 480) track.setAttribute(navigationWidthMarker, String(trackRect.width))
@@ -489,6 +496,12 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
       layout.setAttribute('data-dsh-chat-layout', '')
       content.setAttribute('data-dsh-chat-content', '')
       for (const candidate of content.querySelectorAll<HTMLElement>('div,header')) {
+        // Loading skeletons are textless too. The verified title/share row must
+        // never be mistaken for the site's compact sidebar/search/new controls.
+        if (candidate.matches('._2be88ba,[data-dsh-chat-header-row]') || candidate.querySelector('._9fcbeda,[data-dsh-chat-header-title-host]')) {
+          candidate.removeAttribute('data-dsh-chat-web-chrome')
+          continue
+        }
         const r = candidate.getBoundingClientRect()
         if (r.top >= -1 && r.top <= 72 && r.height > 0 && r.height <= 80 && r.width <= 400
           && candidate.querySelectorAll(iconButtonSelector).length >= 2 && candidate.querySelectorAll(iconButtonSelector).length <= 3 && candidate.querySelector('svg,img')
@@ -507,7 +520,7 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
     if(!style){style=doc.createElement('style');style.id=styleId;doc.head.append(style)}
     if(style.textContent!==styleText) style.textContent=styleText
     // Lock the verified title host before the site's first native collapse can start a positional transition.
-    adaptWebsiteHeader(doc, content, selected?.title ?? null, command.type === 'snapshot' ? command.headerInset ?? (Number.parseInt(settingsRoot.style.getPropertyValue('--dsh-chat-title-inset')) || 24) : Number.parseInt(settingsRoot.style.getPropertyValue('--dsh-chat-title-inset')) || 24)
+    headerReady = adaptWebsiteHeader(doc, content, selected?.title ?? null, command.type === 'snapshot' ? command.headerInset ?? (Number.parseInt(settingsRoot.style.getPropertyValue('--dsh-chat-title-inset')) || 24) : Number.parseInt(settingsRoot.style.getPropertyValue('--dsh-chat-title-inset')) || 24)
     if(authenticated===true && command.type==='snapshot' && !command.showOriginal) collapseWebsiteSidebar(doc,track)
 
   }
@@ -518,7 +531,23 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
     settingsRoot.removeAttribute('data-dsh-chat-preparing')
     if (!(command.type === 'snapshot' && command.showOriginal)) settingsRoot.setAttribute(presentedMarker, '')
   }
-  return { status: ready ? 'ready' : 'loading', ...(authenticated === undefined ? {} : { authenticated }), conversations, selectedHref: safeHref(page.pathname), canCreate: newChat !== null, error: doc.documentElement.getAttribute('data-dsh-chat-conversation-error'), accountName, settings }
+  const isConversation = safeHref(page.pathname) !== null
+  // A single same-document desktop measurement can recover the original Share
+  // geometry for the first conversation opened in a narrow window. Never repeat
+  // it: if that measurement cannot produce metrics, the page must stay usable.
+  // Only report that a same-document desktop measurement is still missing. The
+  // owner decides whether it can actually run and records the attempt itself, so
+  // an unconsumed chance is never lost while the page is still starting up.
+  const needsDesktopChrome = authenticated === true && isConversation && headerReady && viewportWidth < 768
+    && !settingsRoot.hasAttribute('data-dsh-chat-header-share-metrics')
+  // Presentation needs the verified identity and the hidden original sidebar.
+  // Presentation needs the verified identity, the hidden original sidebar and a
+  // settled top row: the adapter either took over this document's top row or
+  // found none (intermediate/login states). A detected but unadapted row keeps
+  // waiting instead of exposing the website's own menu/new-chat/share chrome.
+  const headerSettled = headerReady || settingsRoot.hasAttribute('data-dsh-chat-header-absent')
+  const desktopReady = ready && authenticated === true && getComputedStyle(track).display === 'none' && headerSettled
+  return { status: ready ? 'ready' : 'loading', viewportWidth, desktopReady, needsDesktopChrome, ...(authenticated === undefined ? {} : { authenticated }), conversations, selectedHref: safeHref(page.pathname), canCreate: newChat !== null, error: doc.documentElement.getAttribute('data-dsh-chat-conversation-error'), accountName, settings }
 }
 
 export function websiteCommandScript(command: WebsiteCommand, contentFontSize = 14, colorScheme: 'light' | 'dark' = 'dark', language: ChatLanguage | null = null): string {
@@ -546,7 +575,8 @@ export function parseWebsiteNavigation(value: unknown): WebsiteNavigation {
   const authenticated = source.status === 'sign-in' ? false : source.authenticated === true ? true
     : source.authenticated === false ? false : undefined
   const navigationReady = authenticated === true && source.status === 'ready'
-  return { status: source.status, ...(authenticated === undefined ? {} : { authenticated }), ...(source.status === 'unsupported' && source.identityUnconfirmed === true ? { identityUnconfirmed: true, layoutReady: source.layoutReady === true } : {}), conversations: navigationReady ? conversations : [], selectedHref: validHref(source.selectedHref) ? source.selectedHref : null,
+  const viewportWidth = typeof source.viewportWidth === 'number' && Number.isFinite(source.viewportWidth) && source.viewportWidth > 0 && source.viewportWidth <= 65536 ? source.viewportWidth : undefined
+  return { status: source.status, ...(viewportWidth === undefined ? {} : { viewportWidth }), ...(navigationReady && source.desktopReady === true ? { desktopReady: true } : {}), ...(navigationReady && source.needsDesktopChrome === true ? { needsDesktopChrome: true } : {}), ...(authenticated === undefined ? {} : { authenticated }), ...(source.status === 'unsupported' && source.identityUnconfirmed === true ? { identityUnconfirmed: true, layoutReady: source.layoutReady === true } : {}), conversations: navigationReady ? conversations : [], selectedHref: validHref(source.selectedHref) ? source.selectedHref : null,
     accountName: authenticated === true && typeof source.accountName === 'string' ? source.accountName.slice(0,100) : null,
     settings: source.settings ? {language:typeof source.settings.language === 'string' ? source.settings.language.slice(0,80) : null,theme:typeof source.settings.theme === 'string' ? source.settings.theme.slice(0,80) : null,error:typeof source.settings.error === 'string' ? source.settings.error.slice(0,200) : null,pending:source.settings.pending===true} : undefined,
     canCreate: navigationReady && source.canCreate === true, error: typeof source.error === 'string' ? source.error.slice(0, 300) : null }
