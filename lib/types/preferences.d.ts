@@ -9,6 +9,7 @@ export interface SwitchPreferences {
     readonly harnessLabel: string;
     readonly websiteLifetime: WebsiteLifetime;
     readonly websiteReleaseDelay: number;
+    readonly brandNoticeDismissed: boolean;
 }
 export declare const DEFAULT_SWITCH_PREFERENCES: SwitchPreferences;
 export declare const SWITCH_LABEL_LIMIT = 10;

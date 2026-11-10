@@ -11,6 +11,7 @@ import { acquireChatStyles, ensureChatStyles } from './styles.js'
 import { translate } from './i18n.js'
 import { readSurfaceBorderRadius } from './surface-clip.js'
 import { DshChatBrandNotice } from './brand-notice.js'
+import { markBrandVisual } from './sidebar-adapter.js'
 import type { WebsiteFile } from './website-downloads.js'
 import type { WebsiteCommand, WebsiteNavigation } from './website-navigation.js'
 import type { ChatLanguage } from './website-settings.js'
@@ -94,7 +95,7 @@ export interface DshChatUIBridge {
   renameWebsiteConversation(href: string, title: string): Promise<void>
   toggleWebsiteNavigation(): void
   setSettingsOpen(open: boolean): void
-  setSwitchPreference?(field: keyof SwitchPreferences, value: string | number): Promise<boolean>
+  setSwitchPreference?(field: keyof SwitchPreferences, value: string | number | boolean): Promise<boolean>
   logoutWebsite(): void
   loadWebsiteSession(generation: number): Promise<WebsiteSession | null>
   saveWebsiteSession(generation: number, session: WebsiteSession): Promise<boolean>
@@ -158,7 +159,9 @@ export function DshChatModeSelector({ bridge, state, compact = false }: DshChatB
   const description = useId()
   const t = (text: string | null | undefined) => translate(state.language, text)
   const preferences = state.switchPreferences ?? DEFAULT_SWITCH_PREFERENCES
-  const icon = preferences.switchStyle === 'icon'
+  // An unrecognized shell keeps the icon layout: the text pills would compete
+  // with the native brand row and push the wordmark out of view.
+  const icon = preferences.switchStyle === 'icon' || state.sidebarAdapted === false
   const wrap = useRef<HTMLDivElement>(null)
   const group = useRef<HTMLFieldSetElement>(null)
   const firstButton = useRef<HTMLButtonElement>(null), secondButton = useRef<HTMLButtonElement>(null)
@@ -256,14 +259,26 @@ export function DshChatBrandName({ bridge }: PropsRuntime<'sidebar.brand.name'> 
     if (!group) return
     const host = document.createElement('span')
     host.className = 'dsh-chat-brand-control-host'
+    let releaseVisual: (() => void) | null = null
     const reconcile = () => {
-      if (!group.isConnected) { host.remove(); return }
+      if (!group.isConnected) { host.remove(); releaseVisual?.(); releaseVisual = null; return }
       bridge.attachSidebar(group)
       const outlet = group.parentElement
       const seat = outlet?.getAttribute('data-slot') === 'sidebar.brand.name' ? outlet.parentElement : outlet
       const identity = seat?.parentElement
       const brand = identity?.parentElement
       const row = brand?.parentElement
+      // The wordmark must never be clipped just because takeover recognition
+      // failed: mark the brand rows on their own, even when the stricter
+      // new-session acceptance below says no.
+      if (identity && brand && seat && identity.getAttribute('aria-hidden') === 'true') {
+        releaseVisual?.(); releaseVisual = markBrandVisual(identity, brand, seat)
+        group.removeAttribute('data-dsh-chat-brand-fallback')
+      } else {
+        releaseVisual?.(); releaseVisual = null
+        // Unknown shell: hide our wordmark instead of letting a parent clip it.
+        group.setAttribute('data-dsh-chat-brand-fallback', '')
+      }
       if (!identity || identity.getAttribute('aria-hidden') !== 'true' || !brand || !row?.hasAttribute('data-window-drag')) {
         host.remove()
         return
@@ -282,6 +297,9 @@ export function DshChatBrandName({ bridge }: PropsRuntime<'sidebar.brand.name'> 
     return () => {
       observer.disconnect()
       window.clearInterval(styleRecovery)
+      releaseVisual?.()
+      releaseVisual = null
+      group.removeAttribute('data-dsh-chat-brand-fallback')
       host.remove()
     }
   }, [bridge])
@@ -301,10 +319,16 @@ export function DshChatBrandControl({ bridge }: DshChatBridgeProps) {
     <DshChatStyles />
     <DshChatModeSelector bridge={bridge} state={state} />
     {/* Session-service failures belong in Chat settings, not over the sidebar.
-        Keep only the independent compatibility alert outside the clipped brand row. */}
-    {state.sidebarAdapted === false && <DshChatBrandNotice anchor={control} role="alert">
-      <p>{t("当前侧栏不兼容：顶部新会话仍使用 HARNESS。CHAT 请展开官网导航后新建对话。")}</p>
-    </DshChatBrandNotice>}
+        The compatibility notice is lower-priority than the page, dismissible and
+        restorable from Chat settings; a dismissed notice never returns by itself. */}
+    {state.sidebarAdapted === false && state.switchPreferences?.brandNoticeDismissed !== true
+      && <DshChatBrandNotice anchor={control} role="status">
+        <p>{t("侧栏结构发生了变化，已进入兼容模式：顶部新会话仍使用 HARNESS。CHAT 中请从官网侧栏导航新建对话。")}</p>
+        <button type="button" className="dsh-chat-brand-notice-close" aria-label={t("不再提示")} title={t("不再提示")}
+          onClick={event=>{event.stopPropagation();void bridge.setSwitchPreference?.('brandNoticeDismissed',true)}}>
+          <IconCloseFillRegular size={14}/>
+        </button>
+      </DshChatBrandNotice>}
   </div>
 }
 
@@ -644,6 +668,19 @@ function WebsiteLifetimeSettings({bridge,state}:{bridge:DshChatUIBridge;state:Ds
   </section>
 }
 
+/** Restore the compatibility notice after the user dismissed it. */
+function BrandNoticeSettings({bridge,state}:{bridge:DshChatUIBridge;state:DshChatViewState}) {
+  const t=(text:string|null|undefined)=>translate(state.language,text)
+  if(state.switchPreferences?.brandNoticeDismissed !== true) return null
+  return <section className="dsh-chat-settings-card dsh-chat-brand-notice-settings" aria-label={t('侧栏兼容提示')}>
+    <div className="dsh-chat-preference-row">
+      <h3>{t('侧栏兼容提示')}</h3>
+      <Button variant="outline" disabled={state.switchPreferencesStatus!=='ready'} onClick={()=>void bridge.setSwitchPreference?.('brandNoticeDismissed',false)}>{t('重新显示提示')}</Button>
+    </div>
+    <p className="dsh-chat-preference-note">{t('提示默认不再显示；重新显示后，若侧栏结构仍不兼容，会在品牌行下方再次出现。')}</p>
+  </section>
+}
+
 export function DshChatChatSettings({bridge,close}: PropsRuntime<'settings.section'> & DshChatBridgeProps) {
   const state = useDshChat(bridge)
   const t = (text: string | null | undefined) => translate(state.language, text)
@@ -689,5 +726,6 @@ export function DshChatChatSettings({bridge,close}: PropsRuntime<'settings.secti
     </section>
     <ChatPresentationSettings bridge={bridge} state={state}/>
     <WebsiteLifetimeSettings bridge={bridge} state={state}/>
+    <BrandNoticeSettings bridge={bridge} state={state}/>
   </section>
 }

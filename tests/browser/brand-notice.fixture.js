@@ -12,15 +12,22 @@ window.fixtureDone = (async () => {
   let retries = 0
   let state = {
     mode:'harness', modeEnabled:true, desktopAvailable:true, authorizationStatus:'authorized', availabilityMessage:'', error:null,
-    language:'zh-CN', sidebarAdapted:true, websiteAuthenticationStatus:'signed-in', websiteSessionStatus:'saved',
+    language:'zh-CN', sidebarAdapted:true, switchPreferencesStatus:'ready', websiteAuthenticationStatus:'signed-in', websiteSessionStatus:'saved',
     websiteNavigation:{status:'ready', authenticated:true, accountName:'Fictional account', conversations:[]},
-    switchPreferences:{switchStyle:'icon', chatLabel:'CHAT', harnessLabel:'HARNESS'},
+    switchPreferences:{switchStyle:'icon', chatLabel:'CHAT', harnessLabel:'HARNESS', brandNoticeDismissed:false},
   }
   const bridge = {
     getSnapshot:()=>state,
     subscribe:listener=>{listeners.add(listener);return ()=>listeners.delete(listener)},
     selectMode:()=>{}, refreshAuthorization:()=>{retries++}, setSettingsOpen:()=>{},
+    setSwitchPreference: async (field,value) => {
+      if(field!=='brandNoticeDismissed') return false
+      preferenceWrites.push(value)
+      update({switchPreferences:{...state.switchPreferences, brandNoticeDismissed:value}})
+      return true
+    },
   }
+  const preferenceWrites=[]
   const update = patch => {state={...state,...patch};flushSync(()=>listeners.forEach(fn=>fn()))}
   const root = createRoot(document.querySelector('#control'))
   flushSync(()=>root.render(React.createElement(DshChatBrandControl,{bridge})))
@@ -60,8 +67,8 @@ window.fixtureDone = (async () => {
   update({sidebarAdapted:false});await frame();await frame()
   const notice=notices()[0],box=rect(notice),style=getComputedStyle(notice)
   measurements.push({box,clip:rect(row),position:style.position,background:style.backgroundColor})
-  check('independent sidebar incompatibility still produces one alert',notices().length===1 && notice.getAttribute('role')==='alert')
-  check('compatibility alert does not include the service error or retry action',notice.querySelectorAll('p').length===1 && !notice.textContent.includes(serviceError) && !notice.querySelector('button'))
+  check('independent sidebar incompatibility still produces one notice',notices().length===1 && notice.getAttribute('role')==='status')
+  check('compatibility notice is dismissible and free of service-error actions',notice.querySelectorAll('p').length===1 && !notice.textContent.includes(serviceError) && notice.querySelectorAll('button').length===1 && notice.querySelector('button').getAttribute('aria-label')==='不再提示')
   check('compatibility notice escapes the clipped logo row',notice.parentElement===document.body && !row.contains(notice))
   check('compatibility notice retains width and radius',Math.abs(box.width-230)<.1 && style.borderRadius==='8px')
   check('compatibility notice is fixed below its anchor',style.position==='fixed' && Math.abs(box.top-(rect(control).bottom+6))<=1)
@@ -73,6 +80,23 @@ window.fixtureDone = (async () => {
   document.body.classList.remove('light')
   update({error:null});await frame()
   check('clearing service error leaves the independent compatibility warning',notices().length===1)
+  // Dismissal persists through the preference channel and hides it for good.
+  flushSync(()=>notice.querySelector('button').click())
+  await frame();await frame()
+  check('closing the compatibility notice records the dismissal',preferenceWrites.includes(true) && notices().length===0)
+  update({sidebarAdapted:true});await frame()
+  update({sidebarAdapted:false});await frame();await frame()
+  check('a dismissed notice does not reappear on the next failure',notices().length===0)
+  const settingsHost2=document.createElement('div');document.body.append(settingsHost2)
+  const settings2=createRoot(settingsHost2)
+  flushSync(()=>settings2.render(React.createElement(DshChatChatSettings,{bridge,close:()=>{}})))
+  await frame()
+  const restore=Array.from(settingsHost2.querySelectorAll('button')).find(button=>button.textContent==='重新显示提示')
+  check('Chat settings offers to restore the dismissed notice',Boolean(restore))
+  flushSync(()=>restore?.click())
+  await frame();await frame()
+  check('restoring re-enables the compatibility notice',preferenceWrites.includes(false) && notices().length===1)
+  flushSync(()=>settings2.unmount());settingsHost2.remove()
   update({sidebarAdapted:true,error:serviceError});await frame();await frame()
   check('restored compatibility removes popup even while service error persists',notices().length===0)
   check('native new-session button and mode controls stay mounted',document.querySelector('#native-new-session') && document.querySelectorAll('.dsh-chat-modes button').length===2)

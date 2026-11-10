@@ -502,11 +502,14 @@ export function apply(ctx: Context): void {
       if (settingsOpen === next) return
       settingsOpen=next;publish()
     },
-    setSwitchPreference: async (field,value) => {
-      if(disposed || !['switchStyle','chatLabel','harnessLabel','websiteLifetime','websiteReleaseDelay'].includes(field))return false
-      if(typeof value==='number') {
+    setSwitchPreference: async (field: keyof SwitchPreferences, value: string | number | boolean) => {
+      if(disposed || !['switchStyle','chatLabel','harnessLabel','websiteLifetime','websiteReleaseDelay','brandNoticeDismissed'].includes(field))return false
+      if(field==='brandNoticeDismissed') {
+        if(typeof value!=='boolean') return false
+      } else if(typeof value==='number') {
         if(field!=='websiteReleaseDelay' || !Number.isInteger(value) || value<5 || value>3600) return false
       } else {
+        if(typeof value!=='string') return false
         if(field==='websiteReleaseDelay') return false
         if(field==='switchStyle' ? !['text','icon'].includes(value)
           : field==='websiteLifetime' ? !['retain','immediate','delayed'].includes(value)
@@ -529,6 +532,7 @@ export function apply(ctx: Context): void {
             || (field==='switchStyle' && switchPreferences.switchStyle===value)
             || (field==='chatLabel' && switchPreferences.chatLabel===value)
             || (field==='harnessLabel' && switchPreferences.harnessLabel===value)
+            || (field==='brandNoticeDismissed' && switchPreferences.brandNoticeDismissed===value)
           switchPreferencesError=applied ? null : 'CHAT 设置保存失败，请重试。'
         }
         return applied

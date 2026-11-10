@@ -9,8 +9,9 @@ export interface SwitchPreferences {
   readonly harnessLabel: string
   readonly websiteLifetime: WebsiteLifetime
   readonly websiteReleaseDelay: number
+  readonly brandNoticeDismissed: boolean
 }
-export const DEFAULT_SWITCH_PREFERENCES: SwitchPreferences = Object.freeze({switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS',websiteLifetime:'retain',websiteReleaseDelay:DEFAULT_WEBSITE_RELEASE_DELAY})
+export const DEFAULT_SWITCH_PREFERENCES: SwitchPreferences = Object.freeze({switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS',websiteLifetime:'retain',websiteReleaseDelay:DEFAULT_WEBSITE_RELEASE_DELAY,brandNoticeDismissed:false})
 export const SWITCH_LABEL_LIMIT = 10
 /** Printable ASCII costs one; all other Unicode code points cost two. Never split surrogates. */
 export function switchLabelWidth(value: string): number {
@@ -33,5 +34,6 @@ export function parseSwitchPreferences(value: unknown): SwitchPreferences {
     websiteReleaseDelay: typeof v.websiteReleaseDelay === 'number' && Number.isInteger(v.websiteReleaseDelay)
       && v.websiteReleaseDelay >= WEBSITE_RELEASE_DELAY_MIN && v.websiteReleaseDelay <= WEBSITE_RELEASE_DELAY_MAX
       ? v.websiteReleaseDelay : DEFAULT_WEBSITE_RELEASE_DELAY,
+    brandNoticeDismissed: v.brandNoticeDismissed === true,
   }
 }

@@ -8,4 +8,5 @@ export const SwitchPreferencesConfig = schema.object({
   harnessLabel: schema.string().max(20).pattern(SWITCH_LABEL_PATTERN).default('HARNESS').volatile(),
   websiteLifetime: schema.union(['retain','immediate','delayed']).default('retain').volatile(),
   websiteReleaseDelay: schema.number().min(5).max(3600).step(1).default(60).volatile(),
+  brandNoticeDismissed: schema.boolean().default(false).volatile(),
 })

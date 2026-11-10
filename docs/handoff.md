@@ -2,6 +2,19 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
+## 0.2.22 侧栏品牌行与兼容提示修复（2026-11-10 20:45）
+
+问题：部分用户（含装第三方侧栏 UI 插件者）品牌词标被裁成“dee”且出现无法关闭的兼容提示。根因是品牌行视觉依赖接管校验成功：接管失败时不可收缩标记不打，原生容器收缩裁剪词标；提示为常驻 alert、无关闭。
+
+修复：
+- `sidebar-adapter` 新增独立的 `markBrandVisual`（可撤回），由品牌组件在识别到 `aria-hidden` 品牌行后自行维护不可收缩标记，接管失败不再影响词标宽度。
+- 品牌行结构完全无法识别时，隐藏自有词标，避免半截文字；品牌行保留官网图标。
+- 未适配时切换器自动使用图标样式，避免文字胶囊挤压品牌区。
+- 兼容提示可关闭并持久化（官方 settings `brandNoticeDismissed`），role 改为 status；Chat 设置新增“重新显示提示”。
+- 新增回归：视觉标记独立/可撤回、词标 102px 不裁、未适配图标降级、提示关闭/持久化/恢复（设置页 82 项、品牌提示 31 项）。
+
+类型与分发 35 产物通过；header 50、bootstrap 51、guest 14、窗口契约 48、title 38、品牌提示 31、侧栏 48、设置 82、外链、下载 13、负对照、5 组窗口×119 通过。候选 `artifacts/dsh-deepseek-chat-0.2.22-633d1b997d34.tgz`（232613 bytes/43文件，SHA256 `633d1b997d34d4cbed0e174e204c491cd6aab6a7a56cf31373d11ccaedad87c7`）已装 desktop。未发布 npm、未自动重启。
+
 ## 0.2.21 已公开发布 npm（2026-11-09 19:20）
 
 用户明确要求发布。发布前中英 README 的发布版与安装示例同步为 0.2.21；类型与 `release:prepare` 通过；正式包 `artifacts/release-0221/dsh-deepseek-chat-0.2.21.tgz`（231718 bytes/43文件，SHA256 `2fb95234ef3d3bc925a4221b18db1c659e52e1b99bc9f9bc833ec5c35f9ce0d4`）。
