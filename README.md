@@ -1,3 +1,10 @@
+> [!WARNING]
+> **已知登录问题（2026-11-11，尚未修复）**
+>
+> 本 fork 的 **0.2.22 Google 登录修复候选**已收到普通账号密码登录失败反馈：提交后出现空白页面或错误。Google 登录后返回 DeepSeek 聊天已有实测确认，不能据此认定其他登录方式也正常。
+>
+> 普通账号密码登录的失败现场仍待复现，根因未确认；尚不能判断是原插件已有问题还是此次修复的回归。**当前修复仅验证了 Google 登录，请勿视为所有登录方式均已修复。**
+
 ![DeepSeek Chat：CHAT 与 HARNESS 一键切换](<docs/images/readme-cover.png>)
 
 <h1 align="center">DeepSeek Chat</h1>

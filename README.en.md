@@ -1,3 +1,10 @@
+> [!WARNING]
+> **Known sign-in issue (2026-11-11; unresolved)**
+>
+> A user has reported a blank page or an error after submitting ordinary account/password sign-in with this fork's **0.2.22 Google sign-in fix candidate**. Google sign-in and the return to DeepSeek chat have been verified in a real session; this does not establish that other sign-in methods work.
+>
+> The failing password-sign-in state has not yet been reproduced for diagnosis. The cause is unknown, including whether this is a pre-existing plugin issue or a regression from the Google fix. **Do not treat this candidate as a fix for all sign-in methods.**
+
 ![DeepSeek Chat: switch between CHAT and HARNESS](<docs/images/readme-cover.png>)
 
 <h1 align="center">DeepSeek Chat</h1>
