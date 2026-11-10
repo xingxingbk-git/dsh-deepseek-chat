@@ -25,7 +25,7 @@ body.light{--dsw-specific-sidebar-fill:#f4f5f8;--dsw-alias-label-primary:#222}
 .native-brand{width:130px;height:24px;flex:0 0 130px}
 #native-new-session{height:38px;flex:none;border:1px solid #888;border-radius:8px;background:transparent}
 </style></head><body><div class="native-root"><div class="native-top-strip"></div><div class="native-logo-row" data-window-drag><span class="native-brand" aria-hidden="true">Synthetic brand</span><span id="control" class="dsh-chat-brand-control-host"></span></div><button id="native-new-session">Synthetic New Session</button></div><script>${code.replaceAll('</script', '<\\/script')}</script></body></html>`
-const expectedCases = 27
+const expectedCases = 31
 const prefix = path.join(tmpdir(), 'dsh-brand-notice-')
 const profile = await mkdtemp(prefix)
 const chrome = process.env.CHROME_PATH || (process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : 'google-chrome')

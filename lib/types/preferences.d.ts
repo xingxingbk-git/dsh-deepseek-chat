@@ -1,4 +1,3 @@
-/** Non-secret, profile-owned mode-switch UI preferences. */
 export type WebsiteLifetime = 'retain' | 'immediate' | 'delayed';
 export declare const WEBSITE_RELEASE_DELAY_MIN = 5;
 export declare const WEBSITE_RELEASE_DELAY_MAX = 3600;
@@ -9,6 +8,10 @@ export interface SwitchPreferences {
     readonly harnessLabel: string;
     readonly websiteLifetime: WebsiteLifetime;
     readonly websiteReleaseDelay: number;
+    readonly brandNoticeDismissed: boolean;
+    readonly shortcutEnabled: boolean;
+    readonly shortcutChat: string;
+    readonly shortcutHarness: string;
 }
 export declare const DEFAULT_SWITCH_PREFERENCES: SwitchPreferences;
 export declare const SWITCH_LABEL_LIMIT = 10;

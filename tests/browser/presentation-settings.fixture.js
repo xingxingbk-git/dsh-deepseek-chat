@@ -3,7 +3,7 @@ import {createRoot} from 'react-dom/client'
 import {flushSync} from 'react-dom'
 import {DshChatChatSettings,DshChatModeSelector,DshChatBrandName,DshChatSettingsIcon,DshChatLeadingControls,useDshChat} from '../../src/ui.tsx'
 import {validSwitchLabel} from '../../src/preferences.ts'
-import {attachSidebarAdapter} from '../../src/sidebar-adapter.ts'
+import {attachSidebarAdapter, markBrandVisual} from '../../src/sidebar-adapter.ts'
 
 // Production React/CSS with public primitive API stand-ins; no DSH, site or credentials.
 window.fixtureDone=(async()=>{
@@ -11,10 +11,10 @@ window.fixtureDone=(async()=>{
  const check=(name,passed)=>results.push({name,passed:!!passed})
  const tick=()=>new Promise(resolve=>setTimeout(resolve,0))
  let failNext=false,hold=null
- let state={mode:'harness',modeEnabled:true,authorizationStatus:'authorized',availabilityMessage:'',accountLabel:null,error:null,desktopAvailable:true,webLoading:false,webError:null,accountStorageKey:null,authorizationGeneration:1,websiteReloadRevision:0,settingsOpen:false,language:'zh-CN',websiteAuthenticationStatus:'signed-in',websiteAuthenticationRevision:0,websiteSessionStatus:'saved',websiteSessionError:null,viewport:null,brandAnchor:null,sidebarAdapted:true,websiteNavigation:{status:'ready',authenticated:true,accountName:'Fixture account',conversations:[],canCreate:true},websiteNavigationRefreshing:false,websiteNavigationRefreshError:null,showWebsiteNavigation:false,switchPreferences:{switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS'},switchPreferencesStatus:'ready',switchPreferencesPending:false,switchPreferencesError:null}
+ let state={mode:'harness',modeEnabled:true,authorizationStatus:'authorized',availabilityMessage:'',accountLabel:null,error:null,desktopAvailable:true,webLoading:false,webError:null,accountStorageKey:null,authorizationGeneration:1,websiteReloadRevision:0,settingsOpen:false,language:'zh-CN',websiteAuthenticationStatus:'signed-in',websiteAuthenticationRevision:0,websiteSessionStatus:'saved',websiteSessionError:null,viewport:null,brandAnchor:null,sidebarAdapted:true,websiteNavigation:{status:'ready',authenticated:true,accountName:'Fixture account',conversations:[],canCreate:true},websiteNavigationRefreshing:false,websiteNavigationRefreshError:null,showWebsiteNavigation:false,switchPreferences:{switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS',brandNoticeDismissed:false},switchPreferencesStatus:'ready',switchPreferencesPending:false,switchPreferencesError:null}
  const update=patch=>{state={...state,...patch};flushSync(()=>listeners.forEach(fn=>fn()))}
  const bridge={getSnapshot:()=>state,subscribe:fn=>{listeners.add(fn);return()=>listeners.delete(fn)},setSettingsOpen:()=>{},selectMode:mode=>update({mode}),commandWebsite:cmd=>commands.push(cmd),logoutWebsite:()=>{},refreshAuthorization:()=>{},beginWebsiteSignIn:()=>{},setSwitchPreference:async(field,value)=>{
-  if(field!=='switchStyle' && !validSwitchLabel(value))throw Error('Invalid persistence attempt')
+  if(field!=='switchStyle' && field!=='brandNoticeDismissed' && !validSwitchLabel(value))throw Error('Invalid persistence attempt')
   writes.push({field,value})
   if(hold)await hold
   if(failNext){failNext=false;return false}
@@ -63,7 +63,15 @@ window.fixtureDone=(async()=>{
   check('English account actions keep the padded link and logout on one aligned row',actionsAligned() && getComputedStyle(external).paddingLeft==='14px')
   update({language:'zh-CN'});await tick()
   check('card spacing and stroke use the official account-page values',getComputedStyle(document.querySelector('.dsh-chat-settings')).paddingTop==='8px' && Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>{const css=getComputedStyle(el);return css.paddingTop==='12px' && css.paddingLeft==='16px' && css.marginBottom==='16px' && css.borderTopColor==='rgb(153, 153, 153)'}))
+  const controlHeights = [...document.querySelectorAll('#settings .dsh-chat-label-input, #settings .dsh-chat-label-input input, #settings .dsh-chat-label-save, #settings .dsh-chat-style-trigger, #settings .dsh-chat-lifetime-input, #settings .dsh-chat-shortcut-input, #settings .dsh-chat-shortcut-save')]
+    .map(element => Math.round(element.getBoundingClientRect().height))
+  check('settings inputs, selects and buttons share one control height', controlHeights.length >= 6 && controlHeights.every(height => height === 32))
   check('every settings card keeps transparent fill and its border',document.querySelectorAll('.dsh-chat-settings-card').length>=2 && Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>{const css=getComputedStyle(el);return css.backgroundColor==='rgba(0, 0, 0, 0)' && css.borderTopStyle==='solid'}))
+  const group=document.querySelector('.dsh-chat-settings-group')
+  const groupBlocks=[...document.querySelectorAll('.dsh-chat-settings-group > .dsh-chat-settings-block')]
+  check('switch, shortcut and website settings share one panel',Boolean(group)&&groupBlocks.length===3)
+  const dividerStyle=groupBlocks[1]?getComputedStyle(groupBlocks[1]):null
+  check('the panel blocks are separated by divider lines',Boolean(dividerStyle)&&parseFloat(dividerStyle.borderTopWidth)>0&&dividerStyle.borderTopStyle==='solid')
   check('the CHAT website card reuses the switch control and shows a hint',Boolean(document.querySelector('.dsh-chat-website-lifetime .dsh-chat-style-trigger')) && Boolean(document.querySelector('.dsh-chat-website-lifetime .dsh-chat-preference-hint')) && (document.querySelector('.dsh-chat-website-lifetime .dsh-chat-preference-heading')?.textContent||'').includes('CHAT网页是否缓存'))
   const hint=document.querySelector('.dsh-chat-preference-hint')
   hint.click(); await tick()
@@ -82,7 +90,8 @@ window.fixtureDone=(async()=>{
   check('no visible field labels or validation prose',!card().querySelector('label,small') && !card().textContent.includes('失焦') && !card().textContent.includes('请输入'))
   check('native public Button and Menu compose the style control',!!card().querySelector('.dsh-chat-style-trigger[data-native-button="outline"]') && !card().querySelector('select'))
   check('native Input and Button render label editors and save',card().querySelectorAll('[data-native-input]').length===2 && save().dataset.nativeButton==='primary')
-  check('title and style control are vertically centered',Math.abs((card().querySelector('h3').getBoundingClientRect().top+card().querySelector('h3').getBoundingClientRect().height/2)-(card().querySelector('.dsh-chat-style-trigger').getBoundingClientRect().top+18))<1)
+  const heading=card().querySelector('h3').getBoundingClientRect(),trigger=card().querySelector('.dsh-chat-style-trigger').getBoundingClientRect()
+  check('title and style control are vertically centered',Math.abs((heading.top+heading.height/2)-(trigger.top+trigger.height/2))<1)
   check('separator divides style row and label editors',!!card().querySelector('hr') && card().querySelector('hr').getBoundingClientRect().top>card().querySelector('.dsh-chat-preference-row').getBoundingClientRect().bottom)
   check('one shared save button is initially disabled',card().querySelectorAll('.dsh-chat-label-save').length===1 && save().disabled)
   check('initial counters use original width limit',Array.from(card().querySelectorAll('.dsh-chat-label-count')).map(el=>el.textContent).join('|')==='4/10|7/10')
@@ -199,6 +208,19 @@ window.fixtureDone=(async()=>{
   update({websiteNavigation:originalNavigation,websiteSessionError:'连接失败'});await tick()
   check('error below a visible account row retains its existing separator',parseFloat(getComputedStyle(document.querySelector('.dsh-chat-account-settings>.dsh-chat-settings-error')).borderTopWidth)>0)
   update({websiteSessionError:null});await tick()
+  // The visual marker is owned by the brand component, independent of takeover.
+  const identity=document.querySelector('#sidebar-wide .fixture-brand-identity'),brand=identity.parentElement,seat=identity.querySelector('.fixture-brand-name')
+  check('brand visual marking is independent of takeover acceptance',brand.getAttribute('data-dsh-chat-brand-fill')==='brand'&&identity.getAttribute('data-dsh-chat-brand-fill')==='identity'&&seat.getAttribute('data-dsh-chat-brand-fill')==='name')
+  check('the fixed wordmark keeps its full width',Math.abs(document.querySelector('#sidebar-wide .dsh-chat-brand-wordmark').getBoundingClientRect().width-102)<.6)
+  update({sidebarAdapted:false});await tick()
+  const compactSelector=document.querySelector('#sidebar-wide .dsh-chat-modes')
+  check('an unadapted shell demotes text pills to compact icons',compactSelector.querySelectorAll('button svg').length===2&&compactSelector.querySelectorAll('.dsh-chat-mode-label').length===0)
+  update({switchPreferences:{...state.switchPreferences,brandNoticeDismissed:true}});await tick()
+  const restore=[...document.querySelectorAll('#settings button')].find(button=>button.textContent==='重新显示提示')
+  check('dismissed compatibility notice offers a restore action',Boolean(restore))
+  flushSync(()=>restore?.click());await tick()
+  check('restoring writes the dismissal back to false',writes.some(entry=>entry.field==='brandNoticeDismissed'&&entry.value===false))
+  update({sidebarAdapted:true,switchPreferences:{...state.switchPreferences,brandNoticeDismissed:false}});await tick()
   const nativeBrands=Array.from(document.querySelectorAll('[data-dsh-chat-brand-fill="brand"]'))
   flushSync(()=>root.unmount());for(const adapter of adapters.values())adapter.dispose()
   check('disposing layout restores native brand attributes',nativeBrands.length===3 && nativeBrands.every(el=>!el.hasAttribute('data-dsh-chat-brand-fill')))

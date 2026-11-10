@@ -21,6 +21,26 @@ export function createSidebarBinding(read: () => SidebarAdapterState, create: ()
   }
 }
 
+/**
+ * Brand-row visuals must not depend on takeover acceptance. Mark the three rows
+ * that decide whether the wordmark may shrink, with a reversible cleanup.
+ */
+export function markBrandVisual(identity: HTMLElement, brand: HTMLElement, seat: HTMLElement): () => void {
+  const entries: [HTMLElement, string, string][] = [
+    [brand, 'data-dsh-chat-brand-fill', 'brand'],
+    [identity, 'data-dsh-chat-brand-fill', 'identity'],
+    [seat, 'data-dsh-chat-brand-fill', 'name'],
+  ]
+  const previous = entries.map(([element, attribute]) => [element, attribute, element.getAttribute(attribute)] as const)
+  for (const [element, attribute, value] of entries) element.setAttribute(attribute, value)
+  return () => {
+    for (const [element, attribute, before] of previous) {
+      if (before === null) element.removeAttribute(attribute)
+      else element.setAttribute(attribute, before)
+    }
+  }
+}
+
 /** Start at our own brand seat and require the shipped, direct-child shell shape.
  * Unknown layouts are left alone; no global search or hashed CSS selectors. */
 export function attachSidebarAdapter(

@@ -25,6 +25,8 @@ import { createSidebarBinding } from './sidebar-adapter.js'
 import { bindChatSettingsIconSlot, CHAT_SETTINGS_SECTION_ID } from './settings-icon.js'
 import { HOST_ENTRY_ID } from './identity.js'
 import { DEFAULT_SWITCH_PREFERENCES, parseSwitchPreferences, validSwitchLabel, WEBSITE_RELEASE_DELAY_MAX, WEBSITE_RELEASE_DELAY_MIN, type SwitchPreferences } from './preferences.js'
+import { validShortcut } from './shortcuts.js'
+import { shouldHandleShortcut, shortcutAction } from './shortcuts.js'
 import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client'
 
 export const name = 'dsh-deepseek-chat'
@@ -502,12 +504,16 @@ export function apply(ctx: Context): void {
       if (settingsOpen === next) return
       settingsOpen=next;publish()
     },
-    setSwitchPreference: async (field,value) => {
-      if(disposed || !['switchStyle','chatLabel','harnessLabel','websiteLifetime','websiteReleaseDelay'].includes(field))return false
-      if(typeof value==='number') {
+    setSwitchPreference: async (field: keyof SwitchPreferences, value: string | number | boolean) => {
+      if(disposed || !['switchStyle','chatLabel','harnessLabel','websiteLifetime','websiteReleaseDelay','brandNoticeDismissed','shortcutEnabled','shortcutChat','shortcutHarness'].includes(field))return false
+      if(field==='brandNoticeDismissed'||field==='shortcutEnabled') {
+        if(typeof value!=='boolean') return false
+      } else if(typeof value==='number') {
         if(field!=='websiteReleaseDelay' || !Number.isInteger(value) || value<5 || value>3600) return false
       } else {
+        if(typeof value!=='string') return false
         if(field==='websiteReleaseDelay') return false
+        if((field==='shortcutChat'||field==='shortcutHarness') && !validShortcut(value)) return false
         if(field==='switchStyle' ? !['text','icon'].includes(value)
           : field==='websiteLifetime' ? !['retain','immediate','delayed'].includes(value)
           : !validSwitchLabel(value)) return false
@@ -529,6 +535,10 @@ export function apply(ctx: Context): void {
             || (field==='switchStyle' && switchPreferences.switchStyle===value)
             || (field==='chatLabel' && switchPreferences.chatLabel===value)
             || (field==='harnessLabel' && switchPreferences.harnessLabel===value)
+            || (field==='brandNoticeDismissed' && switchPreferences.brandNoticeDismissed===value)
+            || (field==='shortcutEnabled' && switchPreferences.shortcutEnabled===value)
+            || (field==='shortcutChat' && switchPreferences.shortcutChat===value)
+            || (field==='shortcutHarness' && switchPreferences.shortcutHarness===value)
           switchPreferencesError=applied ? null : 'CHAT 设置保存失败，请重试。'
         }
         return applied
@@ -643,6 +653,27 @@ export function apply(ctx: Context): void {
     websiteAuthenticationStatus='error';websiteSessionStatus='error';websiteSessionError=message
     publish()
   }
+  // Switching shortcuts. The listener sits on the DSH document only, so a focused
+  // CHAT webview, text fields and other apps keep their native Tab/keys.
+  ctx.effect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (switchPreferencesStatus !== 'ready' || !switchPreferences.shortcutEnabled || !mode.canEnter()) return
+      const target = event.target
+      const element = target instanceof Element ? target : null
+      const editable = Boolean(element?.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]'))
+      const inWebsite = Boolean(element?.closest('webview'))
+      if (!shouldHandleShortcut({ enabled: true, modeEnabled: true, editable, inWebsite,
+        composing: event.isComposing, defaultPrevented: event.defaultPrevented })) return
+      const action = shortcutAction(event, switchPreferences.shortcutChat, switchPreferences.shortcutHarness)
+      if (!action) return
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      if (action === 'toggle') mode.select(mode.getSnapshot().mode === 'chat' ? 'harness' : 'chat')
+      else mode.select(action)
+    }
+    globalThis.addEventListener('keydown', handler as unknown as EventListener, true)
+    return () => globalThis.removeEventListener('keydown', handler as unknown as EventListener, true)
+  })
   sidebar = createSidebarBinding(() => {
     const state = mode.getSnapshot()
     return { chat: state.mode === 'chat', canCreate: mode.canEnter() && websiteNavigation.canCreate }

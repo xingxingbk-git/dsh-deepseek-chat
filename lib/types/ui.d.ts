@@ -85,7 +85,7 @@ export interface DshChatUIBridge {
     renameWebsiteConversation(href: string, title: string): Promise<void>;
     toggleWebsiteNavigation(): void;
     setSettingsOpen(open: boolean): void;
-    setSwitchPreference?(field: keyof SwitchPreferences, value: string | number): Promise<boolean>;
+    setSwitchPreference?(field: keyof SwitchPreferences, value: string | number | boolean): Promise<boolean>;
     logoutWebsite(): void;
     loadWebsiteSession(generation: number): Promise<WebsiteSession | null>;
     saveWebsiteSession(generation: number, session: WebsiteSession): Promise<boolean>;

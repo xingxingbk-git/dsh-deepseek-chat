@@ -13,7 +13,7 @@ export async function startWindowRecognitionFixture({quiet=false}={}) {
   if(refreshStart<0 || refreshEnd<=refreshStart)throw new Error('Actual refresh guard was not found')
   const refresh=(await transform(`export ${surface.slice(refreshStart,refreshEnd)}`,{loader:'ts',format:'esm'})).code
   // Exercise actual components and their lifecycle; only SDK visual primitives are inert.
-  const primitives=['BrandWordmark','IconSearchOutlineRegular','IconCloseFillRegular','IconNewChatOutlineRegular','IconPanelLeftOutlineRegular','IconRefreshOutlineRegular','IconLoadingOutlineRegular','IconEllipsisOutlineRegular','IconEditOutlineRegular','IconPinOutlineRegular','IconShareOutlineRegular','IconTrashOutlineRegular','IconChevronDownOutlineRegular','Menu','Modal','Tooltip']
+  const primitives=['BrandWordmark','IconSearchOutlineRegular','IconCloseFillRegular','IconNewChatOutlineRegular','IconPanelLeftOutlineRegular','IconRefreshOutlineRegular','IconLoadingOutlineRegular','IconEllipsisOutlineRegular','IconEditOutlineRegular','IconPinOutlineRegular','IconShareOutlineRegular','IconTrashOutlineRegular','IconChevronDownOutlineRegular','Menu','Modal','Tooltip','Switch']
   const settings=(await build({absWorkingDir:root,stdin:{contents:`
       import {createElement} from 'react'
       import {createRoot} from 'react-dom/client'

@@ -2,6 +2,34 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
+## 0.2.23 设置页统一、快捷键切换与 README 重写（2026-11-10 21:50）
+
+需求：设置页控件高度统一、布局保持卡片但统一细节；新增快捷键切换 CHAT/HARNESS（开关、两个捕获输入框、保存、恢复默认、组合键、边界处理、冲突警告、相同=T切换）；README 重写使用说明与限制。
+
+实现：
+- 控件统一 `--dsh-chat-control-height:32px`，设置页输入框/下拉/保存按钮/开关/快捷键输入框同行对齐；保留四张卡并统一下拉标题层级。
+- 新增 `src/shortcuts.ts` 纯逻辑：规范化/解析/显示（meta 平台化）、保留键清单、捕获状态机、监听过滤、Toggle/定向语义。
+- client 在 `globalThis` capture 监听 keydown：仅窗口聚焦、非编辑元素、非 CHAT 网页、非输入法组合时生效；命中拦截默认行为并切换模式；关闭开关即失效。
+- 设置页新增“快捷键切换模式”：开关、两个捕获输入框（聚焦捕获、清空图标、占位与提示）、保存（两框必填）、恢复默认、相同=T 提示；偏好经官方 settings 持久化。
+- README 中英重写：核心功能、如何更好地使用（先聊透再动手、省 Token/上下文）、快速开始、功能说明、限制 8 条、隐私、兼容。
+
+验证：快捷键纯逻辑 8 项 + 客户端接线断言；捕获交互浏览器 17 项（组合捕获、Esc、Backspace、纯修饰、保留键、保存、恢复默认、开关持久化）；设置页 83 项（新增控件高度统一）；header 50、bootstrap 51、guest 14、窗口契约 48、title 38、品牌提示 31、侧栏 48、外链、下载 13、负对照、5 组窗口×119 通过；类型与分发 36 产物/4 模块通过。
+
+2026-11-11 01:52 用户决定放弃焦点保护（仍不理想）。已完整回滚：删除 `src/focus-guard.ts` 与 5 项 Node 测试，移除 client 的 `selectModeFromShortcut`/guard 调用与 check:shortcuts 断言，快捷键恢复 `mode.select` 直连；焦点行为交还 DSH 原生（切回 HARNESS 由宿主 composer 自行聚焦）。构建产物回到 36 产物/44 文件，候选 `artifacts/dsh-deepseek-chat-0.2.23-82a754c491f9.tgz`（239279 bytes/44文件，SHA256 `82a754c491f9a426ae09f71186aea8c232e58b6725e64e141471c1d9264b9b32`，与上次回滚版本字节一致）已装 desktop，44/44 同包、依赖与 lock 锁定。未发布 npm、未自动重启。
+
+## 0.2.22 侧栏品牌行与兼容提示修复（2026-11-10 20:45）
+
+问题：部分用户（含装第三方侧栏 UI 插件者）品牌词标被裁成“dee”且出现无法关闭的兼容提示。根因是品牌行视觉依赖接管校验成功：接管失败时不可收缩标记不打，原生容器收缩裁剪词标；提示为常驻 alert、无关闭。
+
+修复：
+- `sidebar-adapter` 新增独立的 `markBrandVisual`（可撤回），由品牌组件在识别到 `aria-hidden` 品牌行后自行维护不可收缩标记，接管失败不再影响词标宽度。
+- 品牌行结构完全无法识别时，隐藏自有词标，避免半截文字；品牌行保留官网图标。
+- 未适配时切换器自动使用图标样式，避免文字胶囊挤压品牌区。
+- 兼容提示可关闭并持久化（官方 settings `brandNoticeDismissed`），role 改为 status；Chat 设置新增“重新显示提示”。
+- 新增回归：视觉标记独立/可撤回、词标 102px 不裁、未适配图标降级、提示关闭/持久化/恢复（设置页 82 项、品牌提示 31 项）。
+
+类型与分发 35 产物通过；header 50、bootstrap 51、guest 14、窗口契约 48、title 38、品牌提示 31、侧栏 48、设置 82、外链、下载 13、负对照、5 组窗口×119 通过。候选 `artifacts/dsh-deepseek-chat-0.2.22-633d1b997d34.tgz`（232613 bytes/43文件，SHA256 `633d1b997d34d4cbed0e174e204c491cd6aab6a7a56cf31373d11ccaedad87c7`）已装 desktop。未发布 npm、未自动重启。
+
 ## 0.2.21 已公开发布 npm（2026-11-09 19:20）
 
 用户明确要求发布。发布前中英 README 的发布版与安装示例同步为 0.2.21；类型与 `release:prepare` 通过；正式包 `artifacts/release-0221/dsh-deepseek-chat-0.2.21.tgz`（231718 bytes/43文件，SHA256 `2fb95234ef3d3bc925a4221b18db1c659e52e1b99bc9f9bc833ec5c35f9ce0d4`）。
