@@ -2,6 +2,22 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
+## 0.2.22 源码候选：Google 登录页显示与等待（2026-11-11）
+
+已修复在 CHAT 点击 Google 后，官方账号页加载完成却仍被隐藏，最终误报“CHAT 界面适配超时”的问题。根因是所有新文档都等待 DeepSeek 专属布局证明；Google 页面不可能提供该证明。
+
+- 仅在用户已发起官网登录、当前文档为精确的 `https://accounts.google.com` 来源且 DOM 就绪时，按独立登录阶段显示原始表单，取消布局适配计时并恢复实际窗口宽度。Google 页面不标记为 DeepSeek 已登录，也不执行 DeepSeek 的布局、登录记忆、设置或下载脚本（含释放时清理）。
+- 返回 DeepSeek 后重新启用原有文档代次、加载及宽度验证。Google 加载中、加载失败和超时有中英提示；用户停留在已显示的表单上不会因 30 秒期限被遮住。网页缓存策略、宿主文件和登录存储白名单不变。
+- 修复本次在 Windows 重建时暴露的构建文件路径分隔符问题，并让两项负对照的源码替换同时匹配 Windows/POSIX 路径。版本递增为 0.2.22，完整重建 `lib/`（35 个编译文件）；未发布 npm，README 安装示例仍指向已发布的 0.2.21。
+
+验证环境：Windows、DSH 0.2.2-rc.1、Node 24.15.0、pnpm 10.33.2、Cordis 4.1.0、React 18.3.1。新增浏览器用例先在原实现上失败（Google 表单不可见），修复后 bootstrap 共 65 项通过；控制器模拟计时器证明旧的 30 秒回调失效，浏览器 fixture 证明页面可交互、模式切换/缩放保留同一租约、轮询及释放不在 Google 执行脚本、非可信来源不显示、返回 DeepSeek 恢复适配。
+
+全部当前门禁通过：`pnpm typecheck`、`pnpm release:prepare`、`pnpm check:distribution`、`pnpm check:compatibility`（26×4）、`pnpm check:sdk-contracts`（11）、`pnpm check:window-contracts`（48）、`pnpm check:sidebar-022`（54）、`pnpm check:website-links`（36）、`pnpm check:website-downloads`、`pnpm check:brand-notice`（27）、`pnpm check:switcher-alignment`（7）、`pnpm check:sidebar-rows`（48）、`pnpm check:website-guest`（14）、`pnpm check:website-bootstrap`（65）、`pnpm check:website-header`（50）；bootstrap/header 的 `--negative-control` 均捕获故意恢复的旧问题；presentation-settings（77）、title-stability（38）及 window-recognition-headless（5 组×119）通过；`git diff --check` 通过。浏览器脚本以 `CHROME_PATH` 指向本机 Chrome 运行，隔离测试环境，不代表真实 Electron 的全部边界验收。按既有说明未运行不适用的 `pnpm test` 基线。
+
+实机范围：用户已在 Windows DSH 内自行完成真人验证和 Google 授权，确认返回 DeepSeek 后可以聊天。该实测使用同一显示修复的最小本地补丁；最终源码构建的客户端及中英翻译随后覆盖到本机已有 0.2.21 安装（保留备份，未重装），重新载入后观察到聊天输入框及“CHAT 网页登录状态已保存”。未为重复测试而退出账号；最终提示文案及边界以合成回归验证。未验证 Apple、微信、企业 SSO、所有 Google 验证方式或服务端 OAuth 过期策略；本修复不会跳过官网验证码或更改提供方认证策略。后续可在其他设备与账号上补充完整登录验收。
+
+以下为此前版本的发布与验证记录。
+
 ## 0.2.21 已公开发布 npm（2026-11-09 19:20）
 
 用户明确要求发布。发布前中英 README 的发布版与安装示例同步为 0.2.21；类型与 `release:prepare` 通过；正式包 `artifacts/release-0221/dsh-deepseek-chat-0.2.21.tgz`（231718 bytes/43文件，SHA256 `2fb95234ef3d3bc925a4221b18db1c659e52e1b99bc9f9bc833ec5c35f9ce0d4`）。

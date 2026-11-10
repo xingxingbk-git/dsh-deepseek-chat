@@ -45,6 +45,8 @@ Open **Settings → Chat settings** to view your website account and sign-in sta
 
 After a normal sign-in, the plugin attempts to save the website grant and restore it when you reopen the same DSH profile. An expired website grant still requires a new sign-in.
 
+Source candidate **0.2.22** fixes the loading overlay hiding Google's sign-in page. Choose Google in CHAT, complete sign-in on Google's official page, and return to DeepSeek automatically. Once the form is displayed, it waits for you to finish verification without incorrectly reporting a layout timeout after 30 seconds. This fix has not yet been published to npm.
+
 ## Installation
 
 ### Install by package name (published release)
