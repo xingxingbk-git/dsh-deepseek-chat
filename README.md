@@ -10,12 +10,12 @@
 
 DeepSeek Chat 是一款 **DSH 桌面插件**：选择 **CHAT** 在 DSH 内使用真实的 [DeepSeek Chat 官网](https://chat.deepseek.com/)；选择 **HARNESS** 随时回到原来的工作区。插件不接管你的账号体系，官网登录独立保存。
 
-当前发布版 **0.2.21** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
+当前发布版 **0.2.22** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
 
 ## 核心功能
 
 - **CHAT / HARNESS 一键切换**：在左上角品牌旁切换，侧栏显示官网对话列表、置顶与日期分组。
-- **快捷键切换**：默认按 `Tab` 在两个模式间来回切换，也可自定义两个快捷键（0.2.23 起）。
+- **快捷键切换**：默认按 `Tab` 在两个模式间来回切换，也可自定义两个快捷键。
 - **网页缓存策略**：缓存网页、延迟释放或立即释放，自行权衡切换速度与开发者工具（F12）。
 - **附件下载**：代码块、图片与常见附件可保存到本机；外链交给系统默认浏览器。
 - **外观跟随**：语言、明暗主题和内容字号跟随 DSH，无需重复设置。
@@ -54,13 +54,13 @@ DeepSeek Chat 是一款 **DSH 桌面插件**：选择 **CHAT** 在 DSH 内使用
 在 DSH 插件安装输入框中输入：
 
 ```text
-dsh-deepseek-chat@0.2.21
+dsh-deepseek-chat@0.2.22
 ```
 
 或使用命令行：
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.21
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.22
 ```
 
 ### 从 GitHub 安装
@@ -78,7 +78,7 @@ dsh plugin --profile desktop add https://github.com/xingxingbk-git/dsh-deepseek-
 ### 使用本地安装包
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.21.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.22.tgz
 ```
 
 安装或更新后请**完整退出并重新打开 DSH**。使用其他配置环境时，把命令中的 `desktop` 换成对应名称。
@@ -99,7 +99,7 @@ dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.21.tgz
 
 **设置 → Chat 设置 → 切换按钮** 提供文字样式与图标样式。文字样式下两个按钮的文案都可自定义（最多 10 个字符宽），保存后生效；侧栏较窄时自动截断，悬停显示完整内容。
 
-### 快捷键切换（0.2.23 起）
+### 快捷键切换
 
 **设置 → Chat 设置 → 模式切换快捷键**：
 
