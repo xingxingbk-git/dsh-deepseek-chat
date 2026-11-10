@@ -63,7 +63,15 @@ window.fixtureDone=(async()=>{
   check('English account actions keep the padded link and logout on one aligned row',actionsAligned() && getComputedStyle(external).paddingLeft==='14px')
   update({language:'zh-CN'});await tick()
   check('card spacing and stroke use the official account-page values',getComputedStyle(document.querySelector('.dsh-chat-settings')).paddingTop==='8px' && Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>{const css=getComputedStyle(el);return css.paddingTop==='12px' && css.paddingLeft==='16px' && css.marginBottom==='16px' && css.borderTopColor==='rgb(153, 153, 153)'}))
+  const controlHeights = [...document.querySelectorAll('#settings .dsh-chat-label-input, #settings .dsh-chat-label-input input, #settings .dsh-chat-label-save, #settings .dsh-chat-style-trigger, #settings .dsh-chat-lifetime-input, #settings .dsh-chat-shortcut-input, #settings .dsh-chat-shortcut-save')]
+    .map(element => Math.round(element.getBoundingClientRect().height))
+  check('settings inputs, selects and buttons share one control height', controlHeights.length >= 6 && controlHeights.every(height => height === 32))
   check('every settings card keeps transparent fill and its border',document.querySelectorAll('.dsh-chat-settings-card').length>=2 && Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>{const css=getComputedStyle(el);return css.backgroundColor==='rgba(0, 0, 0, 0)' && css.borderTopStyle==='solid'}))
+  const group=document.querySelector('.dsh-chat-settings-group')
+  const groupBlocks=[...document.querySelectorAll('.dsh-chat-settings-group > .dsh-chat-settings-block')]
+  check('switch, shortcut and website settings share one panel',Boolean(group)&&groupBlocks.length===3)
+  const dividerStyle=groupBlocks[1]?getComputedStyle(groupBlocks[1]):null
+  check('the panel blocks are separated by divider lines',Boolean(dividerStyle)&&parseFloat(dividerStyle.borderTopWidth)>0&&dividerStyle.borderTopStyle==='solid')
   check('the CHAT website card reuses the switch control and shows a hint',Boolean(document.querySelector('.dsh-chat-website-lifetime .dsh-chat-style-trigger')) && Boolean(document.querySelector('.dsh-chat-website-lifetime .dsh-chat-preference-hint')) && (document.querySelector('.dsh-chat-website-lifetime .dsh-chat-preference-heading')?.textContent||'').includes('CHAT网页是否缓存'))
   const hint=document.querySelector('.dsh-chat-preference-hint')
   hint.click(); await tick()
@@ -82,7 +90,8 @@ window.fixtureDone=(async()=>{
   check('no visible field labels or validation prose',!card().querySelector('label,small') && !card().textContent.includes('失焦') && !card().textContent.includes('请输入'))
   check('native public Button and Menu compose the style control',!!card().querySelector('.dsh-chat-style-trigger[data-native-button="outline"]') && !card().querySelector('select'))
   check('native Input and Button render label editors and save',card().querySelectorAll('[data-native-input]').length===2 && save().dataset.nativeButton==='primary')
-  check('title and style control are vertically centered',Math.abs((card().querySelector('h3').getBoundingClientRect().top+card().querySelector('h3').getBoundingClientRect().height/2)-(card().querySelector('.dsh-chat-style-trigger').getBoundingClientRect().top+18))<1)
+  const heading=card().querySelector('h3').getBoundingClientRect(),trigger=card().querySelector('.dsh-chat-style-trigger').getBoundingClientRect()
+  check('title and style control are vertically centered',Math.abs((heading.top+heading.height/2)-(trigger.top+trigger.height/2))<1)
   check('separator divides style row and label editors',!!card().querySelector('hr') && card().querySelector('hr').getBoundingClientRect().top>card().querySelector('.dsh-chat-preference-row').getBoundingClientRect().bottom)
   check('one shared save button is initially disabled',card().querySelectorAll('.dsh-chat-label-save').length===1 && save().disabled)
   check('initial counters use original width limit',Array.from(card().querySelectorAll('.dsh-chat-label-count')).map(el=>el.textContent).join('|')==='4/10|7/10')

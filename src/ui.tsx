@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { createElement, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { BrandWordmark, IconSearchOutlineRegular, IconCloseFillRegular, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, IconRefreshOutlineRegular, IconLoadingOutlineRegular, IconEllipsisOutlineRegular, IconEditOutlineRegular, IconPinOutlineRegular, IconShareOutlineRegular, IconTrashOutlineRegular, Menu, Modal, Button, Input, IconChevronDownOutlineRegular, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+import { BrandWordmark, IconSearchOutlineRegular, IconCloseFillRegular, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, IconRefreshOutlineRegular, IconLoadingOutlineRegular, IconEllipsisOutlineRegular, IconEditOutlineRegular, IconPinOutlineRegular, IconShareOutlineRegular, IconTrashOutlineRegular, Menu, Modal, Button, Input, IconChevronDownOutlineRegular, Tooltip, Switch } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ComponentType } from 'react'
 import type { StoredEntry } from '@deepseek-ai/dsh-client-ui-slots'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
@@ -12,6 +12,7 @@ import { translate } from './i18n.js'
 import { readSurfaceBorderRadius } from './surface-clip.js'
 import { DshChatBrandNotice } from './brand-notice.js'
 import { markBrandVisual } from './sidebar-adapter.js'
+import { captureShortcut, displayShortcut, shortcutPlatform, validShortcut, SHORTCUT_CAPTURE_HINT, SHORTCUT_INVALID_HINT, SHORTCUT_PENDING_HINT, SHORTCUT_RESERVED_HINT, type ShortcutPlatform } from './shortcuts.js'
 import type { WebsiteFile } from './website-downloads.js'
 import type { WebsiteCommand, WebsiteNavigation } from './website-navigation.js'
 import type { ChatLanguage } from './website-settings.js'
@@ -528,6 +529,130 @@ export function DshChatLeadingControls({bridge}: PropsRuntime<'shell.leading'> &
   </div>
 }
 
+/** Capture-style field: focus starts capture; keys are never typed as text. */
+function ShortcutInput({value,onChange,disabled,label,prefix,platform,t}:{
+  value:string;onChange:(next:string)=>void;disabled:boolean;label:string;prefix:string;platform:ShortcutPlatform;t:(text:string)=>string
+}) {
+  const [capturing,setCapturing]=useState(false)
+  const [notice,setNotice]=useState<string|null>(null)
+  const wrapRef=useRef<HTMLDivElement>(null)
+  const guidanceRef=useRef<HTMLSpanElement>(null)
+  const display=value ? displayShortcut(value,platform) : ''
+  const placeholder=capturing ? (notice ? '' : t(SHORTCUT_CAPTURE_HINT)) : t('请设置快捷键')
+  // Guidance longer than the capture area scrolls continuously: start to tail,
+  // then restart from the beginning. No pauses, so the text is always moving.
+  useLayoutEffect(()=>{
+    const guidance=guidanceRef.current, wrap=wrapRef.current
+    const text=guidance?.firstElementChild
+    if(!guidance || !wrap || !(text instanceof HTMLElement)) return
+    // Visible text area excludes the guidance padding (10px on each side), so the
+    // last character is fully readable at the end of each pass.
+    const distance=text.scrollWidth-(wrap.clientWidth-20)
+    if(distance < 2) return
+    guidance.dataset.scrolling='true'
+    const seconds=Math.max(1.4, distance/40) // ~40 px/s reads naturally
+    const animation=text.animate([
+      { transform:'translateX(0px)' },
+      { transform:`translateX(${-distance}px)` },
+    ],{duration:seconds*1000,iterations:Infinity,easing:'linear'})
+    return ()=>{animation.cancel();delete guidance.dataset.scrolling}
+  },[notice,capturing])
+  return <div className="dsh-chat-shortcut-control">
+    <div className="dsh-chat-shortcut-field" data-capturing={capturing||undefined}>
+      <span className="dsh-chat-shortcut-prefix" aria-hidden="true">{prefix}</span>
+      <div className="dsh-chat-shortcut-input-wrap" ref={wrapRef}>
+        <input className="dsh-chat-shortcut-input" readOnly value={capturing ? '' : display}
+          placeholder={placeholder} aria-label={label} disabled={disabled}
+          onFocus={()=>{setCapturing(true);setNotice(null)}}
+          onBlur={()=>{setCapturing(false);setNotice(null)}}
+          onKeyDown={event=>{
+            if(!capturing)return
+            const result=captureShortcut(event,platform)
+            if(result.kind==='cancel'){event.preventDefault();setCapturing(false);event.currentTarget.blur();return}
+            if(result.kind==='clear'){event.preventDefault();onChange('');setNotice(null);return}
+            if(result.kind==='pending'){event.preventDefault();setNotice(t(SHORTCUT_PENDING_HINT));return}
+            if(result.kind==='invalid'){event.preventDefault();setNotice(t(SHORTCUT_INVALID_HINT));return}
+            if(result.kind==='reserved'){event.preventDefault();setNotice(t(SHORTCUT_RESERVED_HINT));return}
+            event.preventDefault();onChange(result.value);setCapturing(false);setNotice(null);event.currentTarget.blur()
+          }}/>
+        {notice && <span className="dsh-chat-shortcut-guidance" ref={guidanceRef} role="status">
+          <span className="dsh-chat-shortcut-guidance-text">{notice}</span>
+        </span>}
+      </div>
+      {!capturing && <button type="button" className="dsh-chat-shortcut-clear" aria-label={t('清空')} title={t('清空')} disabled={disabled}
+        onClick={()=>{onChange('');setNotice(null)}}><IconCloseFillRegular size={12}/></button>}
+    </div>
+  </div>
+}
+
+/** Mode-switch shortcuts: on/off, two capture fields, save and restore defaults. */
+function ShortcutSettings({bridge,state}:{bridge:DshChatUIBridge;state:DshChatViewState}) {
+  const t=(text:string|null|undefined)=>translate(state.language,text)
+  const preferences=state.switchPreferences ?? DEFAULT_SWITCH_PREFERENCES
+  const ready=state.switchPreferencesStatus==='ready' && Boolean(bridge.setSwitchPreference)
+  const platform=shortcutPlatform(typeof navigator==='undefined' ? '' : navigator.platform)
+  const [enabled,setEnabled]=useState(preferences.shortcutEnabled)
+  const [chat,setChat]=useState(preferences.shortcutChat)
+  const [harness,setHarness]=useState(preferences.shortcutHarness)
+  const [saving,setSaving]=useState(false)
+  const [error,setError]=useState<string|null>(null)
+  const [hintOpen,setHintOpen]=useState(false)
+  const savingNow=useRef(false)
+  const busy=saving || Boolean(state.switchPreferencesPending)
+  const valid=validShortcut(chat) && validShortcut(harness)
+  const dirty=chat!==preferences.shortcutChat || harness!==preferences.shortcutHarness
+  useEffect(()=>{
+    setEnabled(preferences.shortcutEnabled);setChat(preferences.shortcutChat);setHarness(preferences.shortcutHarness)
+  },[preferences.shortcutEnabled,preferences.shortcutChat,preferences.shortcutHarness])
+  // The switch itself is persisted immediately; the save button only covers the
+  // two bindings inside the editing block.
+  const toggleEnabled=async(next:boolean)=>{
+    if(!ready || busy || savingNow.current || !bridge.setSwitchPreference) return
+    savingNow.current=true;setSaving(true);setError(null)
+    try {
+      if(!await bridge.setSwitchPreference('shortcutEnabled',next)) throw new Error('toggle')
+      setEnabled(next)
+    } catch {setError('快捷键开关保存失败，请重试。')}
+    finally {savingNow.current=false;setSaving(false)}
+  }
+  const save=async()=>{
+    if(!ready || busy || savingNow.current || !valid || !dirty || !bridge.setSwitchPreference) return
+    savingNow.current=true;setSaving(true);setError(null)
+    try {
+      if(chat!==preferences.shortcutChat && !await bridge.setSwitchPreference('shortcutChat',chat)) throw new Error('shortcut chat')
+      if(harness!==preferences.shortcutHarness && !await bridge.setSwitchPreference('shortcutHarness',harness)) throw new Error('shortcut harness')
+    } catch {setError('快捷键设置保存失败，请重试。')}
+    finally {savingNow.current=false;setSaving(false)}
+  }
+  return <div className="dsh-chat-settings-block dsh-chat-shortcut-settings" aria-label={t('模式切换快捷键')}>
+    <div className="dsh-chat-shortcut-section">
+      <div className="dsh-chat-preference-row">
+        <div className="dsh-chat-preference-heading-wrap" onMouseLeave={()=>setHintOpen(false)}>
+          <h4 className="dsh-chat-preference-heading">
+            <span>{t('模式切换快捷键')}</span>
+            <button type="button" className="dsh-chat-preference-hint" aria-label={t('快捷键说明')} aria-expanded={hintOpen}
+              onClick={()=>setHintOpen(open=>!open)} onBlur={()=>setHintOpen(false)}
+              onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();setHintOpen(false)}}}>?</button>
+          </h4>
+          {hintOpen && <div role="tooltip" className="dsh-chat-preference-hint-popover">
+            {t('两个快捷键相同时，按一次在两个模式之间来回切换。快捷键只在焦点不在输入框或 CHAT 网页内时生效。')}
+          </div>}
+        </div>
+        <Switch checked={enabled} onChange={next=>void toggleEnabled(next)} label={t('模式切换快捷键')} disabled={!ready || busy}/>
+      </div>
+      {enabled && <>
+        {/* One row aligned with the switch-button row above: left field, right field, save. */}
+        <div className="dsh-chat-shortcut-row">
+          <ShortcutInput value={chat} onChange={setChat} disabled={!ready || busy} label={t('切换到 CHAT 的快捷键')} prefix={t('左侧')} platform={platform} t={t}/>
+          <ShortcutInput value={harness} onChange={setHarness} disabled={!ready || busy} label={t('切换到 HARNESS 的快捷键')} prefix={t('右侧')} platform={platform} t={t}/>
+          <Button className="dsh-chat-shortcut-save" variant="primary" type="button" disabled={!ready || busy || !valid || !dirty} onClick={()=>void save()}>{t('保存')}</Button>
+        </div>
+      </>}
+      {error && <p className="dsh-chat-settings-error" role="alert">{t(error)}</p>}
+    </div>
+  </div>
+}
+
 function ChatPresentationSettings({bridge,state}: {bridge:DshChatUIBridge;state:DshChatViewState}) {
   const t=(text:string)=>translate(state.language,text)
   const preferences=state.switchPreferences ?? DEFAULT_SWITCH_PREFERENCES
@@ -560,7 +685,7 @@ function ChatPresentationSettings({bridge,state}: {bridge:DshChatUIBridge;state:
     finally {savingNow.current=false;if(mounted.current)setSaving(false)}
   }
   const error=saveError || state.switchPreferencesError
-  return <section className="dsh-chat-settings-card dsh-chat-presentation-settings" aria-labelledby={headingId}>
+  return <div className="dsh-chat-settings-block dsh-chat-presentation-settings" aria-labelledby={headingId}>
     <div className="dsh-chat-preference-row">
       <h3 id={headingId}>{t('切换按钮')}</h3>
       <div className="dsh-chat-preference-select">
@@ -593,7 +718,7 @@ function ChatPresentationSettings({bridge,state}: {bridge:DshChatUIBridge;state:
     </>}
     {error && <p className="dsh-chat-settings-error" role="alert">{t(error)}</p>}
     {!enabled && <p className="dsh-chat-preference-note">{t('设置服务尚未就绪，请重启 DSH 后重试。')}</p>}
-  </section>
+  </div>
 }
 
 /** Website lifetime: same control style as the switch-button preference. */
@@ -625,7 +750,7 @@ function WebsiteLifetimeSettings({bridge,state}:{bridge:DshChatUIBridge;state:Ds
     try { await bridge.setSwitchPreference?.('websiteReleaseDelay',value) } finally { setSaving(false) }
   }
   const headingId=useId()
-  return <section className="dsh-chat-settings-card dsh-chat-website-lifetime" aria-labelledby={headingId}>
+  return <div className="dsh-chat-settings-block dsh-chat-website-lifetime" aria-labelledby={headingId}>
     <div className="dsh-chat-preference-row">
       <div className="dsh-chat-preference-heading-wrap" onMouseLeave={()=>setHintOpen(false)}>
         <h3 id={headingId} className="dsh-chat-preference-heading">
@@ -665,7 +790,7 @@ function WebsiteLifetimeSettings({bridge,state}:{bridge:DshChatUIBridge;state:Ds
       </form>
     </>}
     {!enabled && <p className="dsh-chat-preference-note">{t('设置服务尚未就绪，请重启 DSH 后重试。')}</p>}
-  </section>
+  </div>
 }
 
 /** Restore the compatibility notice after the user dismissed it. */
@@ -724,8 +849,12 @@ export function DshChatChatSettings({bridge,close}: PropsRuntime<'settings.secti
       {!accountError && recognitionError && <div className="dsh-chat-settings-error" role="alert"><p>{t(recognitionError)}</p><Button variant="outline" onClick={()=>bridge.commandWebsite({type:'snapshot',showOriginal:false})}>{t("重新识别")}</Button></div>}
       {enabled && showAccount && settings?.error && <div className="dsh-chat-settings-error" role="alert"><p>{t(settings.error)}</p><Button variant="outline" disabled={Boolean(settings.pending)} onClick={()=>bridge.commandWebsite({type:'settings-retry'})}>{t("重试同步")}</Button></div>}
     </section>
-    <ChatPresentationSettings bridge={bridge} state={state}/>
-    <WebsiteLifetimeSettings bridge={bridge} state={state}/>
+    {/* One panel with divider-separated rows, like the native general settings. */}
+    <section className="dsh-chat-settings-card dsh-chat-settings-group" aria-label={t('Chat 模式设置')}>
+      <ChatPresentationSettings bridge={bridge} state={state}/>
+      <ShortcutSettings bridge={bridge} state={state}/>
+      <WebsiteLifetimeSettings bridge={bridge} state={state}/>
+    </section>
     <BrandNoticeSettings bridge={bridge} state={state}/>
   </section>
 }

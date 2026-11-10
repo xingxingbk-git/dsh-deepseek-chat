@@ -7,6 +7,9 @@ export declare const SwitchPreferencesConfig: schema<Schemastery.ObjectS<NoInfer
     websiteLifetime: schema<"retain" | "immediate" | "delayed", "retain" | "immediate" | "delayed", "volatile-defined">;
     websiteReleaseDelay: schema<number, number, "volatile-defined">;
     brandNoticeDismissed: schema<boolean, boolean, "volatile-defined">;
+    shortcutEnabled: schema<boolean, boolean, "volatile-defined">;
+    shortcutChat: schema<string, string, "volatile-defined">;
+    shortcutHarness: schema<string, string, "volatile-defined">;
 }>>, Schemastery.ObjectT<NoInfer<{
     switchStyle: schema<"text" | "icon", "text" | "icon", "volatile-defined">;
     chatLabel: schema<string, string, "volatile-defined">;
@@ -14,4 +17,7 @@ export declare const SwitchPreferencesConfig: schema<Schemastery.ObjectS<NoInfer
     websiteLifetime: schema<"retain" | "immediate" | "delayed", "retain" | "immediate" | "delayed", "volatile-defined">;
     websiteReleaseDelay: schema<number, number, "volatile-defined">;
     brandNoticeDismissed: schema<boolean, boolean, "volatile-defined">;
+    shortcutEnabled: schema<boolean, boolean, "volatile-defined">;
+    shortcutChat: schema<string, string, "volatile-defined">;
+    shortcutHarness: schema<string, string, "volatile-defined">;
 }>>, "plain">;

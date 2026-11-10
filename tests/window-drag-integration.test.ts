@@ -175,16 +175,21 @@ function harness(options:{pendingMount?:boolean;desktop?:boolean;originalPanel?:
   const product=globalThis as typeof globalThis & {dshDesktop?:unknown}
   const previousDesktop=product.dshDesktop, previousAdd=globalThis.addEventListener, previousRemove=globalThis.removeEventListener
   const previousSetTimeout=globalThis.setTimeout, previousClearTimeout=globalThis.clearTimeout
-  const deadlines=new Set<ReturnType<typeof setTimeout>>(), focusListeners=new Set<EventListenerOrEventListenerObject>()
+  const deadlines=new Set<ReturnType<typeof setTimeout>>()
+  // The Client now owns a window-level focus refresh and the mode-switch shortcuts.
+  const globalListeners=new Map<string, Set<EventListenerOrEventListenerObject>>()
+  const globalBucket=(name:string)=>{const found=globalListeners.get(name);if(found)return found;const next=new Set<EventListenerOrEventListenerObject>();globalListeners.set(name,next);return next}
   product.dshDesktop=options.desktop===false ? undefined : {protocolVersion:1,browser:{
     acquire:async()=>{nativeCalls++;throw new Error('no native guest may be acquired by a registration-only test')},
     release:async()=>{nativeCalls++},onOpenRequested:()=>{nativeCalls++;return ()=>{}},
   }}
   globalThis.addEventListener=((name:string,listener:EventListenerOrEventListenerObject|null)=>{
-    assert.equal(name,'focus');if(listener)focusListeners.add(listener)
+    assert.ok(name==='focus'||name==='keydown',`unexpected global listener: ${name}`)
+    if(listener)globalBucket(name).add(listener)
   }) as typeof globalThis.addEventListener
   globalThis.removeEventListener=((name:string,listener:EventListenerOrEventListenerObject|null)=>{
-    assert.equal(name,'focus');if(listener)focusListeners.delete(listener)
+    assert.ok(name==='focus'||name==='keydown',`unexpected global listener: ${name}`)
+    if(listener)globalBucket(name).delete(listener)
   }) as typeof globalThis.removeEventListener
   globalThis.setTimeout=((callback:(...args:unknown[])=>void,delay?:number,...args:unknown[])=>{
     const handle=previousSetTimeout(callback,delay,...args)
@@ -210,7 +215,7 @@ function harness(options:{pendingMount?:boolean;desktop?:boolean;originalPanel?:
   return {
     bridge,order,releases,emit,props,registration:(key:string)=>registrations.get(key),panel:()=>panel,
     keys:()=>[...registrations.keys()].sort(),baseline:()=>[...baseline.keys()].sort(),nativeCalls:()=>nativeCalls,
-    listenerCount:()=>panelListeners.size+focusListeners.size+[...slotListeners.values()].reduce((total,listeners)=>total+listeners.size,0),
+    listenerCount:()=>panelListeners.size+[...globalListeners.values()].reduce((total,listeners)=>total+listeners.size,0)+[...slotListeners.values()].reduce((total,listeners)=>total+listeners.size,0),
     pendingAuthorizationTimers:()=>deadlines.size,
     navigate:(next:string|null)=>ctx.layout.selectPanel(next),
     completeMount:()=>mounted.resolve(unmount),

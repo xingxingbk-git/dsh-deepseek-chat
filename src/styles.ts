@@ -44,6 +44,40 @@ export const chatStyles = String.raw`
 .dsh-chat-label-input,.dsh-chat-label-input input,.dsh-chat-label-input input:hover,.dsh-chat-label-input input:focus,.dsh-chat-label-input input:disabled{background:transparent}
 .dsh-chat-label-save{flex:none;margin-inline-start:auto}
 .dsh-chat-preference-note{font-size:12px;color:var(--dsw-alias-label-secondary,inherit);line-height:1.6}
+/* Settings controls share one height so rows, inputs, menus and buttons align. */
+.dsh-chat-settings{--dsh-chat-control-height:32px}
+.dsh-chat-settings-card .dsh-chat-preference-row{min-height:var(--dsh-chat-control-height)}
+.dsh-chat-settings-card h4{font-size:14px;font-weight:600;line-height:1.4;margin:0}
+.dsh-chat-settings .dsh-chat-label-input,
+.dsh-chat-settings .dsh-chat-label-input input,
+.dsh-chat-settings .dsh-chat-lifetime-input,
+.dsh-chat-settings .dsh-chat-lifetime-input input,
+.dsh-chat-settings .dsh-chat-shortcut-input{height:var(--dsh-chat-control-height)!important;min-height:var(--dsh-chat-control-height)!important}
+.dsh-chat-settings .dsh-chat-label-save,
+.dsh-chat-settings .dsh-chat-style-trigger,
+.dsh-chat-settings .dsh-chat-shortcut-actions button,
+.dsh-chat-settings .dsh-chat-brand-notice-settings button{height:var(--dsh-chat-control-height)!important;min-height:var(--dsh-chat-control-height)!important}
+.dsh-chat-shortcut-settings .dsh-chat-shortcut-section{display:flex;flex-direction:column;gap:12px}
+.dsh-chat-shortcut-header{justify-content:space-between}
+.dsh-chat-shortcut-title{display:flex;align-items:center;gap:10px;min-width:0}
+.dsh-chat-shortcut-row{display:flex;align-items:flex-start;gap:12px}
+.dsh-chat-shortcut-control{display:flex;flex-direction:column;gap:4px;flex:1 1 160px;min-width:0;max-width:100%}
+.dsh-chat-shortcut-field{position:relative;display:flex;align-items:center;width:100%;height:var(--dsh-chat-control-height);box-sizing:border-box;border:1px solid var(--dsw-alias-border-l3,var(--dsw-alias-border-l2,#333));border-radius:8px;background:transparent;overflow:hidden}
+.dsh-chat-shortcut-field:hover{border-color:var(--dsw-alias-border-l2,var(--dsw-alias-label-secondary))}
+.dsh-chat-shortcut-field:focus-within{border-color:var(--dsw-alias-label-primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--dsw-alias-label-primary) 12%,transparent)}
+.dsh-chat-shortcut-prefix{display:inline-flex;align-items:center;align-self:stretch;flex:none;padding:0 10px;border-right:1px solid var(--dsw-alias-border-l3,var(--dsw-alias-border-l2,#333));font-size:13px;line-height:1.4;color:var(--dsw-alias-label-secondary,inherit);white-space:nowrap}
+.dsh-chat-shortcut-input-wrap{position:relative;display:flex;align-items:center;flex:1 1 auto;min-width:0;height:100%}
+.dsh-chat-shortcut-input{flex:1 1 auto;min-width:0;width:100%;height:100%!important;min-height:0!important;padding:0 30px 0 10px;border:0!important;border-radius:0!important;background:transparent;color:inherit;font:inherit;font-size:13px;line-height:1.4;cursor:pointer;outline:none;box-shadow:none!important}
+.dsh-chat-shortcut-guidance{position:absolute;inset:0;display:flex;align-items:center;overflow:hidden;pointer-events:none;padding:0 10px;box-sizing:border-box}
+.dsh-chat-shortcut-guidance-text{white-space:nowrap;font-size:13px;line-height:1.4;color:var(--dsw-alias-state-error-primary,#ef5350)}
+
+.dsh-chat-shortcut-input::placeholder{color:var(--dsw-alias-label-tertiary,var(--dsw-alias-label-secondary))}
+.dsh-chat-shortcut-input:disabled{opacity:.5;cursor:default}
+.dsh-chat-shortcut-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary,inherit);cursor:pointer}
+.dsh-chat-shortcut-clear:hover{background:var(--dsw-alias-interactive-bg-hover-solid,var(--dsw-alias-border-l3));color:var(--dsw-alias-label-primary,inherit)}
+.dsh-chat-shortcut-clear:focus-visible{outline:2px solid var(--dsw-alias-label-primary);outline-offset:1px}
+
+.dsh-chat-shortcut-save{flex:none;height:var(--dsh-chat-control-height)!important;min-height:var(--dsh-chat-control-height)!important}
 .dsh-chat-preference-heading{display:flex;align-items:center;gap:6px;margin:0}
 .dsh-chat-preference-heading-wrap{position:relative;display:flex;align-items:center;min-width:0}
 .dsh-chat-preference-hint{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex:none;padding:0;background:transparent;border-radius:50%;border:1px solid var(--dsw-alias-border-l3);color:var(--dsw-alias-label-secondary,inherit);font:inherit;font-size:11px;line-height:1;cursor:pointer;user-select:none}
@@ -131,6 +165,8 @@ html[data-fullscreen="true"] .dsh-chat-window-drag-row{display:none}
 .dsh-chat-leading button:hover{background:var(--dsw-alias-interactive-bg-hover)}.dsh-chat-leading button:disabled{opacity:.4;cursor:default}
  .dsh-chat-settings{--dsh-chat-settings-action-width:200px;font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);color:var(--dsw-alias-label-primary,inherit);font-size:14px;line-height:1.5;min-width:0;max-width:720px;width:100%;box-sizing:border-box;padding:8px 0}
 .dsh-chat-settings p{margin:0;overflow-wrap:anywhere}
+.dsh-chat-settings-group>.dsh-chat-settings-block+.dsh-chat-settings-block{border-top:.5px solid var(--dsw-alias-border-l2,var(--dsw-alias-border-l3));margin-top:12px;padding-top:12px}
+.dsh-chat-settings-block{min-width:0}
 .dsh-chat-settings-card{background:transparent;border:.5px solid var(--dsw-alias-settings-card-stroke,var(--dsw-alias-border-l3));border-radius:var(--dsw-radius-xl,16px);padding:12px 16px;margin:0 0 16px;min-width:0;box-sizing:border-box}
 .dsh-chat-settings-account{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;min-width:0}.dsh-chat-settings-identity{display:flex;flex-direction:column;gap:4px;flex:1 1 160px;min-width:0}.dsh-chat-settings-identity strong{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dsh-chat-settings-badge{font-size:12px;color:var(--dsw-alias-label-secondary,inherit);display:flex;align-items:center;gap:6px}.dsh-chat-settings-badge:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-success-primary,#20a66a);flex:none}.dsh-chat-settings-logout{flex-shrink:0;white-space:normal;max-width:100%}
 .dsh-chat-settings .dsh-chat-settings-logout{background:transparent;border:.5px solid currentColor;color:var(--dsw-alias-state-error-primary,#ef5350)}
