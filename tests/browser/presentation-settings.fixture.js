@@ -75,7 +75,7 @@ window.fixtureDone=(async()=>{
   check('switch, shortcut and website settings share one panel',Boolean(group)&&groupBlocks.length===3)
   const dividerStyle=groupBlocks[1]?getComputedStyle(groupBlocks[1]):null
   check('the panel blocks are separated by divider lines',Boolean(dividerStyle)&&parseFloat(dividerStyle.borderTopWidth)>0&&dividerStyle.borderTopStyle==='solid')
-  check('the CHAT website card reuses the switch control and shows a hint',Boolean(document.querySelector('.dsh-chat-website-lifetime .dsh-chat-style-trigger')) && Boolean(document.querySelector('.dsh-chat-website-lifetime .dsh-chat-preference-hint')) && (document.querySelector('.dsh-chat-website-lifetime .dsh-chat-preference-heading')?.textContent||'').includes('CHAT网页是否缓存'))
+  check('the CHAT website card reuses the switch control and shows a hint',Boolean(document.querySelector('.dsh-chat-website-lifetime .dsh-chat-style-trigger')) && Boolean(document.querySelector('.dsh-chat-website-lifetime .dsh-chat-preference-hint')) && (document.querySelector('.dsh-chat-website-lifetime .dsh-chat-preference-heading')?.textContent||'').includes('缓存策略'))
   const hint=document.querySelector('.dsh-chat-preference-hint')
   hint.click(); await tick()
   check('clicking the hint opens its explanation',Boolean(document.querySelector('.dsh-chat-preference-hint-popover')))
@@ -86,6 +86,10 @@ window.fixtureDone=(async()=>{
   await tick()
   const delayInput=document.querySelector('.dsh-chat-lifetime-editor input')
   check('choosing delayed release reveals the seconds field',Boolean(delayInput) && delayInput.value==='90' && Boolean(document.querySelector('.dsh-chat-preference-divider')))
+  const labelField=document.querySelector('#settings .dsh-chat-label-input')
+  const delayField=document.querySelector('#settings .dsh-chat-lifetime-input')
+  const labelFieldCss=labelField?getComputedStyle(labelField):null, delayFieldCss=delayField?getComputedStyle(delayField):null
+  check('the seconds field matches the label inputs in height, radius and fill',Boolean(labelFieldCss&&delayFieldCss) && Math.round(delayField.getBoundingClientRect().height)===34 && delayFieldCss.borderRadius===labelFieldCss.borderRadius && delayFieldCss.backgroundColor===labelFieldCss.backgroundColor && delayFieldCss.borderTopColor===labelFieldCss.borderTopColor)
   update({switchPreferences:{...state.switchPreferences,websiteLifetime:'retain'}})
   await tick()
   check('the seconds field is hidden for other choices',!document.querySelector('.dsh-chat-lifetime-editor input'))

@@ -49,9 +49,12 @@ export const chatStyles = String.raw`
 .dsh-chat-settings-card .dsh-chat-preference-row{min-height:var(--dsh-chat-control-height)}
 .dsh-chat-settings-card h4{font-size:14px;font-weight:600;line-height:1.4;margin:0}
 .dsh-chat-settings .dsh-chat-label-input,
+.dsh-chat-settings .dsh-chat-lifetime-input{height:var(--dsh-chat-control-height)!important;min-height:var(--dsh-chat-control-height)!important;border:.5px solid var(--dsw-alias-border-l4,var(--dsw-alias-border-l3,#333))!important;border-radius:var(--dsw-radius-md,12px)!important;background:var(--dsw-alias-bg-layer-3,transparent)!important}
 .dsh-chat-settings .dsh-chat-label-input input,
-.dsh-chat-settings .dsh-chat-lifetime-input,
-.dsh-chat-settings .dsh-chat-lifetime-input input,
+.dsh-chat-settings .dsh-chat-lifetime-input input{height:var(--dsh-chat-control-height)!important;min-height:0!important;border:0!important;border-radius:0!important;background:transparent!important}
+.dsh-chat-settings .dsh-chat-lifetime-input input[type="number"]{-moz-appearance:textfield;appearance:textfield}
+.dsh-chat-settings .dsh-chat-lifetime-input input[type="number"]::-webkit-outer-spin-button,
+.dsh-chat-settings .dsh-chat-lifetime-input input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .dsh-chat-settings .dsh-chat-shortcut-input{height:var(--dsh-chat-control-height)!important;min-height:var(--dsh-chat-control-height)!important}
 .dsh-chat-settings .dsh-chat-label-save,
 .dsh-chat-settings .dsh-chat-style-trigger,

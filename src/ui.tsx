@@ -624,21 +624,21 @@ function ShortcutSettings({bridge,state}:{bridge:DshChatUIBridge;state:DshChatVi
     } catch {setError('快捷键设置保存失败，请重试。')}
     finally {savingNow.current=false;setSaving(false)}
   }
-  return <div className="dsh-chat-settings-block dsh-chat-shortcut-settings" aria-label={t('模式切换快捷键')}>
+  return <div className="dsh-chat-settings-block dsh-chat-shortcut-settings" aria-label={t('快捷键')}>
     <div className="dsh-chat-shortcut-section">
       <div className="dsh-chat-preference-row">
         <div className="dsh-chat-preference-heading-wrap" onMouseLeave={()=>setHintOpen(false)}>
           <h4 className="dsh-chat-preference-heading">
-            <span>{t('模式切换快捷键')}</span>
+            <span>{t('快捷键')}</span>
             <button type="button" className="dsh-chat-preference-hint" aria-label={t('快捷键说明')} aria-expanded={hintOpen}
               onClick={()=>setHintOpen(open=>!open)} onBlur={()=>setHintOpen(false)}
               onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();setHintOpen(false)}}}>?</button>
           </h4>
           {hintOpen && <div role="tooltip" className="dsh-chat-preference-hint-popover">
-            {t('两个快捷键相同时，按一次在两个模式之间来回切换。快捷键只在焦点不在输入框或 CHAT 网页内时生效。')}
+            {t('CHAT/HARNESS模式切换快捷键。当两个快捷键相同时，该快捷键可在两个模式之间来回切换。')}
           </div>}
         </div>
-        <Switch checked={enabled} onChange={next=>void toggleEnabled(next)} label={t('模式切换快捷键')} disabled={!ready || busy}/>
+        <Switch checked={enabled} onChange={next=>void toggleEnabled(next)} label={t('快捷键')} disabled={!ready || busy}/>
       </div>
       {enabled && <>
         {/* One row aligned with the switch-button row above: left field, right field, save. */}
@@ -732,7 +732,7 @@ function WebsiteLifetimeSettings({bridge,state}:{bridge:DshChatUIBridge;state:Ds
   const [saving,setSaving]=useState(false)
   useEffect(()=>{setDelay(String(preferences.websiteReleaseDelay))},[preferences.websiteReleaseDelay])
   const options: {id: WebsiteLifetime; label: string}[]=[
-    {id:'retain',label:'缓存网页'},
+    {id:'retain',label:'保持缓存'},
     {id:'delayed',label:'延迟释放'},
     {id:'immediate',label:'立即释放'},
   ]
@@ -754,13 +754,13 @@ function WebsiteLifetimeSettings({bridge,state}:{bridge:DshChatUIBridge;state:Ds
     <div className="dsh-chat-preference-row">
       <div className="dsh-chat-preference-heading-wrap" onMouseLeave={()=>setHintOpen(false)}>
         <h3 id={headingId} className="dsh-chat-preference-heading">
-          <span>{t('CHAT网页是否缓存')}</span>
+          <span>{t('缓存策略')}</span>
           <button type="button" className="dsh-chat-preference-hint" aria-label={t('各选项说明')} aria-expanded={hintOpen}
             onClick={()=>setHintOpen(open=>!open)} onBlur={()=>setHintOpen(false)}
             onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();setHintOpen(false)}}}>?</button>
         </h3>
         {hintOpen && <div role="tooltip" className="dsh-chat-preference-hint-popover">
-          {t('缓存网页时，再次切回CHAT模式时无需等待加载，但期间无法打开开发者工具（F12）；立即释放时，在HARNESS下可以使用（F12），但切回CHAT模式时会重新加载网页；延迟释放兼顾两者，会在离开CHAT一段时间后释放缓存。')}
+          {t('缓存CHAT时，切换至CHAT模式时无需等待加载，但CHAT存在期间无法打开开发者工具（F12）；释放CHAT缓存后，切换至CHAT模式需要重新加载数据。')}
         </div>}
       </div>
       <div className="dsh-chat-preference-select">

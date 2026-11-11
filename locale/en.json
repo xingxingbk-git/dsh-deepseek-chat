@@ -149,6 +149,13 @@
     "附件保存失败，请重试": "Could not save the attachment, please retry",
     "附件超过 16 MB，无法保存": "The attachment exceeds 16 MB and cannot be saved",
     "附件已保存": "Attachment saved",
-    "附件已开始下载": "Download started"
+    "附件已开始下载": "Download started",
+    "快捷键": "Shortcuts",
+    "CHAT/HARNESS模式切换快捷键。当两个快捷键相同时，该快捷键可在两个模式之间来回切换。": "CHAT/HARNESS mode switch shortcuts. When both bindings are identical, that shortcut toggles between the two modes.",
+    "缓存策略": "Cache policy",
+    "保持缓存": "Keep cached",
+    "延迟释放": "Release after delay",
+    "立即释放": "Release immediately",
+    "缓存CHAT时，切换至CHAT模式时无需等待加载，但CHAT存在期间无法打开开发者工具（F12）；释放CHAT缓存后，切换至CHAT模式需要重新加载数据。": "While CHAT is cached, switching to CHAT needs no loading, but Developer Tools (F12) are unavailable while the cached page exists. After the CHAT cache is released, switching to CHAT reloads the data."
   }
 }

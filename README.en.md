@@ -105,9 +105,9 @@ CHAT uses the website's own sign-in flow; the plugin never reads passwords or co
 
 **Settings → Chat settings → Switch buttons** offers text and icon styles. In text style both labels are editable (up to 10 columns; full-width characters count as two) and applied after **Save**; narrow sidebars truncate them with a tooltip.
 
-### Shortcut switching
+### Shortcuts
 
-**Settings → Chat settings → Mode switch shortcuts**:
+**Settings → Chat settings → Shortcuts**:
 
 - The switch is on by default; enabling it shows the left and right capture fields plus a Save button; changes apply after Save.
 - Both default to `Tab`, which toggles between modes. When they are different, the left field switches to CHAT and the right field switches to HARNESS.
@@ -117,13 +117,13 @@ CHAT uses the website's own sign-in flow; the plugin never reads passwords or co
 - If a captured combination is reserved by the system or browser, the field warns about the conflict and does not store it.
 - The `?` next to the title explains the scope.
 
-### Website caching
+### Cache policy
 
-**Settings → Chat settings → CHAT webpage cache**:
+**Settings → Chat settings → Cache policy**:
 
 | Policy | Returning to CHAT | Developer Tools (F12) |
 | --- | --- | --- |
-| Cache page (default) | No reload | Unavailable while cached |
+| Keep cached (default) | No reload | Unavailable while cached |
 | Release immediately | Reloads | Available in HARNESS |
 | Release after delay | Reload-free for N seconds | Available after release |
 

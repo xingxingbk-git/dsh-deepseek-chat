@@ -61,15 +61,16 @@ window.fixtureDone = (async () => {
   const prefixStyle = getComputedStyle(document.querySelector('.dsh-chat-shortcut-prefix'))
   check('the prefix is divided from the capture area by a line',
     parseFloat(prefixStyle.borderRightWidth) > 0 && prefixStyle.borderRightStyle !== 'none')
-  check('the section is titled mode switch shortcuts', section().textContent.includes('模式切换快捷键') && !section().textContent.includes('快捷键切换模式'))
+  const shortcutTitle = section().querySelector('h4')
+  check('the section is titled shortcuts', Boolean(shortcutTitle) && shortcutTitle.textContent.startsWith('快捷键') && !shortcutTitle.textContent.includes('模式切换快捷键'))
   check('the switch sits on the right side of the title row and restore is gone',
     Boolean(headerRow?.querySelector('button[role="switch"]')) && Boolean(headerRow?.querySelector('.dsh-chat-preference-hint'))
     && !headerRow.textContent.includes('恢复默认') && !section().textContent.includes('恢复默认'))
   check('the toggle note is collapsed into the question hint, not shown inline',
-    !section().textContent.includes('两个快捷键相同时') && Boolean(hintButton))
+    !section().textContent.includes('当两个快捷键相同时') && Boolean(hintButton))
   flushSync(() => hintButton.click()); await frame()
   check('the question hint explains the same-binding toggle rule',
-    document.querySelector('.dsh-chat-preference-hint-popover')?.textContent.includes('两个快捷键相同时'))
+    document.querySelector('.dsh-chat-preference-hint-popover')?.textContent.includes('当两个快捷键相同时'))
   flushSync(() => hintButton.click()); await frame()
   check('the hint closes again on a second click', !document.querySelector('.dsh-chat-preference-hint-popover'))
   const aboveInputs = [...document.querySelectorAll('.dsh-chat-label-input')]
