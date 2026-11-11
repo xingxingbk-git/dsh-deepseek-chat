@@ -3,7 +3,7 @@
 export function collapseWebsiteSidebar(doc: Document, track: HTMLElement): boolean {
   const attempt='data-dsh-chat-native-collapse-attempt'
   if(doc.defaultView?.location.origin!=='https://chat.deepseek.com' || doc.documentElement.hasAttribute(attempt)
-    || !track.hasAttribute('data-dsh-chat-navigation') || !track.querySelector('[data-dsh-chat-profile-confirmed="footer-v1"]')) return false
+    || !track.hasAttribute('data-dsh-chat-navigation') || !track.querySelector('[data-dsh-chat-profile-confirmed]')) return false
   const sheet=(doc.getElementById('dsh-chat-website-navigation-style') as HTMLStyleElement|null)?.sheet
   const originalStyle=track.getAttribute('style');const disabled=sheet?.disabled
   try {

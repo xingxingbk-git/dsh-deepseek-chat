@@ -13,6 +13,7 @@ import type { WebsiteFile } from './website-downloads.js'
 import { holdsWebsiteGuest, resumeWebsiteUrl } from './website-guest.js'
 import { DEFAULT_SWITCH_PREFERENCES } from './preferences.js'
 import { createWebsiteBootstrap, isExternalAuthUrl, WEBSITE_DESKTOP_WIDTH } from './website-bootstrap.js'
+import { parseComposerFocusResult, websiteComposerFocusScript } from './website-composer-focus.js'
 
 const WEBSITE_URL = 'https://chat.deepseek.com/'
 
@@ -96,6 +97,25 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
   const [externalSignIn, setExternalSignIn] = useState(false)
   const needsRecovery = useRef(false)
   const previousMode = useRef(state.mode)
+  const composerFocus = useRef<(() => void) | null>(null)
+  const composerFocusPending = useRef(false)
+  const requestComposerFocus = () => {
+    composerFocusPending.current = true
+    composerFocus.current?.()
+  }
+  const enteredChat = useRef(state.mode)
+  useEffect(() => {
+    const entered = enteredChat.current !== 'chat' && state.mode === 'chat'
+    enteredChat.current = state.mode
+    if (!entered || !state.modeEnabled || state.settingsOpen) return
+    requestComposerFocus()
+  }, [state.mode, state.modeEnabled, state.settingsOpen])
+  // The guest may only become visible after its data load and layout proof.
+  // Re-request focus when the presentation is ready, not only when CHAT opened.
+  useEffect(() => {
+    if (!presentationReady || state.mode !== 'chat' || !state.modeEnabled || state.settingsOpen) return
+    requestComposerFocus()
+  }, [presentationReady, state.mode, state.modeEnabled, state.settingsOpen])
   const guest = useRef<WebsiteWebview | null>(null)
   const guestEvents = useRef<AbortController | null>(null)
   const reloadGuest = useRef<(() => void) | null>(null)
@@ -281,6 +301,48 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     const approvedOrigin = () => {
       try { return new URL(current.getURL()).origin==='https://chat.deepseek.com' } catch { return false }
     }
+    composerFocus.current = null
+    const waitFocusFrame = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
+    // The website can still be loading its data after CHAT is shown. Keep trying
+    // for a bounded window, then stop so a deliberate click is never chased.
+    const COMPOSER_FOCUS_WINDOW = 30_000
+    const COMPOSER_FOCUS_FAST = 1_500
+    let composerFocusToken = 0
+    const startComposerFocus = () => {
+      const token = ++composerFocusToken
+      void (async () => {
+        const started = Date.now()
+        while (!events.signal.aborted && token === composerFocusToken) {
+          const snapshot = bridge.getSnapshot()
+          if (snapshot.mode !== 'chat' || !snapshot.modeEnabled || snapshot.settingsOpen) return
+          if (Date.now() - started > COMPOSER_FOCUS_WINDOW) return
+          // A hidden guest cannot take keyboard focus. Give the webview itself
+          // focus first, exactly like clicking the page, then focus the composer.
+          if (active() && approvedOrigin() && documentReady && current.getClientRects().length > 0) {
+            try { current.focus() } catch { /* focus is best effort */ }
+            try {
+              if (parseComposerFocusResult(await executeScript(websiteComposerFocusScript()))) {
+                // The website can replace its composer after the initial data load,
+                // so re-confirm once the presentation has settled.
+                await waitFocusFrame(900)
+                if (events.signal.aborted || token !== composerFocusToken) return
+                const settledSnapshot = bridge.getSnapshot()
+                if (settledSnapshot.mode !== 'chat' || !settledSnapshot.modeEnabled || settledSnapshot.settingsOpen) return
+                if (active() && approvedOrigin() && documentReady && current.getClientRects().length > 0) {
+                  try { current.focus() } catch { /* best effort */ }
+                  try { await executeScript(websiteComposerFocusScript()) } catch { /* page may be repainting */ }
+                }
+                return
+              }
+            } catch { /* the guest may still be repainting or loading its data */ }
+          }
+          await waitFocusFrame(Date.now() - started < COMPOSER_FOCUS_FAST ? 150 : 400)
+        }
+      })()
+    }
+    composerFocus.current = () => { composerFocusPending.current = false; startComposerFocus() }
+    if (composerFocusPending.current) composerFocus.current()
+    events.signal.addEventListener('abort', () => { composerFocus.current = null }, { once: true })
     const prepareSession = async (): Promise<boolean> => {
       if(restorationAttempted) return true
       restorationAttempted=true
@@ -464,7 +526,10 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
             finishNavigationRefresh('无法刷新官网对话列表，请重试。',refreshRequest)
           }
         })
-      } else queued = queued.then(() => adapt(command)).then(() => adapt(snapshotCommand()))
+      } else {
+        queued = queued.then(() => adapt(command)).then(() => adapt(snapshotCommand()))
+        if (command.type === 'open' || command.type === 'new') queued = queued.then(() => { composerFocus.current?.() })
+      }
       return queued
     })
     const timer = setInterval(()=>{if(Date.now()-lastPolled>=(Date.now()<fastPollingUntil ? 200 : 1200)) syncNavigation()},200)

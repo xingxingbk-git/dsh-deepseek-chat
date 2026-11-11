@@ -7,6 +7,11 @@ import { runHeadlessFixture } from './run-headless-fixture.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const negative = process.argv.includes('--negative-control')
+for (const consumer of ['src/website-conversation-actions.ts', 'src/website-sidebar-collapse.ts']) {
+  const source = await readFile(path.join(root, consumer), 'utf8')
+  assert(!source.includes('profile-confirmed="footer-v1"'), `${consumer} must accept both avatar proofs`)
+  assert(source.includes('[data-dsh-chat-profile-confirmed]'), `${consumer} must key on the verified proof`)
+}
 const bundle = await build({absWorkingDir:root,entryPoints:['tests/browser/website-text-avatar.fixture.js'],bundle:true,write:false,format:'iife',platform:'browser',target:'chrome130',plugins:negative?[{name:'remove-text-avatar-support',setup(plugin){
   plugin.onLoad({filter:/src[\\/]website-navigation\.ts$/},async args=>({contents:(await readFile(args.path,'utf8')).replace('const textProfileRows = track.querySelectorAll<HTMLElement>(\'div[tabindex="0"]\')','const textProfileRows: HTMLElement[] = []'),loader:'ts'}))
 }}]:[]})

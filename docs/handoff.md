@@ -2,6 +2,10 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
+## 2026-11-11 未发布改动：文字头像修复合并后的两处补齐
+
+把外部贡献的文字头像识别合并进本地 main（本地合并提交 `ab240fa`，未推送；冲突仅版本相关的 package.json/lib/build-manifest，版本保持已发布 0.2.23 并按源码重建 lib）。审查发现该修复把 proof 值扩为 `footer-v1`/`footer-text-v1`，但另有两个消费者仍硬编码 `footer-v1`：`src/website-conversation-actions.ts`（文字头像账号下重命名/置顶/分享/删除会报错）与 `src/website-sidebar-collapse.ts`（官网侧栏折叠失效）。已改为按属性存在 `[data-dsh-chat-profile-confirmed]` 匹配两种证明，并在 `check:website-text-avatar` 中加源码回归，防止再次遗漏。随后叠加本地的自动聚焦/设置样式/文案改动，重建 lib，跑 text-avatar 31+负对照、composer 单元/fixture、全部门禁、5 组窗口与构建 37 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.23-0963f0bc1608.tgz`（243527bytes/45文件）已装 desktop（0.2.23 本地候选）。未提交/未推送（本地工作区待用户指令）。
+
 ## 2026-11-11 未发布改动：文字头像账号的密码登录后空白（待发布 0.2.24）
 
 Windows DSH 0.2.2-rc.1、正式插件 0.2.23 实机复现：账号密码登录后官网已经进入 `/`，侧栏、账号区和输入框存在，文档为 complete；账号头像是包含一个字母的 div，旁边另有昵称，整个文档没有 img。旧账号识别只从 img 起步，且昵称读取拒绝第二个文字叶子，随后 profile fallback 将 body 设为透明并让 guest 隐藏，最终适配超时。此证据定位文字头像结构，不把国际账号身份泛化为所有账号的原因。
@@ -15,6 +19,18 @@ Windows DSH 0.2.2-rc.1、正式插件 0.2.23 实机复现：账号密码登录�
 ## 2026-11-11 11:40 README 整理（0.2.23）
 
 按当前实现重新核对中英 README：删除已移除的「恢复默认」快捷键说明；修正快捷键描述为左侧切 CHAT、右侧切 HARNESS，补充保存后生效、空字段提示/保存禁用、冲突时提示且不写入；明确 CHAT 网页内按键由官网处理、不触发插件快捷键（删除原先错误的「网页内请用组合键」）；缓存设置标题改为「CHAT网页是否缓存」；切换按钮文案改为「最多 10 列宽（全角按 2 列计）」；限制段同步快捷键作用范围。仅文档修正，未改代码与版本。
+
+## 2026-11-11 15:20 未发布改动：聚焦修复二（页面呈现后重聚焦 + 加载完成后确认）
+
+用户反馈第二种场景仍未聚焦：切到 CHAT 时先加载网页数据、加载完才进入聊天界面。判断：首次聚焦可能发生在版面适配/呈现之前的隐藏阶段，或官网在数据加载完成后重建 composer 导致焦点丢失。修复：① 新增 `presentationReady` 监听——页面真正呈现后再请求一次聚焦（覆盖"先加载后进入"）；② 聚焦成功后等待 900ms 再确认一次（`waitFocusFrame(900)`），若官网在数据加载完成时替换了输入框则补聚焦一次；仍受 30 秒窗口、模式/设置页取消约束。回归新增「数据加载完成后重新确认聚焦」用例（fixture），单元/源码断言同步。候选 `c72701dc5cad`（243264bytes/45文件）已装 desktop；待用户完整重开实测。未提交/未推送。
+
+## 2026-11-11 15:05 未发布改动：聚焦修复（webview 先获得键盘焦点）
+
+用户实测候选未生效（进程 14:19 已加载 14:16 安装的候选，排除未重启）。根因判断：`executeJavaScript` 里对 composer 调 `focus()` 只会设置页面内 `activeElement`，但**宿主 webview 容器本身没有键盘焦点**时，用户仍需点击网页才能输入；普通浏览器打开官网之所以自动聚焦，是因为浏览器窗口本身持有焦点。修复：聚焦循环在 guest 可见（`getClientRects().length>0`）后先 `current.focus()` 让 webview 获得焦点（等价点击页面），再执行 guest 内聚焦脚本；并新增 `composerFocusPending` 处理"进入 CHAT 的请求先于 guest effect 就绪"的时序。重新构建候选 `a664e5a3d4aa`（243153bytes/45文件）已装 desktop；待用户完整重开后实测。仍未提交/未推送。
+
+## 2026-11-11 14:50 未发布改动：CHAT 自动聚焦输入框
+
+新增：切到 CHAT、切换会话、新建会话后，自动把焦点放到官网输入框。实现为 guest 内的一次性聚焦脚本（只返回布尔，不读草稿、不写全局状态）：在可见的 textarea/contenteditable/role=textbox 中选面积最大、靠底部的 composer，聚焦并置光标末尾；已聚焦则不重复。触发点：`enteredChat` 检测到 harness→chat；命令 `open`/`new` 执行完成后。针对「切到 CHAT 后网页还在加载数据」的情况，聚焦在**最多 30 秒的窗口内持续重试**（前 1.5 秒每 150ms、之后每 400ms），等待 documentReady 与 composer 出现，成功一次即停止；切回 HARNESS、打开设置或组件卸载会取消。新增 `src/website-composer-focus.ts`、单元测试 5 项、fixture 4 项（新建/打开/切回 CHAT/加载延迟重试）；全部门禁、负对照、5 组窗口×119、构建 37 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.23-d633eea7a5fd.tgz`（243075 bytes/45文件）已装 desktop（0.2.23，同号本地候选）。**未提交、未推送**（按用户要求改动留本地）。
 
 ## 2026-11-11 14:35 版本管理纠正：项目版本回到已发布 0.2.23
 

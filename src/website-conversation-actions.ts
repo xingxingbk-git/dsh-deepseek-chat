@@ -6,7 +6,7 @@ export async function performWebsiteConversationAction(doc: Document, command: E
   const labels = {rename: /^(重命名|Rename)$/i, pin: /^(置顶|Pin)$/i, unpin: /^(取消置顶|Unpin)$/i, share: /^(分享|Share)$/i, delete: /^(删除|Delete)$/i}
   if(command.action==='rename' && (typeof command.title!=='string' || !command.title.trim() || command.title.trim().length>300)) return error
   const sidebar = doc.querySelector('[data-dsh-chat-navigation]')
-  const profile = doc.querySelector('[data-dsh-chat-profile-confirmed="footer-v1"]')
+  const profile = doc.querySelector('[data-dsh-chat-profile-confirmed]')
   if (!sidebar || !profile || doc.defaultView?.location.origin !== 'https://chat.deepseek.com'
     || !/^https:\/\/chat\.deepseek\.com\/a\/chat\/s\/[a-zA-Z0-9-]+$/.test(command.href) || !labels[command.action]) return error
   if (doc.querySelector('[role="dialog"],.ds-modal-content')) return '请先关闭官网当前弹窗，再操作对话。'

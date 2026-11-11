@@ -48,6 +48,11 @@ window.fixtureDone = (async () => {
     node.executeJavaScript = async script => {
       data.executions++
       if (script === websiteSessionCaptureScript()) return null
+      if (script.includes('focusWebsiteComposer')) {
+        data.composerFocuses = (data.composerFocuses || 0) + 1
+        if ((data.focusDelay || 0) > 0) { data.focusDelay--; return false }
+        return true
+      }
       if (script.includes('websiteRefreshReadiness')) return data.refreshReadiness
       if (script.includes('adaptWebsiteNavigation')) {
         if (data.projection) { const pending = data.projection; data.projection = null; return pending }
@@ -92,6 +97,24 @@ window.fixtureDone = (async () => {
   data.viewportWidthOverride = undefined
   await until(() => first.style.opacity === '1')
   check('fresh load and a second actual-width projection reveal the same guest', first.style.minWidth === '' && guest() === first && data.reloads === 0)
+  // Entering CHAT / opening / creating a conversation focuses the website composer.
+  const focusCount = () => data.composerFocuses || 0
+  bridge.commandWebsite({ type: 'new' }); await until(() => focusCount() > 0)
+  check('creating a conversation focuses the website composer', focusCount() > 0)
+  const beforeSettled = focusCount()
+  bridge.commandWebsite({ type: 'new' }); await until(() => focusCount() >= beforeSettled + 2)
+  check('composer focus is re-confirmed after the website data finishes loading', focusCount() >= beforeSettled + 2)
+  data.focusDelay = 3
+  const beforeDelayed = focusCount()
+  bridge.commandWebsite({ type: 'new' }); await until(() => focusCount() >= beforeDelayed + 4)
+  check('composer focus keeps waiting while the website is still loading its data', focusCount() >= beforeDelayed + 4)
+  const beforeOpen = focusCount()
+  bridge.commandWebsite({ type: 'open', href: ready.conversations[0].href }); await until(() => focusCount() > beforeOpen)
+  check('opening a conversation focuses the website composer', focusCount() > beforeOpen)
+  const beforeEnter = focusCount()
+  patch({ mode: 'harness' }); await settle()
+  patch({ mode: 'chat' }); await until(() => focusCount() > beforeEnter)
+  check('switching back to CHAT focuses the website composer', focusCount() > beforeEnter)
   data.proof = false; data.needsDesktopChrome = true
   await until(() => first.style.minWidth === '1024px')
   check('a first header after new-chat is measured on the same document without reload', data.reloads === 0 && loads.length === 1 && guest() === first)
