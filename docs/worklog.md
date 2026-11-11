@@ -1,3 +1,7 @@
+## 2026-11-11 0.2.23 已公开发布 npm
+
+用户实测第三方登录与常规功能正常后要求发布。同步 README 版本/安装示例，类型/构建/分发通过；正式包 240761bytes/44文件 SHA256=5e2cd85cbacf86896d5fa165fe3ca71dec0eba1b9d94a9730ff0239765b5710b。0700 临时目录 + 0600 npmrc/cache + 网页登录（whoami=xingxingbk），用户完成发布 2FA；唯一一次 npm publish 退出0并返回 + dsh-deepseek-chat@0.2.23（processing）。传播后匿名核验完整/install-v1 latest=0.2.23、版本存在（30 个版本）；公开 tarball 240761bytes 逐字节同正式包，integrity/shasum 一致；临时会话 logout、目录删除、PTY 关闭，未使用原 npmrc。本机 desktop 已装同字节候选，未重装/重启。
+
 ## 2026-11-11 0.2.23 第三方登录页通用显示（外部贡献 + 泛化）
 
 将外部贡献的 Google 登录修复并入 0.2.22 之后的 main，并泛化为通用策略：登录进行中且主文档为外部 HTTPS 认证页（非 deepseek.com、默认端口、无凭据）、DOM 就绪时显示原始页面，取消布局适配计时并恢复窗口宽度；Google/Apple/微信/Microsoft/企业 SSO 统一适用；外部页不执行 DeepSeek 布局/会话/偏好/下载脚本、不冒充 DeepSeek 已登录；返回 DeepSeek 后恢复原有加载与布局证明。普通账号密码登录仍走原有同源流程。合并时解决 lib/build-manifest、bootstrap 检查脚本与 README/文档的冲突；版本递增 0.2.22→0.2.23，重新生成 lib；README 中英补充第三方登录说明与未复现的密码登录警告。Windows 构建路径分隔符修复与 Windows 负对照匹配修复一并合入。
