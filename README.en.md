@@ -103,23 +103,23 @@ CHAT uses the website's own sign-in flow; the plugin never reads passwords or co
 
 ![Text style CHAT and HARNESS switcher](<docs/images/mode-switch-text.webp>)
 
-**Settings → Chat settings → Switch buttons** offers text and icon styles. In text style both labels are editable (up to 10 columns wide) and applied after **Save**; narrow sidebars truncate them with a tooltip.
+**Settings → Chat settings → Switch buttons** offers text and icon styles. In text style both labels are editable (up to 10 columns; full-width characters count as two) and applied after **Save**; narrow sidebars truncate them with a tooltip.
 
 ### Shortcut switching
 
 **Settings → Chat settings → Mode switch shortcuts**:
 
-- The switch is on by default; enabling it shows two capture fields and a Save button.
-- Both default to `Tab`, which toggles between modes. Different bindings target CHAT and HARNESS respectively.
-- Combinations are supported (e.g. `Ctrl+Shift+X`, shown as `Cmd` on macOS); focus a field and press the keys, `Esc` cancels and `Backspace` clears.
+- The switch is on by default; enabling it shows the left and right capture fields plus a Save button; changes apply after Save.
+- Both default to `Tab`, which toggles between modes. When they are different, the left field switches to CHAT and the right field switches to HARNESS.
+- Combinations are supported (e.g. `Ctrl+Shift+X`; the Meta key is shown as `Cmd` on macOS); focus a field and press the keys, `Esc` cancels and `Backspace` clears. An emptied field shows an in-field hint and Save stays disabled.
 - Two identical bindings are intentional: pressing once toggles once, not a conflict.
-- **Restore defaults** fills both fields with `Tab`; press Save to apply.
-- Shortcuts only fire when the DSH window is focused and focus is not in a text field or the CHAT website. **Tab inside the website stays native**; use a combination such as `Ctrl+Shift+X` there.
-- Combinations reserved by the system or browser are rejected with a warning.
+- Shortcuts only fire when the DSH window is focused and focus is not in a text field or another editable area. **Keys inside the CHAT website stay with the website** and do not trigger plugin shortcuts; use the switcher or click back into the DSH shell.
+- If a captured combination is reserved by the system or browser, the field warns about the conflict and does not store it.
+- The `?` next to the title explains the scope.
 
 ### Website caching
 
-**Settings → Chat settings → CHAT website**:
+**Settings → Chat settings → CHAT webpage cache**:
 
 | Policy | Returning to CHAT | Developer Tools (F12) |
 | --- | --- | --- |
@@ -138,7 +138,7 @@ The delay accepts 5–3600 seconds.
 ## Limitations
 
 - **DSH Desktop only**; see *Compatibility*. DSH Web is not supported.
-- Shortcuts work only while the DSH window is focused and cannot be registered globally; `Tab` inside the website is not intercepted.
+- Shortcuts work only while the DSH window is focused and not inside a text field or another editable area, and cannot be registered globally; keys inside the CHAT website stay with the website and do not trigger plugin shortcuts.
 - F12 is unavailable while the page is cached; choose immediate or delayed release to use it.
 - Downloads only cover user-clicked common formats up to 16 MB; right-click saves, iframe downloads and programmatic downloads are not handled.
 - File-picker and microphone permissions are owned by the DSH host.
