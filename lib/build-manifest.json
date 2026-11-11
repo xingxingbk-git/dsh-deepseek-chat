@@ -1,13 +1,13 @@
 {
   "format": 1,
   "name": "dsh-deepseek-chat",
-  "version": "0.2.26",
+  "version": "0.2.23",
   "inputs": {
     "assets/icon.svg": "8ea4f1d75f655c24e7f42fd5ed76763872d2c2c9d0661e14d64bcbc4dc5f84c8",
     "cordis.patch.yml": "d68da47a95a1800cbc29de786bf910d7327564715c13935760e485ee7408bb51",
     "locale/en.json": "5a4265b401b779ab6224fefe72b3961b0fbce881aa784657ff80c4caaf450fba",
     "locale/zh-CN.json": "b2f1a9886ad81e6fcb252df651dc18fa4b96f466d9df53de4b3de0d405ad1f81",
-    "package.json": "43392ebc4555dbb23e950aec405fcc13c73c9cb7205cd196b805a3a1cd90eefb",
+    "package.json": "1468ec29f781c7f3cf0eb9955f95fec6fbe2e86fcd591bc5506ae46d44184147",
     "pnpm-lock.yaml": "b47388509b9a3dde4e96b0b08dca43973024282e1fae4340ff7728cab002a410",
     "scripts/build.mjs": "a3fcbb7d8dad12706be8e8eb0bd2ce15023d3e087aab3d775bf90fc85e163f74",
     "scripts/check-artifact.mjs": "6fec38fb74e41dfeacef7147280c69854087d0665747d7d65137cc98f9dc673b",
