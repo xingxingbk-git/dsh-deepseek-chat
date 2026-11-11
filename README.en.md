@@ -134,6 +134,7 @@ The delay accepts 5–3600 seconds.
 - Code-block *Download*, Mermaid SVG/PNG/source exports, images and common attachments (PDF, Office, archives, media) save locally, up to 16 MB per file.
 - External links open in your default browser; failures show a non-blocking notice.
 - Right-click *Save as*, file uploads inside the website and microphone access remain limited by the DSH host.
+- Attachment saving depends on the DSH 0.2.2+ file-save capability; on 0.2.0 / 0.2.1 attachments fail with a notice while everything else keeps working.
 
 ## Limitations
 
@@ -156,7 +157,7 @@ The plugin never stores passwords, cookies or message bodies, never reads tokens
 
 ## Compatibility
 
-DSH Desktop `0.2.0-rc.2`, the 0.2.1 line from `0.2.1-rc.1`, and the 0.2.2 line from `0.2.2-rc.1`. Earlier 0.2.2 prereleases and 0.2.3+ need adaptation.
+Works with **DSH Desktop 0.2.x** from `0.2.0-rc.1`, covering the 0.2.0, 0.2.1 and 0.2.2 release lines (RCs and stable releases). Early internal prereleases of 0.2.1/0.2.2 and 0.2.3+ need re-adaptation.
 
 ## Uninstall
 

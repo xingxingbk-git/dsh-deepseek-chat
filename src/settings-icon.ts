@@ -14,14 +14,27 @@ export function bindChatSettingsIconSlot(
 ): () => void {
   let disposed = false
   let releaseLegacy = () => {}
-  const legacy = () => {
-    if (!disposed && doc && !slots.spec('settings.section.icon')) releaseLegacy = bindChatSettingsIcon(doc)
+  // The icon seat only exists on newer shells (0.2.2+). Older 0.2.0/0.2.1
+  // shells use the approved DOM fallback; an unknown slot must never break
+  // the client startup if inject() rejects it.
+  type CompatSlots = {
+    spec(name: string): unknown
+    inject(name: string, callback: () => () => void): () => void
+    register(options: { name: string; id: string }, component: unknown): () => void
   }
-  const releaseSlot = slots.inject('settings.section.icon', () => {
-    releaseLegacy(); releaseLegacy = () => {}
-    const unregister = slots.register({ name: 'settings.section.icon', id: CHAT_SETTINGS_SECTION_ID }, component)
-    return () => { unregister(); legacy() }
-  })
+  const compat = slots as unknown as CompatSlots
+  const seat = 'settings.section.icon'
+  const legacy = () => {
+    if (!disposed && doc && !compat.spec(seat)) releaseLegacy = bindChatSettingsIcon(doc)
+  }
+  let releaseSlot = () => {}
+  try {
+    releaseSlot = compat.inject(seat, () => {
+      releaseLegacy(); releaseLegacy = () => {}
+      const unregister = compat.register({ name: seat, id: CHAT_SETTINGS_SECTION_ID }, component)
+      return () => { unregister(); legacy() }
+    })
+  } catch { releaseSlot = () => {} }
   legacy()
   return () => {
     if (disposed) return

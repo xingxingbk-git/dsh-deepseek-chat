@@ -6,6 +6,16 @@
 
 按当前实现重新核对中英 README：删除已移除的「恢复默认」快捷键说明；修正快捷键描述为左侧切 CHAT、右侧切 HARNESS，补充保存后生效、空字段提示/保存禁用、冲突时提示且不写入；明确 CHAT 网页内按键由官网处理、不触发插件快捷键（删除原先错误的「网页内请用组合键」）；缓存设置标题改为「CHAT网页是否缓存」；切换按钮文案改为「最多 10 列宽（全角按 2 列计）」；限制段同步快捷键作用范围。仅文档修正，未改代码与版本。
 
+## 2026-11-11 12:30 0.2.24 候选：DSH 0.2 全线兼容与 README 兼容范围整理
+
+按用户要求把兼容范围从「0.2.0-rc.2 / 0.2.1-rc.1 / 0.2.2-rc.1 分段枚举」扩展为 DSH 0.2 全线：`>=0.2.0-rc.1 <0.2.1-0 || >=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0`（engine 与 3 个 DSH peers 一致），覆盖 0.2.0 / 0.2.1 / 0.2.2 三条发布线（含各线 RC 与正式版），仍排除 0.2.1/0.2.2 早期内部预发与全部 0.2.3 预发。
+
+兼容性核对：下载 0.2.0-rc.1 与 rc.2 官方 SDK 包逐包 diff——除 primitives 在 rc.2 新增 `MenuGroup`/`observeStickyMenuGroups`（插件未使用）外 API 一致；把 node_modules 替换为 0.2.0-rc.1 全套 SDK 类型跑 tsc，修复两处类型/能力差异后通过：①`settings.section.icon` slot 为 0.2.2 新增，旧壳无此 seat，改为 spec 检测 + inject try/catch + DOM fallback；②Menu 的 `minWidthFromAnchor` 为后加 prop，改为兼容 spread。0.2.0/0.2.1 无 `dsh-client-ui-file-actions`（0.2.2-alpha.3 起才有），附件保存在该两线不可用（已有 optional inject 防护，会提示失败），其余功能正常。
+
+验证：rc.1 SDK 类型 tsc 通过；compat 29 版本×4 字段、tsc、sdk 契约、bootstrap/header/guest/window/title/brand/sidebar/presentation/links/downloads/sidebar-022/switcher/shortcuts/capture、两项负对照、5 组窗口×119、构建 36 产物/4 模块全部通过。README 中英兼容范围已改为「0.2.x（从 0.2.0-rc.1 起，三条发布线）」，并补充 0.2.0/0.2.1 附件保存限制。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.24-8cb4ede480c7.tgz`（241253 bytes/44文件，SHA256 `8cb4ede480c73e90221c65269c50fd944a401722037314e06fea5c9149b005a1`）已装 desktop，44/44 同包、依赖与 lock 锁定；未发布 npm、未自动重启。0.2.0-rc.1 无该版本安装包，未实机验证，仅有类型/契约与合成回归证据。
+
 ## 2026-11-11 11:10 0.2.23 已公开发布 npm
 
 用户实测第三方登录与常规功能正常后要求发布。中英 README 发布版/安装示例已同步 0.2.23；类型、构建与分发通过；正式包 `artifacts/dsh-deepseek-chat-0.2.23-5e2cd85cbacf.tgz`（240761 bytes/44文件，SHA256 `5e2cd85cbacf86896d5fa165fe3ca71dec0eba1b9d94a9730ff0239765b5710b`）。

@@ -689,7 +689,7 @@ function ChatPresentationSettings({bridge,state}: {bridge:DshChatUIBridge;state:
     <div className="dsh-chat-preference-row">
       <h3 id={headingId}>{t('切换按钮')}</h3>
       <div className="dsh-chat-preference-select">
-        <Menu open={menuOpen && enabled && !busy} portal minWidthFromAnchor autoFocus align="end"
+        <Menu open={menuOpen && enabled && !busy} {...{ portal: true, minWidthFromAnchor: true, autoFocus: true }} align="end"
           className="dsh-chat-style-menu" selectedId={preferences.switchStyle}
           items={[{id:'text',label:t('文字样式')},{id:'icon',label:t('图标样式')}]}
           onClose={()=>setMenuOpen(false)} onSelect={value=>{setMenuOpen(false);if(enabled && !busy && (value==='text' || value==='icon'))void bridge.setSwitchPreference?.('switchStyle',value)}}
@@ -764,7 +764,7 @@ function WebsiteLifetimeSettings({bridge,state}:{bridge:DshChatUIBridge;state:Ds
         </div>}
       </div>
       <div className="dsh-chat-preference-select">
-        <Menu open={menuOpen && enabled && !saving} portal minWidthFromAnchor autoFocus align="end"
+        <Menu open={menuOpen && enabled && !saving} {...{ portal: true, minWidthFromAnchor: true, autoFocus: true }} align="end"
           className="dsh-chat-style-menu" selectedId={preferences.websiteLifetime}
           items={options.map(option=>({id:option.id,label:t(option.label)}))}
           onClose={()=>setMenuOpen(false)} onSelect={optionId=>{setMenuOpen(false);if(optionId==='retain' || optionId==='delayed' || optionId==='immediate')void choose(optionId)}}
