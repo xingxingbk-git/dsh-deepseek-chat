@@ -1,5 +1,5 @@
-import type { StoredEntry } from '@deepseek-ai/dsh-client-ui-slots';
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
+import { guardHarnessSearchReplay } from './search-replay-guard.js';
 import type { WebsiteFile } from './website-downloads.js';
 import type { WebsiteCommand, WebsiteNavigation } from './website-navigation.js';
 import type { ChatLanguage } from './website-settings.js';
@@ -114,10 +114,8 @@ export declare function DshChatModeSelector({ bridge, state, compact }: DshChatB
 export declare function DshChatBrandName({ bridge }: PropsRuntime<'sidebar.brand.name'> & DshChatBridgeProps): import("react/jsx-runtime").JSX.Element;
 /** DOM siblings remain React descendants of the Windows New Session brand. */
 export declare function DshChatBrandControl({ bridge }: DshChatBridgeProps): import("react/jsx-runtime").JSX.Element;
-/** rc.2 replays its retained request counter on WorkspaceBrowser remount.
- * Adapt only the view hook; never mutate the host request store or actions. */
-export declare function guardHarnessSearchReplay(entry: StoredEntry): (() => void) | null;
 /** Only the middle browsing region changes; the shipped shell and Settings stay mounted. */
+export { guardHarnessSearchReplay };
 export declare function DshChatChatNavigation({ bridge, wide, expandSidebar }: PropsRuntime<'sidebar.workspaces'> & DshChatBridgeProps): import("react/jsx-runtime").JSX.Element;
 /** Measures only this plugin's own element; website content lives in the retained overlay. */
 export declare function DshChatChatPanel({ bridge }: PropsRuntime<'main'> & DshChatBridgeProps): import("react/jsx-runtime").JSX.Element;

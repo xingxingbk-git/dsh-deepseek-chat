@@ -1,3 +1,27 @@
+## 2026-11-11 搜索重放防护加固
+
+去掉 guard 对 slot children 键名的依赖，改为 locale/component/inject + 渲染时 hook 探测；回归覆盖无 children/三种旧新形态/首帧映射/清理。候选 92bd556817d8（245781bytes/47文件）已装 desktop。handoff 增加 DSH 升级检查清单。未提交/未推送。
+
+## 2026-11-11 发布 npm 0.2.25
+
+按顺序发布 0.2.25：网页登录+2FA，publish 后 registry 异步生效；公开 tarball 与正式包逐字节一致（246755bytes/48文件，SHA256 89cab74c21458df98f505ede54887c281aeebf74ea1213bbbf5295b9ff44e3cf），latest/dist-tags=0.2.25；临时凭据 logout、目录清理、PTY 关闭。本机 desktop 仍为 0.2.24 同内容候选 46d4661d77cd。Git 未提交/未推送。
+
+## 2026-11-11 Cmd+N 最终方案：保留转发 + registry webview 接管
+
+恢复 marker，插件包装 shortcuts 服务的 registry.dispatch：CHAT + webview 来源的 primary+N 重定向为 CHAT 新会话（其余 webview DSH 快捷键丢弃）；非 webview/HARNESS 原样；清理恢复。dsh-new-session 单测 5、window-contracts 48（假 shortcuts 服务）、bootstrap marker 断言、全部门禁/负对照/5组×119、构建 40 产物通过；候选 46d4661d77cd（246756bytes/48文件）已装 desktop。未提交/未推送。
+
+## 2026-11-11 方案 C 实施
+
+CHAT webview 不再带 data-sidebar-browser-frame，使 DSH 桌面快捷键转发在 renderer 侧被忽略；CHAT 内 Cmd+N 不再建 HARNESS 会话。副作用：CHAT 网页焦点时 DSH 桌面快捷键（Cmd+N/K/O、重命名、fork、归档）失效；输入/复制粘贴/插件快捷键/Cmd+W 不受影响。bootstrap 与 shortcuts 源码断言补充；全部门禁/负对照/5组×119、构建39产物通过；候选 709fdafa81eb（245957bytes/47文件）已装 desktop。未提交/未推送。
+
+## 2026-11-11 CHAT 网页焦点下 Cmd+N 根因
+
+主进程 app.asar /lib/main.js：guest webview 的 before-input-event 按快捷键表匹配后 preventDefault 并发送 shortcutsInput(kind:"webview")；renderer installNativeKeyboard 直接 dispatch session.new，绕过 DOM keydown，插件 renderer 拦截无效（仅外壳焦点有效）。候选缓解 A) 接受 B) DSH 设置改键 C) 限定移除 webview data-sidebar-browser-frame（副作用：CHAT 内桌面快捷键转发失效）。待用户选择。
+
+## 2026-11-11 未发布改动：HARNESS 搜索框重开与 CHAT 内 Cmd+N
+
+① HARNESS 搜索框重开：`guardHarnessSearchReplay` 只匹配旧 slot children，0.2.2-rc.1 已改为 session.row.action/directoryFlow → guard 未安装；修复匹配并抽到 `src/search-replay-guard.ts`，新增 check:sidebar-search-guard（4 项）。② Cmd+N：DSH session.new 快捷键在 CHAT 模式会启动 HARNESS 会话；宿主 window capture 拦截 primary+N → preventDefault/stopImmediatePropagation → CHAT 新会话；网页内注入脚本拦截并上报 `dsh-chat-shortcut:new`。shortcuts 12、bootstrap 78、guard 4、全部门禁/负对照/5组×119、构建 39 产物通过；候选 a83ee5f71101（245835bytes/47文件）已装 desktop。未提交/未推送。
+
 ## 2026-11-11 0.2.24 提交推送与收尾
 
 0.2.24 发布后整理文档：handoff 归档 0.2.24 过程记录、requirements 合并为 0.2.24 已发布段并更新现行总要求（附件/自动聚焦/快捷键）、roadmap 更新当前进度、AGENTS 当前状态改为已发布；工作区全部改动提交并推送 main。文档不记录变更请求操作过程，仅保留版本与合并提交。

@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..')
 // Dependency-free pure suite; no DSH, website or browser.
-for(const entry of ['tests/shortcuts.test.ts','tests/website-shortcuts.test.ts']){
+for(const entry of ['tests/shortcuts.test.ts','tests/website-shortcuts.test.ts','tests/dsh-new-session.test.ts']){
   const result=await build({absWorkingDir:root,entryPoints:[entry],bundle:true,write:false,format:'esm',platform:'node',target:'node22'})
   await import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0].text).toString('base64')}`)
 }
@@ -17,6 +17,8 @@ assert.match(client,/globalThis\.addEventListener\('keydown', handler as unknown
 assert.match(client,/globalThis\.removeEventListener\('keydown', handler as unknown as EventListener, true\)/)
 assert.match(client,/shouldHandleShortcut\(\{ enabled: true, modeEnabled: true, capturing,/)
 assert.match(client,/closest\('\[data-dsh-chat-shortcut-capture\]'\)/)
+assert.match(client,/event\.code === 'KeyN'/)
+assert.match(client,/bridge\.commandWebsite\(\{ type: 'new' \}\)/)
 assert.match(client,/shortcutAction\(event, switchPreferences\.shortcutChat, switchPreferences\.shortcutHarness\)/)
 assert.match(client,/selectMode: selected => \{ mode\.select\(selected\) \}/)
 assert.match(client,/event\.preventDefault\(\)/)
@@ -31,8 +33,15 @@ assert.match(ui,/'CHAT\/HARNESS模式切换快捷键。当两个快捷键相同�
 assert.match(styles,/\.dsh-chat-shortcut-guidance\{/)
 const surface=await readFile(path.join(root,'src/web-surface.tsx'),'utf8')
 assert.match(surface,/console-message/)
+assert.match(surface,/action === 'new'/)
+assert(surface.includes("'data-sidebar-browser-frame': 'webview'"), 'the CHAT guest must keep the DSH forwarding marker')
+assert.match(client,/takeOverDshWebviewShortcuts/)
+assert.match(client,/inject\(\['shortcuts'\]/)
 assert.match(surface,/websiteShortcutScript\(/)
 assert.match(surface,/parseWebsiteShortcutMessage\(/)
 assert.match(surface,/injectShortcuts\(\)/)
 assert.match(ui,/data-dsh-chat-shortcut-capture/)
+const websiteShortcuts=await readFile(path.join(root,'src/website-shortcuts.ts'),'utf8')
+assert.match(websiteShortcuts,/KeyN/)
+assert.match(websiteShortcuts,/primary/)
 console.log(JSON.stringify({passed:true,source:'pure shortcut contract plus production client wiring; no DSH or live window',cases:'suite above'},null,2))

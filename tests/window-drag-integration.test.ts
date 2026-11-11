@@ -117,6 +117,13 @@ function harness(options:{pendingMount?:boolean;desktop?:boolean;originalPanel?:
         const dispose=effect(()=>callback({...ctx,configForms:{get:()=>preferenceForm}}))
         return {dispose,then:dispose.then}
       }
+      if(dependencies.length===1 && dependencies[0]==='shortcuts') {
+        // Optional public shortcut service: the fake registry records the
+        // client's webview takeover and restores it on teardown.
+        const registry={dispatch:(gesture:unknown,context:unknown)=>({status:'pass' as const})}
+        const dispose=effect(()=>callback({...ctx,shortcuts:{registry}}))
+        return {dispose,then:dispose.then}
+      }
       assert.deepEqual(dependencies,['remote','remote.dshDeepseekChat'])
       const dispose=effect(()=>callback(ctx))
       return {dispose,then:dispose.then}

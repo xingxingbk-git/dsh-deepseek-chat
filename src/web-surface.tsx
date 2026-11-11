@@ -12,6 +12,7 @@ import { parseWebsiteDownload, websiteDownloadScript } from './website-downloads
 import type { WebsiteFile } from './website-downloads.js'
 import { holdsWebsiteGuest, resumeWebsiteUrl } from './website-guest.js'
 import { DEFAULT_SWITCH_PREFERENCES } from './preferences.js'
+import { shortcutPlatform } from './shortcuts.js'
 import { parseWebsiteShortcutMessage, websiteShortcutScript } from './website-shortcuts.js'
 import { createWebsiteBootstrap, isExternalAuthUrl, WEBSITE_DESKTOP_WIDTH } from './website-bootstrap.js'
 import { parseComposerFocusResult, websiteComposerFocusScript } from './website-composer-focus.js'
@@ -574,12 +575,15 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
       if (!action) return
       const snapshot = bridge.getSnapshot()
       if (snapshot.mode !== 'chat' || !snapshot.modeEnabled || snapshot.settingsOpen) return
+      if (action === 'new') { bridge.commandWebsite({ type: 'new' }); return }
       if (action === 'toggle') bridge.selectMode(snapshot.mode === 'chat' ? 'harness' : 'chat')
       else bridge.selectMode(action)
     }, { signal: events.signal })
     const shortcutConfig = () => {
       const preferences = bridge.getSnapshot().switchPreferences ?? DEFAULT_SWITCH_PREFERENCES
-      return { enabled: preferences.shortcutEnabled, chat: preferences.shortcutChat, harness: preferences.shortcutHarness }
+      const platform = shortcutPlatform(typeof navigator === 'undefined' ? '' : navigator.platform)
+      return { enabled: preferences.shortcutEnabled, chat: preferences.shortcutChat, harness: preferences.shortcutHarness,
+        primary: platform === 'mac' ? 'meta' as const : 'control' as const }
     }
     const injectShortcuts = () => {
       if (events.signal.aborted || !active() || !approvedOrigin() || !documentReady) return
@@ -765,6 +769,9 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
         partition: activeReservation.native.partition,
         src: `about:blank#${activeReservation.native.lease}`,
         allowpopups: '',
+        // DSH forwards desktop shortcuts from this marker into its shortcut
+        // registry. The client takes that webview path over while CHAT is active
+        // (redirecting primary+N to a website conversation), so keep the marker.
         'data-sidebar-browser-frame': 'webview',
         'aria-label': t(externalSignIn ? '外部登录页面' : 'DeepSeek 官网，登录、聊天和历史由网页提供'),
       })}

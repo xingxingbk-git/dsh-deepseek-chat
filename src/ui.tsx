@@ -11,6 +11,7 @@ import { acquireChatStyles, ensureChatStyles } from './styles.js'
 import { translate } from './i18n.js'
 import { readSurfaceBorderRadius } from './surface-clip.js'
 import { DshChatBrandNotice } from './brand-notice.js'
+import { guardHarnessSearchReplay } from './search-replay-guard.js'
 import { markBrandVisual } from './sidebar-adapter.js'
 import { captureShortcut, displayShortcut, shortcutPlatform, validShortcut, SHORTCUT_CAPTURE_HINT, SHORTCUT_INVALID_HINT, SHORTCUT_PENDING_HINT, SHORTCUT_RESERVED_HINT, type ShortcutPlatform } from './shortcuts.js'
 import type { WebsiteFile } from './website-downloads.js'
@@ -389,31 +390,9 @@ function DshChatRenameConversation({bridge, item, onClose, language}: DshChatBri
   </Modal>
 }
 
-/** rc.2 replays its retained request counter on WorkspaceBrowser remount.
- * Adapt only the view hook; never mutate the host request store or actions. */
-export function guardHarnessSearchReplay(entry: StoredEntry): (() => void) | null {
-  if (entry.locale !== 'workspace' || typeof entry.component !== 'function'
-    || !entry.children?.['sidebar.workspaces.session.menu.item'] || !entry.inject) return null
-  const original = entry.component as ComponentType<Record<string, unknown>>
-  type SearchState = { searchRequest: number; [key: string]: unknown }
-  type SearchHook = <T>(selector: (state: SearchState) => T) => T
-  function SearchRequestGuard(props: Record<string, unknown>) {
-    const originalHook = props.useWorkspaceShortcuts as SearchHook
-    const request = originalHook(state => state.searchRequest)
-    const mountedRequest = useRef(request)
-    const guardedHook = useCallback<SearchHook>(selector => originalHook(state =>
-      selector(state.searchRequest === mountedRequest.current ? {...state, searchRequest: 0} : state)), [originalHook])
-    return createElement(original, {...props, useWorkspaceShortcuts: guardedHook})
-  }
-  function GuardedWorkspace(props: Record<string, unknown>) {
-    return typeof props.useWorkspaceShortcuts === 'function'
-      ? createElement(SearchRequestGuard,props) : createElement(original,props)
-  }
-  entry.component = GuardedWorkspace
-  return () => { if (entry.component === GuardedWorkspace) entry.component = original }
-}
-
 /** Only the middle browsing region changes; the shipped shell and Settings stay mounted. */
+export { guardHarnessSearchReplay }
+
 export function DshChatChatNavigation({ bridge, wide, expandSidebar }: PropsRuntime<'sidebar.workspaces'> & DshChatBridgeProps) {
   const state = useDshChat(bridge)
   const t = (text: string | null | undefined) => translate(state.language, text)

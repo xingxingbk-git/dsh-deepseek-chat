@@ -26,7 +26,8 @@ import { bindChatSettingsIconSlot, CHAT_SETTINGS_SECTION_ID } from './settings-i
 import { HOST_ENTRY_ID } from './identity.js'
 import { DEFAULT_SWITCH_PREFERENCES, parseSwitchPreferences, validSwitchLabel, WEBSITE_RELEASE_DELAY_MAX, WEBSITE_RELEASE_DELAY_MIN, type SwitchPreferences } from './preferences.js'
 import { validShortcut } from './shortcuts.js'
-import { shouldHandleShortcut, shortcutAction } from './shortcuts.js'
+import { shouldHandleShortcut, shortcutAction, shortcutPlatform } from './shortcuts.js'
+import { takeOverDshWebviewShortcuts } from './dsh-new-session.js'
 import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client'
 
 export const name = 'dsh-deepseek-chat'
@@ -658,18 +659,34 @@ export function apply(ctx: Context): void {
   // A focused CHAT guest is handled by its own before-input-event listener.
   ctx.effect(() => {
     const handler = (event: KeyboardEvent) => {
-      if (switchPreferencesStatus !== 'ready' || !switchPreferences.shortcutEnabled || !mode.canEnter()) return
-      const target = event.target
-      const element = target instanceof Element ? target : null
-      const capturing = Boolean(element?.closest('[data-dsh-chat-shortcut-capture]'))
-      if (!shouldHandleShortcut({ enabled: true, modeEnabled: true, capturing,
-        composing: event.isComposing, defaultPrevented: event.defaultPrevented })) return
-      const action = shortcutAction(event, switchPreferences.shortcutChat, switchPreferences.shortcutHarness)
-      if (!action) return
-      event.preventDefault()
-      event.stopImmediatePropagation()
-      if (action === 'toggle') mode.select(mode.getSnapshot().mode === 'chat' ? 'harness' : 'chat')
-      else mode.select(action)
+      if (event.defaultPrevented || event.isComposing) return
+      if (switchPreferencesStatus === 'ready' && switchPreferences.shortcutEnabled && mode.canEnter()) {
+        const target = event.target
+        const element = target instanceof Element ? target : null
+        const capturing = Boolean(element?.closest('[data-dsh-chat-shortcut-capture]'))
+        if (shouldHandleShortcut({ enabled: true, modeEnabled: true, capturing,
+          composing: event.isComposing, defaultPrevented: event.defaultPrevented })) {
+          const action = shortcutAction(event, switchPreferences.shortcutChat, switchPreferences.shortcutHarness)
+          if (action) {
+            event.preventDefault()
+            event.stopImmediatePropagation()
+            if (action === 'toggle') mode.select(mode.getSnapshot().mode === 'chat' ? 'harness' : 'chat')
+            else mode.select(action)
+            return
+          }
+        }
+      }
+      // DSH binds primary+N to "new session". Inside CHAT it must create a new
+      // website conversation instead of starting a HARNESS session (which would
+      // leave CHAT). Consuming the key keeps DSH's own shortcut dispatcher out.
+      if (mode.getSnapshot().mode !== 'chat' || !mode.canEnter()) return
+      const primary = shortcutPlatform(typeof navigator === 'undefined' ? '' : navigator.platform) === 'mac'
+        ? event.metaKey : event.ctrlKey
+      if (primary && event.code === 'KeyN' && !event.shiftKey) {
+        event.preventDefault()
+        event.stopImmediatePropagation()
+        bridge.commandWebsite({ type: 'new' })
+      }
     }
     globalThis.addEventListener('keydown', handler as unknown as EventListener, true)
     return () => globalThis.removeEventListener('keydown', handler as unknown as EventListener, true)
@@ -688,6 +705,22 @@ export function apply(ctx: Context): void {
       return () => { if (fileActions === actions) fileActions = null }
     })
   })
+  // DSH forwards keys from the CHAT webview to its shortcut registry. While
+  // CHAT is active, primary+N must open a website conversation and the other
+  // DSH desktop shortcuts must stay out of the website (the registry path has
+  // no DOM event we could cancel). The takeover is restored on teardown.
+  ;(ctx as unknown as { inject(names: string[], fn: (child: { effect(fn: () => () => void): void; shortcuts?: { registry?: unknown } }) => void): void })
+    .inject(['shortcuts'], child => {
+      child.effect(() => {
+        const registry = (child as { shortcuts?: { registry?: Parameters<typeof takeOverDshWebviewShortcuts>[0] } }).shortcuts?.registry
+        const cleanup = takeOverDshWebviewShortcuts(registry, {
+          platform: shortcutPlatform(typeof navigator === 'undefined' ? '' : navigator.platform),
+          isChat: () => !disposed && mode.getSnapshot().mode === 'chat' && mode.canEnter(),
+          openChatNewConversation: () => { bridge.commandWebsite({ type: 'new' }) },
+        })
+        return () => { cleanup?.() }
+      })
+    })
   ctx.inject(['configForms'], child => {
     child.effect(() => {
       const form=child.configForms.get<SwitchPreferences>(HOST_ENTRY_ID)

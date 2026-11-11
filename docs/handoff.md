@@ -6,6 +6,44 @@
 
 
 
+## 2026-11-11 未发布改动：搜索重放防护加固（去掉 slot children 依赖）
+
+用户追问「DSH 大版本更新后是否还会再出现」后的加固：原 guard 除 `locale/component/inject` 外还要求 `sidebar.workspaces` 的 children 具体键名（0.2.2-rc.1 已改过一次），键名再变仍会静默失效。现改为只依据稳定注册事实（`locale === 'workspace'`、组件为函数、声明了 `inject`），并在渲染时检查 `useWorkspaceShortcuts` 是否存在——不存在则原样渲染；slot children 键名不再参与判断。回归改为：无 children 也安装、三种已知 children 形态均安装、渲染时映射首帧 searchRequest、未知组件形态透传、清理恢复。候选 `artifacts/dsh-deepseek-chat-0.2.24-92bd556817d8.tgz`（245781 bytes/47文件）已装 desktop。仍存在无法完全消除的依赖：若 DSH 改掉 `sidebar.workspaces` slot 名、`workspace` locale 命名空间或 WorkspaceBrowser 不再注入 `useWorkspaceShortcuts`，guard 仍会静默失效；DSH 大版本升级后按下方清单验证。
+
+**DSH 升级检查清单（每次大版本/预发升级后）**
+1. HARNESS 展开侧栏搜索 → 关闭 → 切 CHAT → 切回 HARNESS，搜索框应保持关闭（重放防护）。
+2. CHAT 内按 Cmd/Ctrl+N 应打开 CHAT 新会话，不跳 HARNESS。
+3. 切到 CHAT、打开/新建会话后输入框自动聚焦（含先加载后进入）。
+4. 切换快捷键在 HARNESS/CHAT 输入框与网页内均生效；设置页录制框可正常改键。
+5. 文字头像与图片头像账号都能识别、会话菜单与侧栏折叠正常。
+6. 跑 `check:sidebar-search-guard`、`check:shortcuts`、`check:website-bootstrap`、`check:composer-focus` 与全量门禁。
+
+## 2026-11-11 0.2.25 已发布 npm
+
+发布 0.2.25（按顺序递增；包含：HARNESS 搜索框重开修复、CHAT 任何状态 Cmd/Ctrl+N 打开 CHAT 新会话（宿主 keydown 拦截 + 可选 shortcuts 服务 registry 的 webview 路径接管）、此前 0.2.24 的自动聚焦/文字头像/设置样式文案等全部内容）。流程：临时 npm 配置网页登录 → 2FA → publish（后台处理后生效）→ 校验公开 tarball 与正式包**逐字节一致**（246755 bytes / 48 文件，SHA256 `89cab74c21458df98f505ede54887c281aeebf74ea1213bbbf5295b9ff44e3cf`）；latest/dist-tags=0.2.25；临时凭据已 logout、目录删除、PTY 关闭。本机 desktop 仍装 0.2.24 本地候选 `46d4661d77cd`（内容与 0.2.25 相同，仅版本号不同）。Git 改动未提交/未推送（等用户指令）。
+
+## 2026-11-11 未发布改动：Cmd+N 最终方案（保留转发 + 接管 registry 的 webview 路径）
+
+用户要求 CHAT 任何状态（含网页输入框聚焦）按 Cmd+N 都打开 CHAT 新会话。方案 C（移除 marker）只能让网页内 Cmd+N 无动作，因为主进程仍会 preventDefault。最终实现：恢复 webview 的 `data-sidebar-browser-frame`（DSH 主进程照常把网页内快捷键转发到 renderer registry），插件通过可选 `ctx.inject(['shortcuts'])` 取得服务实例并包装 `registry.dispatch`：仅当 `context.source === 'webview'` 且 CHAT 激活时，primary+N（macOS Cmd / Windows 与 Linux Ctrl，非 Shift）→ 调用 consume 并 `bridge.commandWebsite({type:'new'})` 打开 CHAT 新会话；其余 webview 输入返回 pass（不执行），保持 CHAT 内 DSH 桌面快捷键不作用于 HARNESS。非 webview 来源与 HARNESS 模式原样转发；teardown 恢复原 dispatch。宿主外壳焦点仍由 renderer keydown 拦截处理。Windows 适配：平台由 `shortcutPlatform(navigator.platform)` 判断（Win32→control），DSH 主进程转发的 input 含 control 字段，单测覆盖两种平台。
+
+风险：依赖 DSH 内部服务实例的 `registry.dispatch`（非公开契约，但 service 通过可选 inject 获取；服务缺失或形状变化时静默跳过，降级为原 DSH 行为——即 Cmd+N 会创建 HARNESS 会话）。已加包装前存在性检查与清理恢复；DSH 升级检查清单包含 Cmd+N 场景。验证：`dsh-new-session` 单测 5、check-shortcuts 17、window-contracts 48（假 shortcuts 服务）、bootstrap marker 断言、全部门禁/负对照/5组×119、构建 40 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.24-46d4661d77cd.tgz`（246756 bytes/48文件）已装 desktop。未提交/未推送（等用户验收）。
+
+## 2026-11-11 未发布改动：方案 C 实施（CHAT guest 退出 DSH HARNESS 快捷键转发）
+
+按用户确认的方案 C：CHAT webview 不再设置 `data-sidebar-browser-frame`（该属性只被 `dsh-client-shortcuts` 用于识别“来自 sidebar webview 的桌面快捷键转发”），因此 DSH 主进程 `before-input-event` 转发到宿主 renderer 的 `shortcutsInput(kind:"webview")` 会被 renderer 的 frame 检查忽略——CHAT 网页内按 Cmd/Ctrl+N 不再创建 HARNESS 新会话，宿主的 renderer 拦截仍然处理外壳焦点场景。预期副作用（已与用户确认可接受）：CHAT 网页焦点时 DSH 桌面快捷键失效——Cmd+N（新建会话）、Cmd+K（搜索会话）、Cmd+O（添加工作区）、Cmd+Alt+G（重命名）、Cmd+Alt+F（fork）、Cmd+Shift+A（归档）；普通输入/复制粘贴/插件切换快捷键/CMD+W 关闭页面不受影响，HARNESS 模式完全不受影响。webview 元素由插件创建，无需 MutationObserver 恢复。回归：bootstrap 断言 guest 无该属性、shortcuts 源码断言不设置该属性；全部门禁/负对照/5组×119、构建 39 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.24-709fdafa81eb.tgz`（245957 bytes/47文件）已装 desktop。未提交/未推送（等用户验收）。
+
+## 2026-11-11 未发布改动：CHAT 网页焦点下 Cmd+N 的根因（待定方案）
+
+用户实测：焦点在 CHAT 网页输入框时按 Cmd+N 仍会打开 HARNESS 新会话。已在 `app.asar` 主进程 `/lib/main.js` 定位确切路径：DSH 桌面主进程对 sidebar webview 注册 `attachGuest → before-input-event`，按 renderer 下发的快捷键表匹配后 `event.preventDefault()` 并向宿主 renderer 发送 `DESKTOP_IPC.shortcutsInput { kind: "webview", ... }`；renderer 的 `installNativeKeyboard` 收到后直接 `registry.dispatch` 执行 `session.new`，**不经过 DOM keydown**，因此插件的 renderer capture 拦截无效（仅当焦点在 DSH 外壳、按键走 DOM 时插件拦截有效）。该路径不能通过页面注入或 renderer 层阻止。可行方案：A) 接受（网页焦点下 Cmd+N 由 DSH 处理；外壳焦点下插件拦截）；B) 在 DSH 设置中把 session.new 改为其他键；C) 限定 DOM 规避：CHAT 模式移除 webview 的 `data-sidebar-browser-frame` 使 renderer 的 webview 转发检查失败（副作用：CHAT 内其他桌面层快捷键转发失效，且属于宿主私有 DOM 适配，可撤回）。待用户选择后实施。
+
+## 2026-11-11 未发布改动：HARNESS 搜索框重开与 CHAT 内 Cmd+N
+
+用户报两个问题：① HARNESS 点击侧栏搜索图标展开、关闭后再切 CHAT 回 HARNESS，搜索框又打开；② CHAT 模式按 Cmd+N 跳回 HARNESS 并开 HARNESS 新会话。
+
+① 根因：插件的 `guardHarnessSearchReplay`（拦截 WorkspaceBrowser 重挂载时重放 searchRequest）只匹配旧 slot children（`sidebar.workspaces.session.menu.item`），当前 DSH 0.2.2-rc.1 的 `sidebar.workspaces` children 是 `session.row.action`/`directoryFlow`，所以 guard 从未安装。修复：匹配条件兼容三种 children 形态；实现抽到 `src/search-replay-guard.ts`，新增 `check:sidebar-search-guard`（4 项：当前/旧 slot 形态安装、首帧 searchRequest 映射为 0、清理恢复、无关形态不动）。
+
+② 根因：DSH 在 `dsh-client-ui-workspace` 注册 `session.new` 快捷键（primary+N → `navigation.startSession()`），其 dispatch 会跳过 `defaultPrevented` 的事件。修复：插件在 CHAT 模式的宿主 window keydown capture 中拦截 primary+N（mac Cmd / 其他 Ctrl），preventDefault + stopImmediatePropagation 后 `bridge.commandWebsite({type:'new'})`，DSH 不再启动 HARNESS 会话；CHAT 网页内由注入的 guest 拦截脚本识别 primary+N 并报告 `dsh-chat-shortcut:new`（宿主 console-message 路由到 CHAT 新会话）。若用户把切换快捷键设为同一个键，切换快捷键优先。回归：shortcuts 12、bootstrap 78（guest primary+N 与宿主 new 路由）、guard 4 项及全部门禁/负对照/5组×119、构建 39 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.24-a83ee5f71101.tgz`（245835 bytes/47文件）已装 desktop（本地候选，版本号仍 0.2.24）。未提交/未推送（等用户验收后指令）。
+
 ## 2026-11-11 0.2.24 已发布 npm
 
 发布 0.2.24（按顺序递增；含自动聚焦、文字头像识别+两处 proof 补齐、快捷键全局优先（网页内注入拦截）、设置控件/文案/英文翻译、DSH 0.2 全线兼容、README 同步）。流程：临时 npm 配置网页登录 → 2FA → publish（202 处理后生效）→ 校验公开 tarball 与正式包**逐字节一致**（245227 bytes / 46 文件，SHA256 `2161c43f2c4b6bc2e0ee73e395acc9e1c44d1624f35c95e8bd11d6ee14976611`）；`latest`/`dist-tags` 已为 0.2.24；临时凭据已 logout、目录删除、PTY 关闭。本机 desktop 仍装 0.2.23 候选 `a10acda7d424`（内容与 0.2.24 相同，仅版本号不同）。本轮已提交并推送 main。
@@ -300,7 +338,7 @@ Windows DSH 0.2.2-rc.1、正式插件 0.2.23 实机复现：账号密码登录�
 
 - **已发布**：`dsh-deepseek-chat@0.2.17` 已公开发布到 npm，完整索引与 install-v1 索引 `latest` 均为 0.2.17；公开 tarball 与正式包逐字节一致（222584 bytes / 41 文件，SHA256 `4cb49a0c0a19c7387b3ff3e5c27af32356c3b426c69bf8adfa79d334ec36ba5c`）。正式包 `artifacts/npm-release-0217/`，同名 hash 副本 `artifacts/dsh-deepseek-chat-0.2.17-4cb49a0c0a19.tgz`（均为 ignored）。
 - **本机**：DSH 桌面版 0.2.2-rc.1；desktop profile 安装的是发布前同版本候选（41/41 字节自洽，SHA256 `7af60eed48b0…`），与公开包仅两份 README 不同、运行代码一致，因此未重装、未重启。需要看到圆角/对齐/提示等改动时请完整退出并重开 DSH。
-- **Git**：0.2.12–0.2.17 的全部改动已提交并推送（分支 `dsh-022-links-downloads-and-switcher`，提交 `92ce606`，49 文件），并已合并至 `main`。
+- **Git**：0.2.12–0.2.17 的全部改动已提交并推送（提交 `92ce606`，49 文件），并已合并至 `main`。
 - **兼容范围**：engine 与 3 个 DSH peers 均为 `0.2.0-rc.2 || >=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0`。拒绝 0.2.2 早期预发与全部 0.2.3 预发/正式版。
 - **验证状态**：类型、分发（33 编译文件 / 4 共享模块）、兼容（26 版本×4 字段）、SDK 契约 11、窗口契约 48、sidebar-022 54、UI 72、标题 38、跨平台裁剪 119×5、外链 35、下载 9（CDP 可信点击）、提示浮层 20、切换器对齐 7 均通过。`tests/authorization.test.ts`、`tests/mode.test.ts` 断言更早行为契约、对应源码未改、不在门禁内，属既有陈旧测试；`pnpm test` 基线因视觉 SDK 依赖缺失不可用。
 - **文档结构**：handoff 现只保留当前状态、提交清单与 0.2.12–0.2.17 记录；0.2.11 及更早的旧段落原样归档到 [handoff-archive](handoff-archive.md)。AGENTS 已压缩为入口指南（约 8KB），需求/架构/路线/取证各加了“现行总要求/概览/进度/索引”小节，其余保留为历史记录。

@@ -14,9 +14,11 @@ export interface WebsiteShortcutConfig {
   readonly enabled: boolean
   readonly chat: string
   readonly harness: string
+  /** DSH's primary modifier on this platform: Cmd on macOS, Control elsewhere. */
+  readonly primary?: 'meta' | 'control'
 }
 
-export type WebsiteShortcutAction = 'chat' | 'harness' | 'toggle'
+export type WebsiteShortcutAction = 'chat' | 'harness' | 'toggle' | 'new'
 
 const NAMED_KEYS = ['Tab', 'Enter', 'Escape', 'Space', 'Backspace', 'Delete', 'Insert', 'Home', 'End',
   'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
@@ -28,7 +30,7 @@ function bindingSource(binding: ShortcutBinding | null): string {
 
 /** Serialized into the approved guest. Keep all helpers inside the IIFE. */
 export function websiteShortcutScript(config: WebsiteShortcutConfig): string {
-  const payload = `{enabled:${JSON.stringify(config.enabled)},chat:${bindingSource(parseShortcut(config.chat))},harness:${bindingSource(parseShortcut(config.harness))}}`
+  const payload = `{enabled:${JSON.stringify(config.enabled)},chat:${bindingSource(parseShortcut(config.chat))},harness:${bindingSource(parseShortcut(config.harness))},primary:${JSON.stringify(config.primary ?? 'control')}}`
   return `(() => {
   const marker = ${JSON.stringify(WEBSITE_SHORTCUT_MARKER)};
   const config = ${payload};
@@ -58,7 +60,17 @@ export function websiteShortcutScript(config: WebsiteShortcutConfig): string {
   const handler = event => {
     if (!window.__dshChatShortcut || event.isComposing || event.repeat || event.defaultPrevented) return;
     const next = action(event);
-    if (!next) return;
+    if (!next) {
+      // DSH binds primary+N to New Session; inside CHAT it must create a website
+      // conversation instead of a HARNESS session.
+      const primaryDown = config.primary === 'meta' ? event.metaKey : event.ctrlKey;
+      if (primaryDown && event.code === 'KeyN' && !event.shiftKey) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        try { console.log(marker + 'new'); } catch {}
+      }
+      return;
+    }
     event.preventDefault();
     event.stopImmediatePropagation();
     try { console.log(marker + next); } catch {}
@@ -75,5 +87,5 @@ export function parseWebsiteShortcutMessage(value: unknown): WebsiteShortcutActi
   const trimmed = value.trim()
   if (!trimmed.startsWith(WEBSITE_SHORTCUT_MARKER)) return null
   const action = trimmed.slice(WEBSITE_SHORTCUT_MARKER.length)
-  return action === 'chat' || action === 'harness' || action === 'toggle' ? action : null
+  return action === 'chat' || action === 'harness' || action === 'toggle' || action === 'new' ? action : null
 }

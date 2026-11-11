@@ -16,6 +16,7 @@ window.fixtureDone = (async () => {
   const ready = { status: 'ready', authenticated: true, desktopReady: true, accountName: 'Fixture', conversations: [{ href: 'https://chat.deepseek.com/a/chat/s/fixture', title: 'Fixture', group: 'Today' }], selectedHref: 'https://chat.deepseek.com/a/chat/s/fixture', canCreate: true, error: null }
   let state = { mode: 'chat', modeEnabled: true, authorizationStatus: 'authorized', authorizationGeneration: 1, accountStorageKey: 'fixture-a', settingsOpen: false, viewport: null, language: 'en', websiteAuthenticationStatus: 'signed-in', websiteAuthenticationRevision: 1, websiteReloadRevision: 0, websiteNavigation: ready, showWebsiteNavigation: false, webLoading: false, webError: null, websiteSessionStatus: 'idle', websiteSessionError: null }
   let acquired = 0, binding = null, holdAcquire = null
+  const commands = []
   const patch = values => { state = { ...state, ...values }; for (const listener of listeners) listener() }
   const bridge = {
     getSnapshot: () => state,
@@ -25,7 +26,7 @@ window.fixtureDone = (async () => {
     reportWebsiteNavigationRefresh: (generation, value) => refreshes.push({ generation, ...value }),
     bindWebsiteNavigation: (_generation, handler) => { binding = handler; return () => { if (binding === handler) binding = null } },
     bindWindowDragSampler: () => () => {},
-    commandWebsite: command => { if (binding) void binding(command) },
+    commandWebsite: command => { commands.push(command); if (binding) void binding(command) },
     selectMode: mode => patch({ mode }),
     loadWebsiteSession: async () => null,
     saveWebsiteSession: async () => true,
@@ -74,6 +75,7 @@ window.fixtureDone = (async () => {
   await until(() => guest() && nodes.has(guest()))
   const first = guest(), data = stub(first)
   check('initial guest has desktop minimum before a viewport is measured', first.style.minWidth === '1024px' && acquired === 1)
+  check('the CHAT guest keeps the DSH shortcut forwarding marker', first.getAttribute('data-sidebar-browser-frame') === 'webview')
   fire(first, 'did-finish-load')
   patch({ websiteNavigation: ready })
   await settle()
@@ -119,7 +121,7 @@ window.fixtureDone = (async () => {
   check('switching back to CHAT focuses the website composer', focusCount() > beforeEnter)
   // The injected guest interceptor consumes the shortcut before the page sees
   // it and reports the action over the console channel.
-  const shortcutScript = websiteShortcutScript({ enabled: true, chat: 'Tab', harness: 'Tab' })
+  const shortcutScript = websiteShortcutScript({ enabled: true, chat: 'Tab', harness: 'Tab', primary: 'control' })
   eval(shortcutScript)
   const logged = []
   const originalLog = console.log
@@ -129,16 +131,29 @@ window.fixtureDone = (async () => {
   const composingTab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
   Object.defineProperty(composingTab, 'isComposing', { value: true })
   window.dispatchEvent(composingTab)
+  const newSessionKey = new KeyboardEvent('keydown', { key: 'n', code: 'KeyN', ctrlKey: true, bubbles: true, cancelable: true })
+  window.dispatchEvent(newSessionKey)
+  const plainN = new KeyboardEvent('keydown', { key: 'n', code: 'KeyN', bubbles: true, cancelable: true })
+  window.dispatchEvent(plainN)
   console.log = originalLog
   const sent = logged.filter(line => line.startsWith('dsh-chat-shortcut:'))
-  check('the injected guest interceptor consumes the shortcut before the page', pageTab.defaultPrevented && sent.length === 1)
-  check('IME composition keys stay with the page', !composingTab.defaultPrevented && sent.length === 1)
+  check('the injected guest interceptor consumes the shortcut before the page', pageTab.defaultPrevented && sent.filter(line => line.endsWith(':toggle')).length === 1)
+  check('IME composition keys stay with the page', !composingTab.defaultPrevented && sent.filter(line => line.endsWith(':toggle')).length === 1)
+  check('primary+N in the guest is reported as a new CHAT conversation',
+    newSessionKey.defaultPrevented && sent.includes('dsh-chat-shortcut:new') && !plainN.defaultPrevented)
   const consoleEvent = new Event('console-message')
   Object.defineProperty(consoleEvent, 'message', { value: 'dsh-chat-shortcut:toggle' })
   guest().dispatchEvent(consoleEvent)
   await until(() => state.mode === 'harness')
   check('the host routes the guest shortcut marker to the mode switch', state.mode === 'harness')
   patch({ mode: 'chat' }); await settle()
+  const beforeNew = commands.length
+  const newEvent = new Event('console-message')
+  Object.defineProperty(newEvent, 'message', { value: 'dsh-chat-shortcut:new' })
+  guest().dispatchEvent(newEvent)
+  await until(() => commands.length > beforeNew)
+  check('the host routes the guest new-session marker to a CHAT conversation',
+    commands.some(command => command.type === 'new'))
   data.proof = false; data.needsDesktopChrome = true
   await until(() => first.style.minWidth === '1024px')
   check('a first header after new-chat is measured on the same document without reload', data.reloads === 0 && loads.length === 1 && guest() === first)
