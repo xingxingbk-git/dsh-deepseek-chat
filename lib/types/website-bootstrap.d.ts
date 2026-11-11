@@ -3,8 +3,13 @@ import type { WebsiteNavigation } from './website-navigation.js';
 export declare const WEBSITE_DESKTOP_WIDTH = 1024;
 export declare const WEBSITE_BOOTSTRAP_TIMEOUT = 30000;
 type Projection = Pick<WebsiteNavigation, 'status' | 'authenticated' | 'desktopReady' | 'viewportWidth'>;
-/** Only the official Google account origin is an embedded sign-in surface. */
-export declare function isGoogleSignInUrl(value: string): boolean;
+/**
+ * Any external HTTPS sign-in provider (Google, Apple, WeChat, enterprise SSO,
+ * ...) may be shown as-is while a DeepSeek sign-in is in progress. DeepSeek
+ * itself, non-HTTPS pages, non-default ports and credential-bearing URLs never
+ * qualify.
+ */
+export declare function isExternalAuthUrl(value: string): boolean;
 /**
  * Per-guest, per-document state, deliberately independent of React layout props.
  * A resize never starts a document, and a timeout never exposes an unadapted page.

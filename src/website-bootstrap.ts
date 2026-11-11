@@ -7,11 +7,17 @@ export const WEBSITE_BOOTSTRAP_TIMEOUT = 30_000
 type Projection = Pick<WebsiteNavigation, 'status' | 'authenticated' | 'desktopReady' | 'viewportWidth'>
 type Phase = 'loading' | 'checking-layout' | 'authenticating' | 'ready'
 
-/** Only the official Google account origin is an embedded sign-in surface. */
-export function isGoogleSignInUrl(value: string): boolean {
+/**
+ * Any external HTTPS sign-in provider (Google, Apple, WeChat, enterprise SSO,
+ * ...) may be shown as-is while a DeepSeek sign-in is in progress. DeepSeek
+ * itself, non-HTTPS pages, non-default ports and credential-bearing URLs never
+ * qualify.
+ */
+export function isExternalAuthUrl(value: string): boolean {
   try {
     const url = new URL(value)
-    return url.origin === 'https://accounts.google.com' && !url.username && !url.password
+    if (url.protocol !== 'https:' || url.username || url.password || url.port) return false
+    return !(url.hostname === 'deepseek.com' || url.hostname.endsWith('.deepseek.com'))
   } catch { return false }
 }
 
@@ -55,7 +61,7 @@ export function createWebsiteBootstrap(options: {
     loaded(expected: number) { if (live && expected === revision && domReady) loaded = true },
     /** A provider form awaits the user; it cannot supply DeepSeek layout/account proof. */
     authentication(expected: number, url: string): boolean {
-      if (!live || expected !== revision || !isGoogleSignInUrl(url)) return false
+      if (!live || expected !== revision || !isExternalAuthUrl(url)) return false
       phase = 'authenticating'
       clear()
       options.desktop(false)

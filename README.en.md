@@ -95,7 +95,7 @@ dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.23.tgz
 
 ### Website sign-in
 
-CHAT uses the website's own sign-in flow; the plugin never reads passwords or cookies. Google sign-in shows Google's official page and returns to DeepSeek chat automatically; ordinary account/password sign-in keeps working. Login memory stores only the minimum grant information and is isolated per DSH profile.
+CHAT uses the website's own sign-in flow; the plugin never reads passwords or cookies. Third-party sign-in (Google, Apple, WeChat, enterprise SSO, ...) shows the provider's official page inside CHAT and returns to DeepSeek chat automatically; ordinary account/password sign-in keeps working. Login memory stores only the minimum grant information and is isolated per DSH profile.
 
 > Known issue: a reported occasional blank page or error after ordinary account/password sign-in has not been reproduced and its cause is unknown. If it happens, retry or use another sign-in method and report the OS and DSH version.
 

@@ -95,7 +95,7 @@ dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.23.tgz
 
 ### 官网登录
 
-CHAT 使用官网自己的登录流程，插件不读取密码或 Cookie。Google 登录会显示 Google 官方登录页，完成后自动回到 DeepSeek 聊天；普通账号密码登录也可正常使用。登录记忆只保存官网授权所需的最小信息，并按 DSH 配置环境隔离。
+CHAT 使用官网自己的登录流程，插件不读取密码或 Cookie。Google、Apple、微信、企业 SSO 等第三方登录都会在插件内显示对应的官方登录页，完成后自动回到 DeepSeek 聊天；普通账号密码登录也可正常使用。登录记忆只保存官网授权所需的最小信息，并按 DSH 配置环境隔离。
 
 > 已知问题：有人反馈使用普通账号密码登录时偶发空白页或报错，目前未复现、原因未确认。如遇到，请重试或改用其他登录方式，并反馈系统和 DSH 版本。
 

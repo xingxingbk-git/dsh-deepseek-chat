@@ -104,34 +104,39 @@ window.fixtureDone = (async () => {
   check('drawer interaction lock changes only inert/hit testing', first.inert && guest() === first)
   patch({ viewport: { ...state.viewport, inert: false } }); await settle()
   check('width storms, sidebar split and drawer close never reload or release', guest() === first && acquired === 1 && releases.length === 0 && data.reloads === 0 && loads.length === 1 && data.draft === 'fixture draft retained' && data.scroll === 321)
-  // Google redirects are a user-driven login surface, not a DeepSeek DOM to adapt.
+  // External provider redirects are a user-driven login surface, not a DeepSeek DOM to adapt.
   patch({ websiteAuthenticationStatus: 'signing-in' })
   data.url = 'https://accounts.google.com/v3/signin/identifier'
   fire(first, 'did-start-navigation', { isMainFrame: true, isInPlace: false, url: data.url })
   await settle()
-  check('provider navigation has a Google-specific loading message before the form is ready', surface().textContent.includes('Opening Google sign-in') && first.style.opacity === '0')
+  check('provider navigation has a generic sign-in loading message before the form is ready', surface().textContent.includes('Opening sign-in page') && first.style.opacity === '0')
   fire(first, 'dom-ready'); fire(first, 'did-finish-load'); fire(first, 'did-stop-loading')
   await settle()
-  check('the official Google sign-in page is visible and interactive without DeepSeek layout proof', first.style.opacity === '1' && !first.inert && first.style.minWidth === '')
+  check('the provider sign-in page is visible and interactive without DeepSeek layout proof', first.style.opacity === '1' && !first.inert && first.style.minWidth === '')
   check('the provider form does not mark the user signed in', state.websiteAuthenticationStatus === 'signing-in' && state.websiteNavigation.authenticated === false)
-  check('Google sign-in has its own accessible label', first.getAttribute('aria-label') === 'Google Account sign-in')
+  check('external sign-in has its own accessible label', first.getAttribute('aria-label') === 'External sign-in page')
   const providerExecutions = data.executions
   fire(first, 'did-start-loading')
   data.url = 'https://accounts.google.com/v3/signin/challenge/pwd'
   fire(first, 'did-navigate-in-page', { isMainFrame: true })
   await binding({ type: 'snapshot' }); await pause(1300)
-  check('provider steps and background polling never run DeepSeek scripts on Google', data.executions === providerExecutions && first.style.opacity === '1' && !state.webLoading)
+  check('provider steps and background polling never run DeepSeek scripts on the provider page', data.executions === providerExecutions && first.style.opacity === '1' && !state.webLoading)
   patch({ mode: 'harness' }); await settle(); patch({ mode: 'chat', viewport: { left: 0, top: 0, width: 280, height: 700 } }); await settle()
-  check('switching modes and resizing preserve the Google form and lease', guest() === first && acquired === 1 && releases.length === 0 && first.style.opacity === '1' && first.style.minWidth === '')
+  check('switching modes and resizing preserve the provider form and lease', guest() === first && acquired === 1 && releases.length === 0 && first.style.opacity === '1' && first.style.minWidth === '')
   data.url = 'https://accounts.google.com.example.org/'
   fire(first, 'did-start-navigation', { isMainFrame: true, isInPlace: false, url: data.url }); fire(first, 'dom-ready'); await settle()
-  check('an unrelated or lookalike origin is never presented as Google sign-in', first.style.opacity === '0' && first.inert)
+  check('a lookalike provider URL is shown as an external page, never as a DeepSeek session', (first.style.opacity === '1' || first.style.opacity === '') && state.websiteNavigation.authenticated === false && first.getAttribute('aria-label') === 'External sign-in page')
+  for (const providerUrl of ['https://appleid.apple.com/auth/authorize', 'https://open.weixin.qq.com/connect/qrconnect', 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize']) {
+    data.url = providerUrl
+    fire(first, 'did-start-navigation', { isMainFrame: true, isInPlace: false, url: providerUrl }); fire(first, 'dom-ready'); await settle()
+    check(`provider ${providerUrl} is shown as an external sign-in page`, (first.style.opacity === '1' || first.style.opacity === '') && first.getAttribute('aria-label') === 'External sign-in page' && state.websiteNavigation.authenticated === false)
+  }
   data.url = 'https://chat.deepseek.com/'; data.navigation = ready
   fire(first, 'did-start-navigation', { isMainFrame: true, isInPlace: false, url: data.url }); fire(first, 'dom-ready'); await settle()
-  check('returning from Google waits for normal DeepSeek load and layout proof', first.style.opacity === '0' && first.style.minWidth === '1024px')
+  check('returning from provider sign-in waits for normal DeepSeek load and layout proof', first.style.opacity === '0' && first.style.minWidth === '1024px')
   fire(first, 'did-finish-load'); fire(first, 'did-stop-loading'); await until(() => first.style.opacity === '1')
   patch({ websiteAuthenticationStatus: 'signed-in' })
-  check('the callback restores the same DeepSeek surface without reloading or replacing it', guest() === first && acquired === 1 && data.reloads === 0 && first.getAttribute('aria-label') !== 'Google Account sign-in')
+  check('the callback restores the same DeepSeek surface without reloading or replacing it', guest() === first && acquired === 1 && data.reloads === 0 && first.getAttribute('aria-label') !== 'External sign-in page')
   data.url = 'https://chat.deepseek.com/sign_in'
   data.navigation = { status: 'sign-in', authenticated: false, conversations: [], selectedHref: null, canCreate: false, error: null }
   fire(first, 'did-navigate-in-page', { isMainFrame: true }); await settle()
@@ -215,7 +220,7 @@ window.fixtureDone = (async () => {
   const beforeRelease = recoveredData.executions
   patch({ modeEnabled: false }); await until(() => !guest() && releases.includes('fixture-5'))
   check('disabling CHAT releases the retained page', !guest())
-  check('releasing a Google sign-in page does not inject download cleanup scripts into it', recoveredData.executions === beforeRelease)
+  check('releasing a provider sign-in page does not inject download cleanup scripts into it', recoveredData.executions === beforeRelease)
   let resolveAcquire
   holdAcquire = new Promise(resolve => { resolveAcquire = resolve })
   patch({ modeEnabled: true }); await until(() => acquired === 6)
