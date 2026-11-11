@@ -2,6 +2,10 @@
 
 按当前实现重审中英 README：删除已移除的「恢复默认」快捷键说明，修正左侧/右侧绑定语义、保存与空字段/冲突提示、CHAT 网页内按键不触发插件快捷键（删除错误的「网页内用组合键」表述）、缓存设置标题、切换按钮 10 列宽说明与限制段快捷键范围。仅文档调整，未改代码、版本与发布包。
 
+## 2026-11-11 0.2.25 候选：Chat 设置控件对齐原生样式
+
+核对 DSH 原生设置样式（web 前端 CSS）：输入框 34px 高、radius-md(12px)；Button md 36px、radius-md。Chat 设置原为统一 32px 且自定义快捷键字段 8px。改为控件统一 34px/12px、快捷键字段对齐原生输入框表面（.5px 边框、bg-layer-3、12px 内边距）、清除按钮 8px、浮层 12px。presentation 86（新增高度 34/圆角 12 断言）、capture 32、其余门禁/负对照/5组×119、构建36产物/4模块通过。候选 5a36f4b5abf6（241276bytes/44文件）已装 desktop；未发布 npm。
+
 ## 2026-11-11 0.2.24 候选：DSH 0.2 全线兼容
 
 兼容范围扩为 `>=0.2.0-rc.1 <0.2.1-0 || >=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0`（engine+3 peers），覆盖 0.2.0/0.2.1/0.2.2 三条发布线。下载 0.2.0-rc.1/rc.2 官方 SDK 逐包 diff：除 primitives 新增 MenuGroup/observeStickyMenuGroups（未使用）外 API 一致；用 rc.1 类型替换 node_modules 跑 tsc，修复 settings.section.icon（0.2.2 新增，缺省走 DOM fallback + inject try/catch）与 Menu minWidthFromAnchor（兼容 spread）后通过。0.2.0/0.2.1 无 file-actions（0.2.2-alpha.3 起），附件保存不可用并有防护提示。README 兼容范围改为 0.2.x 三条发布线并补附件限制。验证：rc.1 类型 tsc、compat 29×4、全部门禁/负对照/5组×119、构建36产物/4模块；候选 8cb4ede480c7（241253bytes/44文件）已装 desktop；未发布 npm。0.2.0-rc.1 未实机。

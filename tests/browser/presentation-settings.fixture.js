@@ -63,9 +63,12 @@ window.fixtureDone=(async()=>{
   check('English account actions keep the padded link and logout on one aligned row',actionsAligned() && getComputedStyle(external).paddingLeft==='14px')
   update({language:'zh-CN'});await tick()
   check('card spacing and stroke use the official account-page values',getComputedStyle(document.querySelector('.dsh-chat-settings')).paddingTop==='8px' && Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>{const css=getComputedStyle(el);return css.paddingTop==='12px' && css.paddingLeft==='16px' && css.marginBottom==='16px' && css.borderTopColor==='rgb(153, 153, 153)'}))
-  const controlHeights = [...document.querySelectorAll('#settings .dsh-chat-label-input, #settings .dsh-chat-label-input input, #settings .dsh-chat-label-save, #settings .dsh-chat-style-trigger, #settings .dsh-chat-lifetime-input, #settings .dsh-chat-shortcut-input, #settings .dsh-chat-shortcut-save')]
-    .map(element => Math.round(element.getBoundingClientRect().height))
-  check('settings inputs, selects and buttons share one control height', controlHeights.length >= 6 && controlHeights.every(height => height === 32))
+  const controls = [...document.querySelectorAll('#settings .dsh-chat-label-input, #settings .dsh-chat-label-input input, #settings .dsh-chat-label-save, #settings .dsh-chat-style-trigger, #settings .dsh-chat-lifetime-input, #settings .dsh-chat-shortcut-input, #settings .dsh-chat-shortcut-field, #settings .dsh-chat-shortcut-save')]
+  const controlHeights = controls.map(element => Math.round(element.getBoundingClientRect().height))
+  check('settings inputs, selects and buttons share one control height', controlHeights.length >= 6 && controlHeights.every(height => height === 34))
+  const radiusControls = [...document.querySelectorAll('#settings .dsh-chat-label-input, #settings .dsh-chat-label-save, #settings .dsh-chat-style-trigger, #settings .dsh-chat-lifetime-input, #settings .dsh-chat-shortcut-field, #settings .dsh-chat-shortcut-save')]
+  const controlRadii = radiusControls.map(element => getComputedStyle(element).borderRadius)
+  check('settings controls share the native radius instead of mixing 8px and 12px', controlRadii.length >= 5 && controlRadii.every(radius => radius === '12px'))
   check('every settings card keeps transparent fill and its border',document.querySelectorAll('.dsh-chat-settings-card').length>=2 && Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>{const css=getComputedStyle(el);return css.backgroundColor==='rgba(0, 0, 0, 0)' && css.borderTopStyle==='solid'}))
   const group=document.querySelector('.dsh-chat-settings-group')
   const groupBlocks=[...document.querySelectorAll('.dsh-chat-settings-group > .dsh-chat-settings-block')]

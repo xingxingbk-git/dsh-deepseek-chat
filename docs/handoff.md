@@ -6,6 +6,12 @@
 
 按当前实现重新核对中英 README：删除已移除的「恢复默认」快捷键说明；修正快捷键描述为左侧切 CHAT、右侧切 HARNESS，补充保存后生效、空字段提示/保存禁用、冲突时提示且不写入；明确 CHAT 网页内按键由官网处理、不触发插件快捷键（删除原先错误的「网页内请用组合键」）；缓存设置标题改为「CHAT网页是否缓存」；切换按钮文案改为「最多 10 列宽（全角按 2 列计）」；限制段同步快捷键作用范围。仅文档修正，未改代码与版本。
 
+## 2026-11-11 13:25 0.2.25 候选：Chat 设置控件与 DSH 原生样式对齐
+
+排查 Chat 设置与 DSH 原生设置弹窗的差异：原生输入框为 34px 高、`--dsw-radius-md`（12px）圆角；原生 Button md 为 36px 高、12px 圆角。Chat 设置此前统一 32px，且自定义快捷键字段圆角 8px（radius-sm），与原生控件不一致。已改为：控件高度统一 **34px**（与原生 Input 同高；按钮取 34 保证设置页内输入/按钮同高）、圆角统一 **12px**（radius-md）；自定义快捷键字段由 8px 改为 12px，并改用原生输入框的 `.5px` 边框、`bg-layer-3` 填充与 12px 内边距；清除按钮 8px（radius-sm）、`?` 浮层 12px。presentation 回归新增高度 34 与圆角 12px 一致性断言（86 项），快捷键捕获 32 项不变。
+
+验证：presentation 86、capture 32、bootstrap/header/guest/window/title/brand/sidebar/links/downloads/sidebar-022/switcher/shortcuts、compat、sdk、两项负对照、5 组窗口×119、构建 36 产物/4 模块通过。候选 `artifacts/dsh-deepseek-chat-0.2.25-5a36f4b5abf6.tgz`（241276 bytes/44文件，SHA256 `5a36f4b5abf666d9d3b4fae2a02470ad893a4a3743dad465be44b0ef65f59f08`）已装 desktop，44/44 同包、依赖与 lock 锁定；未发布 npm。
+
 ## 2026-11-11 12:30 0.2.24 候选：DSH 0.2 全线兼容与 README 兼容范围整理
 
 按用户要求把兼容范围从「0.2.0-rc.2 / 0.2.1-rc.1 / 0.2.2-rc.1 分段枚举」扩展为 DSH 0.2 全线：`>=0.2.0-rc.1 <0.2.1-0 || >=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.1 <0.2.3-0`（engine 与 3 个 DSH peers 一致），覆盖 0.2.0 / 0.2.1 / 0.2.2 三条发布线（含各线 RC 与正式版），仍排除 0.2.1/0.2.2 早期内部预发与全部 0.2.3 预发。
