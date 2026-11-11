@@ -12,6 +12,7 @@ import { parseWebsiteDownload, websiteDownloadScript } from './website-downloads
 import type { WebsiteFile } from './website-downloads.js'
 import { holdsWebsiteGuest, resumeWebsiteUrl } from './website-guest.js'
 import { DEFAULT_SWITCH_PREFERENCES } from './preferences.js'
+import { parseWebsiteShortcutMessage, websiteShortcutScript } from './website-shortcuts.js'
 import { createWebsiteBootstrap, isExternalAuthUrl, WEBSITE_DESKTOP_WIDTH } from './website-bootstrap.js'
 import { parseComposerFocusResult, websiteComposerFocusScript } from './website-composer-focus.js'
 
@@ -99,6 +100,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
   const previousMode = useRef(state.mode)
   const composerFocus = useRef<(() => void) | null>(null)
   const composerFocusPending = useRef(false)
+  const injectShortcut = useRef<(() => void) | null>(null)
   const requestComposerFocus = () => {
     composerFocusPending.current = true
     composerFocus.current?.()
@@ -116,6 +118,9 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     if (!presentationReady || state.mode !== 'chat' || !state.modeEnabled || state.settingsOpen) return
     requestComposerFocus()
   }, [presentationReady, state.mode, state.modeEnabled, state.settingsOpen])
+  useEffect(() => {
+    injectShortcut.current?.()
+  }, [state.switchPreferences?.shortcutEnabled, state.switchPreferences?.shortcutChat, state.switchPreferences?.shortcutHarness])
   const guest = useRef<WebsiteWebview | null>(null)
   const guestEvents = useRef<AbortController | null>(null)
   const reloadGuest = useRef<(() => void) | null>(null)
@@ -561,6 +566,27 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
         report(false, '无法刷新当前网页，请点击「重试网页」。')
       }
     }
+    // The injected guest listener consumes the switching shortcut; its console
+    // marker is the only trusted signal over this channel.
+    current.addEventListener('console-message', (event: Event, ...rest: unknown[]) => {
+      const candidate = (event as Event & { readonly message?: unknown }).message ?? rest[1]
+      const action = parseWebsiteShortcutMessage(candidate)
+      if (!action) return
+      const snapshot = bridge.getSnapshot()
+      if (snapshot.mode !== 'chat' || !snapshot.modeEnabled || snapshot.settingsOpen) return
+      if (action === 'toggle') bridge.selectMode(snapshot.mode === 'chat' ? 'harness' : 'chat')
+      else bridge.selectMode(action)
+    }, { signal: events.signal })
+    const shortcutConfig = () => {
+      const preferences = bridge.getSnapshot().switchPreferences ?? DEFAULT_SWITCH_PREFERENCES
+      return { enabled: preferences.shortcutEnabled, chat: preferences.shortcutChat, harness: preferences.shortcutHarness }
+    }
+    const injectShortcuts = () => {
+      if (events.signal.aborted || !active() || !approvedOrigin() || !documentReady) return
+      void executeScript(websiteShortcutScript(shortcutConfig())).catch(() => {})
+    }
+    injectShortcut.current = injectShortcuts
+    events.signal.addEventListener('abort', () => { injectShortcut.current = null }, { once: true })
     current.addEventListener('dom-ready', () => {
       if (!bootstrapped) { bootstrapped = true; navigate(resumeWebsiteUrl(lastWebsiteUrl.current, WEBSITE_URL)) }
       else if (active() && bridge.getSnapshot().websiteAuthenticationStatus === 'signing-in'
@@ -581,12 +607,14 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
         websiteWasSignIn = /^\/sign_in\/?$/.test(new URL(current.getURL()).pathname)
         documentReady = true
         bootstrap.domReady(documentRevision)
+        injectShortcuts()
         syncNavigation()
       }
     }, { signal: events.signal })
     current.addEventListener('did-finish-load', () => {
       if (!documentReady || !approvedOrigin()) return
       bootstrap.loaded(documentRevision)
+      injectShortcuts()
       syncNavigation()
     }, { signal: events.signal })
     current.addEventListener('did-start-navigation', event => {

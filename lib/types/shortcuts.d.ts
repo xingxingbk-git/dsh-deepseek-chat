@@ -57,8 +57,8 @@ export declare function captureShortcut(event: ShortcutEventLike, platform?: Sho
 export interface ShortcutContext {
     readonly enabled: boolean;
     readonly modeEnabled: boolean;
-    readonly editable: boolean;
-    readonly inWebsite: boolean;
+    /** The settings capture field owns keys while a new binding is recorded. */
+    readonly capturing: boolean;
     readonly composing: boolean;
     readonly defaultPrevented: boolean;
 }

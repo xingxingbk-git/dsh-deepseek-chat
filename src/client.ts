@@ -653,16 +653,16 @@ export function apply(ctx: Context): void {
     websiteAuthenticationStatus='error';websiteSessionStatus='error';websiteSessionError=message
     publish()
   }
-  // Switching shortcuts. The listener sits on the DSH document only, so a focused
-  // CHAT webview, text fields and other apps keep their native Tab/keys.
+  // Switching shortcuts. They win in text fields and over the CHAT webview; only
+  // the settings capture field may take the key while a new binding is recorded.
+  // A focused CHAT guest is handled by its own before-input-event listener.
   ctx.effect(() => {
     const handler = (event: KeyboardEvent) => {
       if (switchPreferencesStatus !== 'ready' || !switchPreferences.shortcutEnabled || !mode.canEnter()) return
       const target = event.target
       const element = target instanceof Element ? target : null
-      const editable = Boolean(element?.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]'))
-      const inWebsite = Boolean(element?.closest('webview'))
-      if (!shouldHandleShortcut({ enabled: true, modeEnabled: true, editable, inWebsite,
+      const capturing = Boolean(element?.closest('[data-dsh-chat-shortcut-capture]'))
+      if (!shouldHandleShortcut({ enabled: true, modeEnabled: true, capturing,
         composing: event.isComposing, defaultPrevented: event.defaultPrevented })) return
       const action = shortcutAction(event, switchPreferences.shortcutChat, switchPreferences.shortcutHarness)
       if (!action) return

@@ -1,8 +1,24 @@
+## 2026-11-11 0.2.24 提交推送与收尾
+
+0.2.24 发布后整理文档：handoff 归档 0.2.24 过程记录、requirements 合并为 0.2.24 已发布段并更新现行总要求（附件/自动聚焦/快捷键）、roadmap 更新当前进度、AGENTS 当前状态改为已发布；工作区全部改动提交并推送 main。文档不记录变更请求操作过程，仅保留版本与合并提交。
+
+## 2026-11-11 发布 npm 0.2.24
+
+按顺序发布 0.2.24：网页登录+2FA，publish 后 registry 异步处理生效；公开 tarball 与正式包逐字节一致（245227bytes/46文件，SHA256 2161c43f2c4b6bc2e0ee73e395acc9e1c44d1624f35c95e8bd11d6ee14976611），latest/dist-tags=0.2.24；临时凭据 logout、目录清理、PTY 关闭。本机 desktop 仍为 0.2.23 同内容候选 a10acda7d424。Git 未提交/未推送。
+
+## 2026-11-11 切换快捷键全局优先（网页内注入拦截）
+
+用户实测网页内仍被网页处理 Tab：`before-input-event` 在 Electron webview 标签不可取消/不转发，fixture 模拟导致假阳性。改为 guest 内注入 capture keydown 拦截（preventDefault+stopImmediatePropagation），经 `console-message` 标记通知宿主切换；IME/长按不处理，配置变化重注入。fixture 真实执行注入脚本并断言拦截与 console 路由。全部门禁/负对照/5组×119、构建 38 产物通过；候选 a10acda7d424（245227bytes/46文件）已装 desktop。未提交/未推送。
+
+## 2026-11-11 切换快捷键全局优先
+
+宿主 keydown 不再跳过输入框/编辑区（只跳过设置页录制框、IME 组合、已处理按键）；CHAT 网页内用 webview before-input-event 捕获并 preventDefault，长按/IME 不触发；README 中英同步。更新 shortcuts 单测/源码断言/bootstrap fixture。全部门禁/负对照/5组×119、构建 37 产物通过；候选 0f7ac7fa155b（243772bytes/45文件）已装 desktop。未提交/未推送。
+
 ## 2026-11-11 文字头像修复合并后补齐
 
 本地合并贡献的文字头像识别（冲突仅 package/lib，版本保持 0.2.23 并重建）。补两处仍硬编码 footer-v1 的消费者：会话操作与侧栏折叠改为 `[data-dsh-chat-profile-confirmed]`，check:website-text-avatar 加源码回归。叠加本地自动聚焦等改动，重建 lib，全部门禁/负对照/5组×119、构建 37 产物通过；候选 0963f0bc1608（243527bytes/45文件）已装 desktop。未提交/未推送。
 
-## 2026-11-11 未发布改动：文字头像账号的密码登录后空白（待发布 0.2.24）
+## 2026-11-11 文字头像账号的密码登录后空白（已随 0.2.24 发布）
 
 Windows DSH 0.2.2-rc.1、正式插件 0.2.23 实机复现：账号密码登录后官网已经进入 `/`，侧栏、账号区和输入框存在，文档为 complete；账号头像是包含一个字母的 div，旁边另有昵称，整个文档没有 img。旧账号识别只从 img 起步，且昵称读取拒绝第二个文字叶子，随后 profile fallback 将 body 设为透明并让 guest 隐藏，最终适配超时。此证据定位文字头像结构，不把国际账号身份泛化为所有账号的原因。
 

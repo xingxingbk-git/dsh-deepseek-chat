@@ -1,5 +1,51 @@
 # 历史交接归档（0.2.11 及更早）
 
+## 2026-11-11 14:50 未发布改动：CHAT 自动聚焦输入框
+
+新增：切到 CHAT、切换会话、新建会话后，自动把焦点放到官网输入框。实现为 guest 内的一次性聚焦脚本（只返回布尔，不读草稿、不写全局状态）：在可见的 textarea/contenteditable/role=textbox 中选面积最大、靠底部的 composer，聚焦并置光标末尾；已聚焦则不重复。触发点：`enteredChat` 检测到 harness→chat；命令 `open`/`new` 执行完成后。针对「切到 CHAT 后网页还在加载数据」的情况，聚焦在**最多 30 秒的窗口内持续重试**（前 1.5 秒每 150ms、之后每 400ms），等待 documentReady 与 composer 出现，成功一次即停止；切回 HARNESS、打开设置或组件卸载会取消。新增 `src/website-composer-focus.ts`、单元测试 5 项、fixture 4 项（新建/打开/切回 CHAT/加载延迟重试）；全部门禁、负对照、5 组窗口×119、构建 37 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.23-d633eea7a5fd.tgz`（243075 bytes/45文件）已装 desktop（0.2.23，同号本地候选）。**本轮已提交并推送 main**（按用户要求改动留本地）。
+
+## 2026-11-11 0.2.24 过程记录（归档）
+
+以下为 0.2.24 发布前的迭代/候选记录，已包含在 0.2.24 中。
+
+## 2026-11-11 未发布改动：切换快捷键全局优先
+
+按用户要求让模式切换快捷键在**输入框聚焦时也优先**：宿主 keydown（capture）不再跳过输入框/编辑区，仅跳过设置页录制新快捷键的输入框（`data-dsh-chat-shortcut-capture`）、IME 组合中（`isComposing`）和已被处理的按键；CHAT 网页内的按键由 webview `before-input-event` 捕获并阻止默认处理，长按重复与 IME 不触发。快捷键冲突时用户可自行改键；系统级组合（如 Cmd+Tab）仍无法拦截。更新 shortcuts 单测（新的门控语义）、check-shortcuts 源码断言、bootstrap fixture（网页内 Tab 优先、IME/长按不触发），README 中英同步。全部门禁、负对照、5 组窗口×119、构建 37 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.23-0f7ac7fa155b.tgz`（243772bytes/45文件）已装 desktop（0.2.23 本地候选）。未提交/未推送（等用户指令）。
+
+## 2026-11-11 11:40 README 整理（0.2.23）
+
+按当前实现重新核对中英 README：删除已移除的「恢复默认」快捷键说明；修正快捷键描述为左侧切 CHAT、右侧切 HARNESS，补充保存后生效、空字段提示/保存禁用、冲突时提示且不写入；明确 CHAT 网页内按键由官网处理、不触发插件快捷键（删除原先错误的「网页内请用组合键」）；缓存设置标题改为「CHAT网页是否缓存」；切换按钮文案改为「最多 10 列宽（全角按 2 列计）」；限制段同步快捷键作用范围。仅文档修正，未改代码与版本。
+
+## 2026-11-11 15:20 未发布改动：聚焦修复二（页面呈现后重聚焦 + 加载完成后确认）
+
+用户反馈第二种场景仍未聚焦：切到 CHAT 时先加载网页数据、加载完才进入聊天界面。判断：首次聚焦可能发生在版面适配/呈现之前的隐藏阶段，或官网在数据加载完成后重建 composer 导致焦点丢失。修复：① 新增 `presentationReady` 监听——页面真正呈现后再请求一次聚焦（覆盖"先加载后进入"）；② 聚焦成功后等待 900ms 再确认一次（`waitFocusFrame(900)`），若官网在数据加载完成时替换了输入框则补聚焦一次；仍受 30 秒窗口、模式/设置页取消约束。回归新增「数据加载完成后重新确认聚焦」用例（fixture），单元/源码断言同步。候选 `c72701dc5cad`（243264bytes/45文件）已装 desktop；待用户完整重开实测。未提交/未推送。
+
+## 2026-11-11 15:05 未发布改动：聚焦修复（webview 先获得键盘焦点）
+
+用户实测候选未生效（进程 14:19 已加载 14:16 安装的候选，排除未重启）。根因判断：`executeJavaScript` 里对 composer 调 `focus()` 只会设置页面内 `activeElement`，但**宿主 webview 容器本身没有键盘焦点**时，用户仍需点击网页才能输入；普通浏览器打开官网之所以自动聚焦，是因为浏览器窗口本身持有焦点。修复：聚焦循环在 guest 可见（`getClientRects().length>0`）后先 `current.focus()` 让 webview 获得焦点（等价点击页面），再执行 guest 内聚焦脚本；并新增 `composerFocusPending` 处理"进入 CHAT 的请求先于 guest effect 就绪"的时序。重新构建候选 `a664e5a3d4aa`（243153bytes/45文件）已装 desktop；待用户完整重开后实测。仍未提交/未推送。
+
+## 2026-11-11 14:35 版本管理纠正：项目版本回到已发布 0.2.23
+
+用户指出不应按改动递增项目版本，npm 发布才按顺序递增。`package.json` 与 `lib/build-manifest.json` 从 0.2.26 回到已发布版 **0.2.23**；0.2.24/0.2.25/0.2.26 曾按旧规则递增，现统一视为未发布改动，下次 npm 发布按顺序使用 **0.2.24**。AGENTS 版本规则已同步修改，README 发布版保持 0.2.23。未改功能代码。
+
+## 2026-11-11 14:15 README 兼容范围改为只提最新 0.2.2 线
+
+按用户要求不在 README 强调历史上支持哪些 DSH 版本：兼容范围改为「适配当前最新的 DSH 桌面版 0.2.2 发布线（含 RC 与正式版）；0.2.3+ 需重新适配」，附件保存限制不再点名 0.2.0/0.2.1，英文同步。引擎/peers 的实际范围不变（仍覆盖 0.2.0-rc.1 起的已验证发布线），仅文档口径收敛。未改代码与版本。
+
+## 2026-11-11 14:05 0.2.26 候选：设置页文案更新与延迟输入框样式统一
+
+按用户提供的新文案调整设置页：快捷键块标题「快捷键」、说明「CHAT/HARNESS模式切换快捷键。当两个快捷键相同时，该快捷键可在两个模式之间来回切换。」；缓存块标题「缓存策略」、选项「保持缓存 / 延迟释放 / 立即释放」、说明「缓存CHAT时，切换至CHAT模式时无需等待加载，但CHAT存在期间无法打开开发者工具（F12）；释放CHAT缓存后，切换至CHAT模式需要重新加载数据。」英文翻译一并补齐（此前这些键缺英文会回落中文），README 中英同步标题与选项。
+
+延迟释放的秒数输入框此前在真实宿主中与文案输入框观感不一致：现统一高度 34px、圆角 12px、`.5px` 边框、`bg-layer-3` 填充，并隐藏 number spinner；内层 input 显式高度 34 避免 wrapper/内层不一致。presentation 回归新增「秒输入与文案输入的高度/圆角/填充/边框一致」断言（87 项）。
+
+验证：presentation 87、capture 32、bootstrap/header/guest/window/title/brand/sidebar/links/downloads/sidebar-022/switcher/shortcuts、compat、sdk、两项负对照、5 组窗口×119、构建 36 产物/4 模块通过。候选 `artifacts/dsh-deepseek-chat-0.2.26-9ed93181dcb6.tgz`（241945 bytes/44文件，SHA256 `9ed93181dcb64407331f2da278caa0fd7d42ec1c5b8fe668ad0fe9d6df061c41`）已装 desktop，44/44 同包、依赖与 lock 锁定；未发布 npm。
+
+## 2026-11-11 13:25 0.2.25 候选：Chat 设置控件与 DSH 原生样式对齐
+
+排查 Chat 设置与 DSH 原生设置弹窗的差异：原生输入框为 34px 高、`--dsw-radius-md`（12px）圆角；原生 Button md 为 36px 高、12px 圆角。Chat 设置此前统一 32px，且自定义快捷键字段圆角 8px（radius-sm），与原生控件不一致。已改为：控件高度统一 **34px**（与原生 Input 同高；按钮取 34 保证设置页内输入/按钮同高）、圆角统一 **12px**（radius-md）；自定义快捷键字段由 8px 改为 12px，并改用原生输入框的 `.5px` 边框、`bg-layer-3` 填充与 12px 内边距；清除按钮 8px（radius-sm）、`?` 浮层 12px。presentation 回归新增高度 34 与圆角 12px 一致性断言（86 项），快捷键捕获 32 项不变。
+
+验证：presentation 86、capture 32、bootstrap/header/guest/window/title/brand/sidebar/links/downloads/sidebar-022/switcher/shortcuts、compat、sdk、两项负对照、5 组窗口×119、构建 36 产物/4 模块通过。候选 `artifacts/dsh-deepseek-chat-0.2.25-5a36f4b5abf6.tgz`（241276 bytes/44文件，SHA256 `5a36f4b5abf666d9d3b4fae2a02470ad893a4a3743dad465be44b0ef65f59f08`）已装 desktop，44/44 同包、依赖与 lock 锁定；未发布 npm。
+
 本文件由 2026-11-07 整理时从 `docs/handoff.md` 原样迁出，仅作追溯：当前状态见 [handoff](handoff.md)，按阶段的工作记录见 [worklog](worklog.md)。以下内容反映当时版本，可能已被后续版本取代，不要据此判断当前行为。
 
 ---

@@ -561,7 +561,7 @@ function ShortcutInput({value,onChange,disabled,label,prefix,platform,t}:{
     <div className="dsh-chat-shortcut-field" data-capturing={capturing||undefined}>
       <span className="dsh-chat-shortcut-prefix" aria-hidden="true">{prefix}</span>
       <div className="dsh-chat-shortcut-input-wrap" ref={wrapRef}>
-        <input className="dsh-chat-shortcut-input" readOnly value={capturing ? '' : display}
+        <input className="dsh-chat-shortcut-input" data-dsh-chat-shortcut-capture="" readOnly value={capturing ? '' : display}
           placeholder={placeholder} aria-label={label} disabled={disabled}
           onFocus={()=>{setCapturing(true);setNotice(null)}}
           onBlur={()=>{setCapturing(false);setNotice(null)}}

@@ -156,15 +156,17 @@ export function captureShortcut(event: ShortcutEventLike, platform: ShortcutPlat
 export interface ShortcutContext {
   readonly enabled: boolean
   readonly modeEnabled: boolean
-  readonly editable: boolean
-  readonly inWebsite: boolean
+  /** The settings capture field owns keys while a new binding is recorded. */
+  readonly capturing: boolean
   readonly composing: boolean
   readonly defaultPrevented: boolean
 }
 
 /** The global listener must stay out of text fields and the CHAT webview. */
 export function shouldHandleShortcut(context: ShortcutContext): boolean {
-  return context.enabled && context.modeEnabled && !context.editable && !context.inWebsite
+  // The mode-switch shortcut wins in text fields and over the website too; the
+  // user can change the binding when it collides with a native key.
+  return context.enabled && context.modeEnabled && !context.capturing
     && !context.composing && !context.defaultPrevented
 }
 

@@ -10,7 +10,7 @@
 
 DeepSeek Chat is a **DSH Desktop plugin**: choose **CHAT** to use the real [DeepSeek Chat website](https://chat.deepseek.com/) inside DSH, and **HARNESS** to return to your previous workspace. The website keeps its own sign-in; the plugin never reuses your DSH account.
 
-Current release **0.2.23** · Built for **DSH Desktop** · The website follows DSH language, appearance and text size.
+Current release **0.2.24** · Built for **DSH Desktop** · The website follows DSH language, appearance and text size.
 
 ## Highlights
 
@@ -54,13 +54,13 @@ Two typical cases:
 Enter in the DSH plugin installer:
 
 ```text
-dsh-deepseek-chat@0.2.23
+dsh-deepseek-chat@0.2.24
 ```
 
 Or use the CLI:
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.23
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.24
 ```
 
 ### From GitHub
@@ -78,7 +78,7 @@ Requires Git on the machine; on Windows install [Git for Windows](https://git-sc
 ### From a local package
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.23.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.24.tgz
 ```
 
 **Fully quit and reopen DSH** after installing or updating. Replace `desktop` with your profile name when using another profile.
@@ -113,7 +113,7 @@ CHAT uses the website's own sign-in flow; the plugin never reads passwords or co
 - Both default to `Tab`, which toggles between modes. When they are different, the left field switches to CHAT and the right field switches to HARNESS.
 - Combinations are supported (e.g. `Ctrl+Shift+X`; the Meta key is shown as `Cmd` on macOS); focus a field and press the keys, `Esc` cancels and `Backspace` clears. An emptied field shows an in-field hint and Save stays disabled.
 - Two identical bindings are intentional: pressing once toggles once, not a conflict.
-- Shortcuts only fire when the DSH window is focused and focus is not in a text field or another editable area. **Keys inside the CHAT website stay with the website** and do not trigger plugin shortcuts; use the switcher or click back into the DSH shell.
+- Shortcuts fire whenever the DSH window is focused, including while a **HARNESS text field** or the **CHAT website composer** is focused; the plugin takes priority over the field or page. The only exception is the settings field that records a new binding. If a key collides with the IME or the page, record another combination in settings.
 - If a captured combination is reserved by the system or browser, the field warns about the conflict and does not store it.
 - The `?` next to the title explains the scope.
 
@@ -139,7 +139,7 @@ The delay accepts 5–3600 seconds.
 ## Limitations
 
 - **DSH Desktop only**; see *Compatibility*. DSH Web is not supported.
-- Shortcuts work only while the DSH window is focused and not inside a text field or another editable area, and cannot be registered globally; keys inside the CHAT website stay with the website and do not trigger plugin shortcuts.
+- Shortcuts fire whenever the DSH window is focused (including text fields) but cannot be registered system-wide; OS-level combinations (such as Cmd+Tab on macOS) cannot be intercepted, so pick another binding. Using `Tab` takes over Tab inside fields and the page (focus navigation/indentation) — change it if that collides.
 - F12 is unavailable while the page is cached; choose immediate or delayed release to use it.
 - Downloads only cover user-clicked common formats up to 16 MB; right-click saves, iframe downloads and programmatic downloads are not handled.
 - File-picker and microphone permissions are owned by the DSH host.

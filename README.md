@@ -10,7 +10,7 @@
 
 DeepSeek Chat 是一款 **DSH 桌面插件**：选择 **CHAT** 在 DSH 内使用真实的 [DeepSeek Chat 官网](https://chat.deepseek.com/)；选择 **HARNESS** 随时回到原来的工作区。插件不接管你的账号体系，官网登录独立保存。
 
-当前发布版 **0.2.23** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
+当前发布版 **0.2.24** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
 
 ## 核心功能
 
@@ -54,13 +54,13 @@ DeepSeek Chat 是一款 **DSH 桌面插件**：选择 **CHAT** 在 DSH 内使用
 在 DSH 插件安装输入框中输入：
 
 ```text
-dsh-deepseek-chat@0.2.23
+dsh-deepseek-chat@0.2.24
 ```
 
 或使用命令行：
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.23
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.24
 ```
 
 ### 从 GitHub 安装
@@ -78,7 +78,7 @@ dsh plugin --profile desktop add https://github.com/xingxingbk-git/dsh-deepseek-
 ### 使用本地安装包
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.23.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.24.tgz
 ```
 
 安装或更新后请**完整退出并重新打开 DSH**。使用其他配置环境时，把命令中的 `desktop` 换成对应名称。
@@ -113,7 +113,7 @@ CHAT 使用官网自己的登录流程，插件不读取密码或 Cookie。Googl
 - 默认两个都是 `Tab`，按 `Tab` 在两个模式间来回切换；两个设置为不同键时，左侧切到 CHAT、右侧切到 HARNESS。
 - 支持组合键（如 `Ctrl+Shift+X`；macOS 上 Meta 键显示为 `Cmd`）；点击输入框后直接按组合键即可捕获，`Esc` 取消，`Backspace` 清空。清空后框内会提示补全，保存按钮不可用。
 - 两个快捷键相同时是**有意设计**：按一下切换一次，不算冲突。
-- 快捷键只在 DSH 窗口聚焦、且焦点不在输入框或其他可编辑区域时生效；**CHAT 网页内的按键由官网自己处理**，不会触发插件快捷键（网页内请用左上角切换按钮，或先点回 DSH 界面）。
+- 快捷键在 DSH 窗口聚焦时全局生效，包括 **HARNESS 输入框**和 **CHAT 网页输入框**聚焦时；插件优先于输入框/网页自身的处理。唯一例外是设置页录制新快捷键的输入框。若与输入法或网页按键冲突，可在设置页改成其他组合。
 - 捕获时如果该组合被系统或浏览器保留，输入框会提示冲突，且不会写入这个组合。
 - 标题旁的 `?` 可以查看作用范围说明。
 
@@ -139,7 +139,7 @@ CHAT 使用官网自己的登录流程，插件不读取密码或 Cookie。Googl
 ## 限制
 
 - 仅支持 **DSH 桌面版**；兼容范围见下方“兼容范围”，暂不支持 DSH Web。
-- 快捷键仅在 DSH 窗口聚焦、且焦点不在输入框或其他可编辑区域时生效，不能注册系统级全局快捷键；CHAT 网页内的按键由官网处理，不会触发插件快捷键。
+- 快捷键在 DSH 窗口聚焦时全局生效（含输入框聚焦），但不能注册系统级全局快捷键；**系统级组合**（如 macOS 的 Cmd+Tab）无法被插件拦截，需要换成其他组合。设成 `Tab` 时会占用输入框和网页里的 Tab 键（焦点导航/缩进），冲突时请改键。
 - 保持缓存期间开发者工具（F12）不可用；需要 F12 请选择立即释放或延迟释放。
 - 下载只接管用户点击的常见格式且单文件不超过 16 MB；右键另存为、iframe 内下载、程序化下载不接管。
 - 文件上传对话框、麦克风等设备权限由 DSH 宿主控制，插件无法放开。

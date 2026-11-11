@@ -70,10 +70,10 @@ test('capture maps Escape, Backspace, modifiers and combinations to distinct out
   assert.equal(captureShortcut(key('-',{ctrl:true})).kind,'invalid')
 })
 
-test('the global listener stays out of inputs, the webview and other apps',()=>{
-  const base = {enabled:true,modeEnabled:true,editable:false,inWebsite:false,composing:false,defaultPrevented:false}
+test('the switching shortcut wins in inputs and the webview; only capture and composition are exempt',()=>{
+  const base = {enabled:true,modeEnabled:true,capturing:false,composing:false,defaultPrevented:false}
   assert.equal(shouldHandleShortcut(base),true)
-  for(const patch of [{enabled:false},{modeEnabled:false},{editable:true},{inWebsite:true},{composing:true},{defaultPrevented:true}])
+  for(const patch of [{enabled:false},{modeEnabled:false},{capturing:true},{composing:true},{defaultPrevented:true}])
     assert.equal(shouldHandleShortcut({...base,...patch}),false,JSON.stringify(patch))
 })
 
