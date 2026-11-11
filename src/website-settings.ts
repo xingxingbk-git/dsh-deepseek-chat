@@ -63,7 +63,8 @@ export function adaptWebsiteSettings(doc: Document, profile: HTMLElement | null,
   const dialog = [...doc.querySelectorAll<HTMLElement>('[role="dialog"],.ds-modal-content')].find(isModal)
   const closeDialog = () => dialog && [...dialog.querySelectorAll<HTMLElement>('button,[role="button"],.ds-icon-button')].find(el => !el.textContent?.trim() && el.querySelector('svg'))?.click()
   const openProfileMenu = () => {
-    const trigger = profile?.querySelector('img') ?? (profile?.matches('button,[role="button"],[aria-haspopup]') ? profile : null) ?? profile?.querySelector('[aria-haspopup="menu"]')
+    const trigger = profile?.querySelector('[data-dsh-chat-profile-avatar]') ?? profile?.querySelector('img')
+      ?? (profile?.matches('button,[role="button"],[aria-haspopup]') ? profile : null) ?? profile?.querySelector('[aria-haspopup="menu"]')
     ;(trigger as HTMLElement | undefined)?.click()
   }
   const request = (goal: string) => {

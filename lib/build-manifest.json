@@ -1,13 +1,13 @@
 {
   "format": 1,
   "name": "dsh-deepseek-chat",
-  "version": "0.2.25",
+  "version": "0.2.26",
   "inputs": {
     "assets/icon.svg": "8ea4f1d75f655c24e7f42fd5ed76763872d2c2c9d0661e14d64bcbc4dc5f84c8",
     "cordis.patch.yml": "d68da47a95a1800cbc29de786bf910d7327564715c13935760e485ee7408bb51",
     "locale/en.json": "aefce79e31e0d1a75521b7c5003aa3026446b6ec471dde7877ff3b1c53e72244",
     "locale/zh-CN.json": "b2f1a9886ad81e6fcb252df651dc18fa4b96f466d9df53de4b3de0d405ad1f81",
-    "package.json": "510bca0716032434f018a4849ce6913710625072c781ece5ba8892d0acf8ebb9",
+    "package.json": "96c25cee98520343c74f0379da1f5eafc37efbe3174c4d190d542c07545ed30d",
     "pnpm-lock.yaml": "b47388509b9a3dde4e96b0b08dca43973024282e1fae4340ff7728cab002a410",
     "scripts/build.mjs": "a3fcbb7d8dad12706be8e8eb0bd2ce15023d3e087aab3d775bf90fc85e163f74",
     "scripts/check-artifact.mjs": "6fec38fb74e41dfeacef7147280c69854087d0665747d7d65137cc98f9dc673b",
@@ -39,11 +39,11 @@
     "src/website-guest.ts": "57076f39b3b4f60043c3115e75af9e5464c6ea87e275095e4e4107f9bb80d173",
     "src/website-header.ts": "352705ff84d0b4d76f9d8554265b018b087f090162f68f7cd8973f9f8eb24c6f",
     "src/website-links.ts": "415286f626a25d70e82a7634714263aaab53e84a455ccea20ba0f283d713827c",
-    "src/website-navigation.ts": "957a014271954ebd6cf9844229b2609265898405d4264ff5f337ff23fb50535c",
+    "src/website-navigation.ts": "37608ee0629218b2ff64b53d0383eb02b2cef342069a99840e014ba5697c2063",
     "src/website-notice.ts": "65c781bec41e6c2e541d9512cc0051864d64fc3204b3ba5f2e005bdc955f39c9",
     "src/website-session-store.ts": "8ef6d49465e0034f12b763a666b4a90c8c9819fb8baea06dcaba340fd97d72f1",
     "src/website-session.ts": "f2434fafc40adb15b5f16fc8b6152bd8df7e85f5210330a1337502c9a08136d8",
-    "src/website-settings.ts": "5c0519b3f7c177da0abdd33cfc820fd9fcc0b333933e0db8988fdb5606ce07ac",
+    "src/website-settings.ts": "32ec1dc227171ce6580fa3a56a313e9188bf8062e0f7c198c1682ae673b3b285",
     "src/website-share-copy.ts": "133788b907486831810c749a738f186183702f9d0a1a18375daef01248669152",
     "src/website-sidebar-collapse.ts": "55483a2c5eb7ca46030147d968f83411c7936c537e46b75057ced223fe763c0b",
     "src/website-typography.ts": "c01b1eb793e0d893046ba546e2b8a0eb7c48217b064178824615e97ab9ba53c1",
@@ -52,7 +52,7 @@
     "tsconfig.json": "1ad0b3b39537564a180dc7f4084ceb3098b567f509320c77d71bc37aaf4f1879"
   },
   "artifacts": {
-    "lib/client.js": "4a0ac9c480fba8f28d5963302accab9676909dd2ba3048f4b1940748a97484a0",
+    "lib/client.js": "d2a36a9e142e439d1d8f90afb1d7cb80a265d7db10c0a28c65b697479a400ae7",
     "lib/index.js": "8579e0d07f0e1b015bdd3cbcb1cd3d2547687dd6b0558b0fe0c668d6340cc1b9",
     "lib/types/authorization.d.ts": "130649eed3635e75c3f50c13de93c52440a27f1b88136ab2297552570c013d49",
     "lib/types/brand-notice.d.ts": "2d877ab37d904025f54c8b0717cdd50bc36aabbb00406f4068335f09d5c14a79",
