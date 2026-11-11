@@ -2,6 +2,10 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
+## 2026-11-11 11:40 README 整理（0.2.23）
+
+按当前实现重新核对中英 README：删除已移除的「恢复默认」快捷键说明；修正快捷键描述为左侧切 CHAT、右侧切 HARNESS，补充保存后生效、空字段提示/保存禁用、冲突时提示且不写入；明确 CHAT 网页内按键由官网处理、不触发插件快捷键（删除原先错误的「网页内请用组合键」）；缓存设置标题改为「CHAT网页是否缓存」；切换按钮文案改为「最多 10 列宽（全角按 2 列计）」；限制段同步快捷键作用范围。仅文档修正，未改代码与版本。
+
 ## 2026-11-11 11:10 0.2.23 已公开发布 npm
 
 用户实测第三方登录与常规功能正常后要求发布。中英 README 发布版/安装示例已同步 0.2.23；类型、构建与分发通过；正式包 `artifacts/dsh-deepseek-chat-0.2.23-5e2cd85cbacf.tgz`（240761 bytes/44文件，SHA256 `5e2cd85cbacf86896d5fa165fe3ca71dec0eba1b9d94a9730ff0239765b5710b`）。

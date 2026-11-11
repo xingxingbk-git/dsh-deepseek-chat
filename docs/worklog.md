@@ -1,3 +1,7 @@
+## 2026-11-11 README 整理（0.2.23）
+
+按当前实现重审中英 README：删除已移除的「恢复默认」快捷键说明，修正左侧/右侧绑定语义、保存与空字段/冲突提示、CHAT 网页内按键不触发插件快捷键（删除错误的「网页内用组合键」表述）、缓存设置标题、切换按钮 10 列宽说明与限制段快捷键范围。仅文档调整，未改代码、版本与发布包。
+
 ## 2026-11-11 0.2.23 已公开发布 npm
 
 用户实测第三方登录与常规功能正常后要求发布。同步 README 版本/安装示例，类型/构建/分发通过；正式包 240761bytes/44文件 SHA256=5e2cd85cbacf86896d5fa165fe3ca71dec0eba1b9d94a9730ff0239765b5710b。0700 临时目录 + 0600 npmrc/cache + 网页登录（whoami=xingxingbk），用户完成发布 2FA；唯一一次 npm publish 退出0并返回 + dsh-deepseek-chat@0.2.23（processing）。传播后匿名核验完整/install-v1 latest=0.2.23、版本存在（30 个版本）；公开 tarball 240761bytes 逐字节同正式包，integrity/shasum 一致；临时会话 logout、目录删除、PTY 关闭，未使用原 npmrc。本机 desktop 已装同字节候选，未重装/重启。
