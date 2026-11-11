@@ -2,6 +2,14 @@
 
 > 本文件只记录**当前**状态与最近一轮工作；历史候选细节见 [handoff-archive](handoff-archive.md)，按阶段的工作记录见 [worklog](worklog.md)，需求/架构/路线见 [requirements](requirements.md)、[architecture](architecture.md)、[roadmap](roadmap.md)。
 
+## 0.2.23 候选：第三方登录页通用显示（2026-11-11 10:35）
+
+把外部贡献的 Google 登录修复合并到 0.2.22 之后的 main 并泛化为通用策略：官网登录进行中、当前主文档为外部 HTTPS 认证页（非 `deepseek.com` 及其子域、默认端口、无凭据）且 DOM 就绪时，按独立登录阶段显示原始页面、取消布局适配计时并恢复实际窗口宽度；Google、Apple、微信、Microsoft、企业 SSO 等统一适用，不再逐家白名单。外部页不执行 DeepSeek 的布局/会话/偏好/下载脚本，也不标记为 DeepSeek 已登录；返回 DeepSeek 后恢复原有加载与布局证明。普通账号密码登录仍走原有同源流程。合并时解决 `lib/build-manifest.json`、bootstrap 检查脚本与 README/文档冲突，版本递增 0.2.22→0.2.23 并重新生成 lib；一并合入 Windows 构建路径分隔符修复与 Windows 负对照匹配修复。
+
+验证：类型、构建、分发（36 产物/4 模块）通过；bootstrap 68（外部来源接受/协议与 DeepSeek 域拒绝/超时取消/返回/释放，Google+Apple+微信+Microsoft+企业 SSO 覆盖）、header 50、guest 14、窗口契约 48、title 38、品牌提示 31、侧栏 48、设置 85、外链 36、下载 13、sidebar-022、切换器、快捷键 11/捕获 32、compat、sdk、两项负对照、5 组窗口×119 全部通过（本机 macOS，合成/Node 与 headless 回归）。
+
+候选 `artifacts/dsh-deepseek-chat-0.2.23-5e2cd85cbacf.tgz`（240761 bytes/44文件，SHA256 `5e2cd85cbacf86896d5fa165fe3ca71dec0eba1b9d94a9730ff0239765b5710b`）已装 desktop，44/44 同包、依赖与 lock 锁定。**未发布 npm、发布暂停**（用户要求等外部贡献者发布/补全后再发）；第三方登录（尤其 Google 真实授权、Apple/微信/SSO）需重开实机验收，普通密码登录用户此前已在 0.2.22 基线实测正常。
+
 ## 0.2.23 设置页统一、快捷键切换与 README 重写（2026-11-10 21:50）
 
 需求：设置页控件高度统一、布局保持卡片但统一细节；新增快捷键切换 CHAT/HARNESS（开关、两个捕获输入框、保存、恢复默认、组合键、边界处理、冲突警告、相同=T切换）；README 重写使用说明与限制。

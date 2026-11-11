@@ -1,6 +1,6 @@
-## 2026-11-11 0.2.23 并入 Google 登录页修复（外部贡献）
+## 2026-11-11 0.2.23 第三方登录页通用显示（外部贡献 + 泛化）
 
-将外部贡献的 Google 登录修复并入 0.2.22 之后的 main：登录进行中且主文档为精确 `https://accounts.google.com` 来源、DOM 就绪时显示原始表单，取消布局适配计时并恢复窗口宽度；Google 页不执行 DeepSeek 布局/会话/偏好/下载脚本、不冒充 DeepSeek 已登录；返回 DeepSeek 后恢复原有加载与布局证明。普通账号密码登录仍走原有同源流程。合并时解决 lib/build-manifest、bootstrap 检查脚本与 README/文档的冲突；版本递增 0.2.22→0.2.23，重新生成 lib；README 中英补充官网登录说明与未复现的密码登录警告。Windows 构建路径分隔符修复与 Windows 负对照匹配修复一并合入。
+将外部贡献的 Google 登录修复并入 0.2.22 之后的 main，并泛化为通用策略：登录进行中且主文档为外部 HTTPS 认证页（非 deepseek.com、默认端口、无凭据）、DOM 就绪时显示原始页面，取消布局适配计时并恢复窗口宽度；Google/Apple/微信/Microsoft/企业 SSO 统一适用；外部页不执行 DeepSeek 布局/会话/偏好/下载脚本、不冒充 DeepSeek 已登录；返回 DeepSeek 后恢复原有加载与布局证明。普通账号密码登录仍走原有同源流程。合并时解决 lib/build-manifest、bootstrap 检查脚本与 README/文档的冲突；版本递增 0.2.22→0.2.23，重新生成 lib；README 中英补充第三方登录说明与未复现的密码登录警告。Windows 构建路径分隔符修复与 Windows 负对照匹配修复一并合入。
 
 ## 2026-11-11 0.2.22 已公开发布 npm
 
