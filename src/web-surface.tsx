@@ -12,7 +12,7 @@ import { parseWebsiteDownload, websiteDownloadScript } from './website-downloads
 import type { WebsiteFile } from './website-downloads.js'
 import { holdsWebsiteGuest, resumeWebsiteUrl } from './website-guest.js'
 import { DEFAULT_SWITCH_PREFERENCES } from './preferences.js'
-import { createWebsiteBootstrap, WEBSITE_DESKTOP_WIDTH } from './website-bootstrap.js'
+import { createWebsiteBootstrap, isGoogleSignInUrl, WEBSITE_DESKTOP_WIDTH } from './website-bootstrap.js'
 
 const WEBSITE_URL = 'https://chat.deepseek.com/'
 
@@ -93,6 +93,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
   const [reservation, setReservation] = useState<ReservationState | null>(null)
   const [recoveryRevision, setRecoveryRevision] = useState(0)
   const [presentationReady, setPresentationReady] = useState(false)
+  const [googleSignIn, setGoogleSignIn] = useState(false)
   const needsRecovery = useRef(false)
   const previousMode = useRef(state.mode)
   const guest = useRef<WebsiteWebview | null>(null)
@@ -136,6 +137,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     let held: DesktopBrowserReservation | undefined
     setReservation(null)
     setPresentationReady(false)
+    setGoogleSignIn(false)
     if (nativeBrowser === undefined || state.accountStorageKey === null || !guestWanted
       || requestedGeneration !== state.authorizationGeneration) return
     const generation = state.authorizationGeneration
@@ -219,6 +221,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     let documentReady = false
     let websiteWasSignIn = false
     let bootstrapTimedOut = false
+    let googleSignInLoading = false
     // Bounded same-document desktop measurements for the first conversation that
     // appears after a headerless start. Only a real start consumes a chance.
     let desktopChromeTries = 0
@@ -232,7 +235,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
         if (events.signal.aborted) return
         bootstrapTimedOut = true
         setPresentationReady(false)
-        report(false, 'CHAT 界面适配超时，请点击「重试网页」。')
+        report(false, googleSignInLoading ? 'Google 登录页加载超时，请点击「重试网页」。' : 'CHAT 界面适配超时，请点击「重试网页」。')
       },
     })
     events.signal.addEventListener('abort', () => bootstrap.dispose(), { once: true })
@@ -243,6 +246,8 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
       bootstrapTimedOut = false
       documentPresented = false
       setPresentationReady(false)
+      googleSignInLoading = false
+      setGoogleSignIn(false)
       bridge.reportWebsiteNavigation(generation, emptyNavigation(), true)
     }
     // about:blank is only the lease attachment. Its events/old bridge snapshots
@@ -493,6 +498,20 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     }
     current.addEventListener('dom-ready', () => {
       if (!bootstrapped) { bootstrapped = true; navigate(resumeWebsiteUrl(lastWebsiteUrl.current, WEBSITE_URL)) }
+      else if (active() && bridge.getSnapshot().websiteAuthenticationStatus === 'signing-in'
+        && bootstrap.authentication(documentRevision, current.getURL())) {
+        // Show the provider unchanged. Keep documentReady false so DeepSeek's
+        // DOM, session, download and preference scripts never run on Google.
+        documentPresented = true
+        bootstrapTimedOut = false
+        lastError = null
+        setGoogleSignIn(true)
+        current.style.opacity = ''
+        current.style.pointerEvents = ''
+        bridge.reportWebsiteNavigation(generation, { ...emptyNavigation(), status: 'sign-in' })
+        setPresentationReady(true)
+        report(false)
+      }
       else if (approvedOrigin()) {
         websiteWasSignIn = /^\/sign_in\/?$/.test(new URL(current.getURL()).pathname)
         documentReady = true
@@ -506,12 +525,15 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
       syncNavigation()
     }, { signal: events.signal })
     current.addEventListener('did-start-navigation', event => {
-      const navigation = event as Event & { readonly isMainFrame?: boolean; readonly isInPlace?: boolean }
+      const navigation = event as Event & { readonly isMainFrame?: boolean; readonly isInPlace?: boolean; readonly url?: string }
       // Only a new main document loses its adapter/preference markers. Loading
       // activity in other frames must not hide or clear an already ready page.
       if (navigation.isMainFrame !== true || navigation.isInPlace !== false) return
       navigationRevision++
       resetDocumentPresentation(); report(true)
+      googleSignInLoading = bridge.getSnapshot().websiteAuthenticationStatus === 'signing-in'
+        && isGoogleSignInUrl(navigation.url ?? current.getURL())
+      setGoogleSignIn(googleSignInLoading)
     }, { signal: events.signal })
     current.addEventListener('did-start-loading', () => {
       // This event also includes subframes/resource activity. It is not proof of
@@ -536,7 +558,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     current.addEventListener('did-stop-loading', () => { if (bootstrapped && approvedOrigin()) { report(false); syncNavigation() } }, { signal: events.signal })
     current.addEventListener('did-fail-load', event => {
       const failure = event as Event & { readonly isMainFrame?: boolean; readonly errorCode?: number }
-      if (failure.isMainFrame === true && failure.errorCode !== -3) report(false, 'DeepSeek 网页加载失败。请检查网络后重试。')
+      if (failure.isMainFrame === true && failure.errorCode !== -3) report(false, googleSignInLoading ? 'Google 登录页加载失败。请检查网络后重试。' : 'DeepSeek 网页加载失败。请检查网络后重试。')
     }, { signal: events.signal })
     current.addEventListener('render-process-gone', () => {
       needsRecovery.current = true
@@ -580,7 +602,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
     const downloadTimer = setInterval(() => { void pollDownloads() }, 500)
     events.signal.addEventListener('abort', () => {
       clearInterval(downloadTimer)
-      try { void Promise.resolve(current.executeJavaScript(websiteDownloadScript('dispose'))).catch(() => {}) } catch { /* the guest is already gone */ }
+      try { if (approvedOrigin()) void Promise.resolve(current.executeJavaScript(websiteDownloadScript('dispose'))).catch(() => {}) } catch { /* the guest is already gone */ }
     }, { once: true })
   }, [bridge, nativeBrowser, reservation])
 
@@ -620,7 +642,7 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
   const projectionError=state.websiteNavigation.status==='unsupported' && state.websiteNavigation.layoutReady!==true ? state.websiteNavigation.error || '暂未识别官网界面，请稍后重新识别。' : null
   const guestUsable=presentationReady && !projectionError && state.websiteAuthenticationStatus!=='signed-out' && state.websiteAuthenticationStatus!=='signing-out' && !logoutError
   const websiteStatusMessage=state.webError || (logoutError ? state.websiteSessionError : projectionError)
-    || (nativeBrowser===undefined ? '需要提供官方浏览器能力的 DSH 桌面版。' : state.websiteAuthenticationStatus==='signing-out' ? '正在清除登录记忆并退出官网。' : 'CHAT 使用独立的官网登录，登录后自动同步账号和官网对话。')
+    || (nativeBrowser===undefined ? '需要提供官方浏览器能力的 DSH 桌面版。' : state.websiteAuthenticationStatus==='signing-out' ? '正在清除登录记忆并退出官网。' : googleSignIn ? '请在 Google 官方页面完成登录，完成后会自动返回 DeepSeek。' : 'CHAT 使用独立的官网登录，登录后自动同步账号和官网对话。')
   return createPortal(<section id="dsh-chat-website-surface" className="dsh-chat-web-surface" aria-label={t("DeepSeek 官网网页")} aria-hidden={!visible || rect?.inert} {...(rect?.inert ? { inert: '' } : {})} style={{
     zIndex: inSettings ? 0 : 14,
     visibility: visible ? 'visible' : 'hidden',
@@ -651,10 +673,10 @@ export function DshChatWebSurface({ bridge, nativeBrowser }: PropsRuntime<'shell
         src: `about:blank#${activeReservation.native.lease}`,
         allowpopups: '',
         'data-sidebar-browser-frame': 'webview',
-        'aria-label': t('DeepSeek 官网，登录、聊天和历史由网页提供'),
+        'aria-label': t(googleSignIn ? 'Google 账号登录' : 'DeepSeek 官网，登录、聊天和历史由网页提供'),
       })}
       {(nativeBrowser === undefined || state.webError !== null || activeReservation === null || !presentationReady || projectionError || state.websiteAuthenticationStatus==='signed-out' || state.websiteAuthenticationStatus==='signing-out' || logoutError) && <div className={`dsh-chat-web-status${state.webError !== null || projectionError ? ' dsh-chat-web-status-error' : ''}`} role={state.webError !== null || projectionError ? 'alert' : 'status'}>
-        <strong>{t(nativeBrowser === undefined ? '当前环境无法内嵌网页' : state.webError !== null ? '网页暂时无法使用' : logoutError ? '退出登录未完成' : projectionError ? 'CHAT 界面识别失败' : state.websiteAuthenticationStatus==='signed-out' ? '登录 DeepSeek Chat' : state.websiteAuthenticationStatus==='signing-out' ? '正在退出登录' : '正在打开 DeepSeek 官网')}</strong>
+        <strong>{t(nativeBrowser === undefined ? '当前环境无法内嵌网页' : state.webError !== null ? '网页暂时无法使用' : logoutError ? '退出登录未完成' : projectionError ? 'CHAT 界面识别失败' : state.websiteAuthenticationStatus==='signed-out' ? '登录 DeepSeek Chat' : state.websiteAuthenticationStatus==='signing-out' ? '正在退出登录' : googleSignIn ? '正在打开 Google 登录' : '正在打开 DeepSeek 官网')}</strong>
         <p>{t(websiteStatusMessage)}</p>
         {projectionError && !logoutError && !state.webError && <button type="button" className="dsh-chat-text-button" onClick={()=>bridge.commandWebsite({type:'snapshot',showOriginal:false})} disabled={!state.modeEnabled}>{t("重新识别")}</button>}
         {logoutError && <button type="button" className="dsh-chat-text-button" onClick={()=>bridge.logoutWebsite()}>{t("重试退出登录")}</button>}

@@ -3,6 +3,11 @@
     "title": "DeepSeek Chat"
   },
   "ui": {
+    "Google 账号登录": "Google 账号登录",
+    "正在打开 Google 登录": "正在打开 Google 登录",
+    "请在 Google 官方页面完成登录，完成后会自动返回 DeepSeek。": "请在 Google 官方页面完成登录，完成后会自动返回 DeepSeek。",
+    "Google 登录页加载超时，请点击「重试网页」。": "Google 登录页加载超时，请点击「重试网页」。",
+    "Google 登录页加载失败。请检查网络后重试。": "Google 登录页加载失败。请检查网络后重试。",
     "工作模式": "工作模式",
     "CHAT 官网聊天模式": "CHAT 官网聊天模式",
     "HARNESS 工作区模式": "HARNESS 工作区模式",

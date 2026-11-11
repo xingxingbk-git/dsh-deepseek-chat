@@ -5,7 +5,15 @@ export const WEBSITE_DESKTOP_WIDTH = 1024
 export const WEBSITE_BOOTSTRAP_TIMEOUT = 30_000
 
 type Projection = Pick<WebsiteNavigation, 'status' | 'authenticated' | 'desktopReady' | 'viewportWidth'>
-type Phase = 'loading' | 'checking-layout' | 'ready'
+type Phase = 'loading' | 'checking-layout' | 'authenticating' | 'ready'
+
+/** Only the official Google account origin is an embedded sign-in surface. */
+export function isGoogleSignInUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.origin === 'https://accounts.google.com' && !url.username && !url.password
+  } catch { return false }
+}
 
 /**
  * Per-guest, per-document state, deliberately independent of React layout props.
@@ -45,6 +53,14 @@ export function createWebsiteBootstrap(options: {
     },
     domReady(expected: number) { if (live && expected === revision) domReady = true },
     loaded(expected: number) { if (live && expected === revision && domReady) loaded = true },
+    /** A provider form awaits the user; it cannot supply DeepSeek layout/account proof. */
+    authentication(expected: number, url: string): boolean {
+      if (!live || expected !== revision || !isGoogleSignInUrl(url)) return false
+      phase = 'authenticating'
+      clear()
+      options.desktop(false)
+      return true
+    },
     /** The first conversation may introduce Share after a headerless new-chat page. */
     recheck(expected: number): boolean {
       if (!live || expected !== revision || phase !== 'ready') return false
@@ -53,7 +69,7 @@ export function createWebsiteBootstrap(options: {
     },
     /** Expected width is the real host content box; observed width comes from the guest DOM. */
     project(expected: number, navigation: Projection, expectedWidth: number): 'waiting' | 'resized' | 'ready' {
-      if (!live || expected !== revision || !domReady || !loaded) return 'waiting'
+      if (!live || expected !== revision || !domReady || !loaded || phase === 'authenticating') return 'waiting'
       const usable = navigation.status === 'sign-in' || (navigation.status === 'ready' && navigation.authenticated === true && navigation.desktopReady === true)
       if (!usable) return 'waiting'
       if (phase === 'ready') return 'ready' // Ordinary layout changes keep the already-presented document.

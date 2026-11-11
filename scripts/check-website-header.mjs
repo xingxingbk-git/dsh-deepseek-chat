@@ -8,7 +8,7 @@ import { runHeadlessFixture } from './run-headless-fixture.mjs'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const negative = process.argv.includes('--negative-control')
 const bundle = await build({ absWorkingDir: root, entryPoints: ['tests/browser/website-header.fixture.js'], bundle: true, write: false, format: 'iife', platform: 'browser', target: 'chrome130', plugins: negative ? [{ name: 'remove-responsive-size-guard-in-memory', setup(plugin) {
-  plugin.onLoad({ filter: /src\/website-header\.ts$/ }, async args => ({ contents: (await readFile(args.path, 'utf8')).replace('const shareSize = measured ?', 'const shareSize = false && measured ?'), loader: 'ts' }))
+  plugin.onLoad({ filter: /src[\\/]website-header\.ts$/ }, async args => ({ contents: (await readFile(args.path, 'utf8')).replace('const shareSize = measured ?', 'const shareSize = false && measured ?'), loader: 'ts' }))
 } }] : [] })
 const code = bundle.outputFiles[0].text.replaceAll('</script', '<\\/script')
 let results

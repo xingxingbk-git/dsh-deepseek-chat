@@ -10,7 +10,7 @@
 
 DeepSeek Chat 是一款 **DSH 桌面插件**：选择 **CHAT** 在 DSH 内使用真实的 [DeepSeek Chat 官网](https://chat.deepseek.com/)；选择 **HARNESS** 随时回到原来的工作区。插件不接管你的账号体系，官网登录独立保存。
 
-当前发布版 **0.2.22** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
+当前发布版 **0.2.23** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
 
 ## 核心功能
 
@@ -54,13 +54,13 @@ DeepSeek Chat 是一款 **DSH 桌面插件**：选择 **CHAT** 在 DSH 内使用
 在 DSH 插件安装输入框中输入：
 
 ```text
-dsh-deepseek-chat@0.2.22
+dsh-deepseek-chat@0.2.23
 ```
 
 或使用命令行：
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.22
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.23
 ```
 
 ### 从 GitHub 安装
@@ -78,7 +78,7 @@ dsh plugin --profile desktop add https://github.com/xingxingbk-git/dsh-deepseek-
 ### 使用本地安装包
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.22.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.23.tgz
 ```
 
 安装或更新后请**完整退出并重新打开 DSH**。使用其他配置环境时，把命令中的 `desktop` 换成对应名称。
@@ -92,6 +92,12 @@ dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.22.tgz
 - CHAT 内嵌官网聊天：侧栏浏览对话、搜索、打开历史会话，顶部“新会话”开始聊天。
 - 对话右侧菜单可重命名、置顶、分享和删除；点击“对话”右侧刷新图标更新网页与列表。
 - 切回 HARNESS 恢复之前的主面板，再进 CHAT 会回到刚才的网页（取决于缓存策略）。
+
+### 官网登录
+
+CHAT 使用官网自己的登录流程，插件不读取密码或 Cookie。Google 登录会显示 Google 官方登录页，完成后自动回到 DeepSeek 聊天；普通账号密码登录也可正常使用。登录记忆只保存官网授权所需的最小信息，并按 DSH 配置环境隔离。
+
+> 已知问题：有人反馈使用普通账号密码登录时偶发空白页或报错，目前未复现、原因未确认。如遇到，请重试或改用其他登录方式，并反馈系统和 DSH 版本。
 
 ### 模式切换器
 

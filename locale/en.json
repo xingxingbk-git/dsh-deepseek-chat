@@ -3,6 +3,11 @@
     "title": "DeepSeek Chat"
   },
   "ui": {
+    "Google 账号登录": "Google Account sign-in",
+    "正在打开 Google 登录": "Opening Google sign-in",
+    "请在 Google 官方页面完成登录，完成后会自动返回 DeepSeek。": "Complete sign-in on Google's official page. You will return to DeepSeek automatically.",
+    "Google 登录页加载超时，请点击「重试网页」。": "Google sign-in took too long to load. Click Retry page.",
+    "Google 登录页加载失败。请检查网络后重试。": "Google sign-in failed to load. Check your connection and retry.",
     "工作模式": "Work mode",
     "CHAT 官网聊天模式": "CHAT website mode",
     "HARNESS 工作区模式": "HARNESS workspace mode",

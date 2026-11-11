@@ -41,11 +41,12 @@ window.fixtureDone = (async () => {
   const guest = () => surface()?.querySelector('webview')
   function stub(node) {
     if (nodes.has(node)) return nodes.get(node)
-    const data = { url: node.getAttribute('src'), reloads: 0, proof: true, refreshReadiness: 'ready', projection: null, download: null, draft: 'fixture draft retained', scroll: 321 }
+    const data = { url: node.getAttribute('src'), reloads: 0, executions: 0, proof: true, refreshReadiness: 'ready', projection: null, download: null, draft: 'fixture draft retained', scroll: 321 }
     node.getURL = () => data.url
     node.loadURL = async url => { loads.push({ node, url, minWidth: node.style.minWidth }); data.url = url; fire(node, 'did-start-navigation', { isMainFrame: true, isInPlace: false }) }
     node.reload = () => { data.reloads++; loads.push({ node, reload: true, minWidth: node.style.minWidth }); fire(node, 'did-start-navigation', { isMainFrame: true, isInPlace: false }) }
     node.executeJavaScript = async script => {
+      data.executions++
       if (script === websiteSessionCaptureScript()) return null
       if (script.includes('websiteRefreshReadiness')) return data.refreshReadiness
       if (script.includes('adaptWebsiteNavigation')) {
@@ -103,6 +104,34 @@ window.fixtureDone = (async () => {
   check('drawer interaction lock changes only inert/hit testing', first.inert && guest() === first)
   patch({ viewport: { ...state.viewport, inert: false } }); await settle()
   check('width storms, sidebar split and drawer close never reload or release', guest() === first && acquired === 1 && releases.length === 0 && data.reloads === 0 && loads.length === 1 && data.draft === 'fixture draft retained' && data.scroll === 321)
+  // Google redirects are a user-driven login surface, not a DeepSeek DOM to adapt.
+  patch({ websiteAuthenticationStatus: 'signing-in' })
+  data.url = 'https://accounts.google.com/v3/signin/identifier'
+  fire(first, 'did-start-navigation', { isMainFrame: true, isInPlace: false, url: data.url })
+  await settle()
+  check('provider navigation has a Google-specific loading message before the form is ready', surface().textContent.includes('Opening Google sign-in') && first.style.opacity === '0')
+  fire(first, 'dom-ready'); fire(first, 'did-finish-load'); fire(first, 'did-stop-loading')
+  await settle()
+  check('the official Google sign-in page is visible and interactive without DeepSeek layout proof', first.style.opacity === '1' && !first.inert && first.style.minWidth === '')
+  check('the provider form does not mark the user signed in', state.websiteAuthenticationStatus === 'signing-in' && state.websiteNavigation.authenticated === false)
+  check('Google sign-in has its own accessible label', first.getAttribute('aria-label') === 'Google Account sign-in')
+  const providerExecutions = data.executions
+  fire(first, 'did-start-loading')
+  data.url = 'https://accounts.google.com/v3/signin/challenge/pwd'
+  fire(first, 'did-navigate-in-page', { isMainFrame: true })
+  await binding({ type: 'snapshot' }); await pause(1300)
+  check('provider steps and background polling never run DeepSeek scripts on Google', data.executions === providerExecutions && first.style.opacity === '1' && !state.webLoading)
+  patch({ mode: 'harness' }); await settle(); patch({ mode: 'chat', viewport: { left: 0, top: 0, width: 280, height: 700 } }); await settle()
+  check('switching modes and resizing preserve the Google form and lease', guest() === first && acquired === 1 && releases.length === 0 && first.style.opacity === '1' && first.style.minWidth === '')
+  data.url = 'https://accounts.google.com.example.org/'
+  fire(first, 'did-start-navigation', { isMainFrame: true, isInPlace: false, url: data.url }); fire(first, 'dom-ready'); await settle()
+  check('an unrelated or lookalike origin is never presented as Google sign-in', first.style.opacity === '0' && first.inert)
+  data.url = 'https://chat.deepseek.com/'; data.navigation = ready
+  fire(first, 'did-start-navigation', { isMainFrame: true, isInPlace: false, url: data.url }); fire(first, 'dom-ready'); await settle()
+  check('returning from Google waits for normal DeepSeek load and layout proof', first.style.opacity === '0' && first.style.minWidth === '1024px')
+  fire(first, 'did-finish-load'); fire(first, 'did-stop-loading'); await until(() => first.style.opacity === '1')
+  patch({ websiteAuthenticationStatus: 'signed-in' })
+  check('the callback restores the same DeepSeek surface without reloading or replacing it', guest() === first && acquired === 1 && data.reloads === 0 && first.getAttribute('aria-label') !== 'Google Account sign-in')
   data.url = 'https://chat.deepseek.com/sign_in'
   data.navigation = { status: 'sign-in', authenticated: false, conversations: [], selectedHref: null, canCreate: false, error: null }
   fire(first, 'did-navigate-in-page', { isMainFrame: true }); await settle()
@@ -179,8 +208,14 @@ window.fixtureDone = (async () => {
   fire(recovered, 'dom-ready'); fire(recovered, 'dom-ready'); fire(recovered, 'did-finish-load'); fire(recovered, 'did-stop-loading')
   await until(() => recovered.style.opacity === '1')
   check('explicit crash recovery obtains one fresh desktop-prepared lease', acquired === 5 && releases.includes('fixture-4') && loads.at(-1).minWidth === '1024px')
+  patch({ websiteAuthenticationStatus: 'signing-in' })
+  const recoveredData = nodes.get(recovered)
+  recoveredData.url = 'https://accounts.google.com/v3/signin/identifier'
+  fire(recovered, 'did-start-navigation', { isMainFrame: true, isInPlace: false, url: recoveredData.url }); fire(recovered, 'dom-ready'); await settle()
+  const beforeRelease = recoveredData.executions
   patch({ modeEnabled: false }); await until(() => !guest() && releases.includes('fixture-5'))
   check('disabling CHAT releases the retained page', !guest())
+  check('releasing a Google sign-in page does not inject download cleanup scripts into it', recoveredData.executions === beforeRelease)
   let resolveAcquire
   holdAcquire = new Promise(resolve => { resolveAcquire = resolve })
   patch({ modeEnabled: true }); await until(() => acquired === 6)

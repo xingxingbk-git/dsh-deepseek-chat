@@ -1,3 +1,7 @@
+## 2026-11-11 0.2.23 并入 Google 登录页修复（外部贡献）
+
+将外部贡献的 Google 登录修复并入 0.2.22 之后的 main：登录进行中且主文档为精确 `https://accounts.google.com` 来源、DOM 就绪时显示原始表单，取消布局适配计时并恢复窗口宽度；Google 页不执行 DeepSeek 布局/会话/偏好/下载脚本、不冒充 DeepSeek 已登录；返回 DeepSeek 后恢复原有加载与布局证明。普通账号密码登录仍走原有同源流程。合并时解决 lib/build-manifest、bootstrap 检查脚本与 README/文档的冲突；版本递增 0.2.22→0.2.23，重新生成 lib；README 中英补充官网登录说明与未复现的密码登录警告。Windows 构建路径分隔符修复与 Windows 负对照匹配修复一并合入。
+
 ## 2026-11-11 0.2.22 已公开发布 npm
 
 用户要求发布会话后确认版本号改为 0.2.22（0.2.23 → 0.2.22）。同步 README 版本/安装示例、类型与构建通过；正式包 239261bytes/44文件 SHA256=a0c175d89158f2191d3318192c8738ddbdd3dce4de93fef3006e56f98b726720。0700 临时目录 + 0600 npmrc/cache + 网页登录（whoami=xingxingbk），用户完成发布 2FA；唯一一次 npm publish 退出0并返回 + dsh-deepseek-chat@0.2.22（processing）。匿名核验完整/install-v1 latest=0.2.22、版本存在；公开 tarball 下载逐字节同正式包，integrity/shasum 一致；临时会话 logout、目录删除、PTY 关闭，未使用原 npmrc。本机 desktop 仍为同代码候选 82a754c491f9（仅版本/README 行不同），未重装/重启；版本回退相关改动未 Git 提交。
@@ -1295,3 +1299,15 @@ fixture补selector与hover-solid亮暗token，新增填充无描边/亮暗取值
 ### 2026-11-07 文档整理（提交 GitHub 前）
 
 用户要求整理文档以便随后提交 GitHub。将 handoff 中 0.2.11 及更早的 1141 行历史段落原样迁至新增 `docs/handoff-archive.md`，handoff 改为当前快照（当前状态、提交清单、0.2.12–0.2.17 记录、历史索引），从 245KB 降到约 21KB；`AGENTS.md` 由 68KB（已触发读取截断）重写为约 8KB 的入口指南（目标、当前状态、目录职责、版本/发布/Git 规则、兼容依据、现行决策与硬约束、文档职责、开工清单、验证命令）；requirements/architecture/roadmap/references 各在文首补充“现行总要求/架构概览/当前进度/取证索引”，历史章节保留并标注为变更记录。全库 117 个相对链接/图片核对无缺失。未改代码与产物，`check:distribution` 仍通过；Git 仍未提交/推送。
+
+### 2026-11-11 / 0.2.23：Google 登录页不再被布局适配遮住（并入）
+
+复现：Windows DSH 0.2.2-rc.1 中从 CHAT 发起 Google 登录，官方账号页已 DOM 就绪，但插件只接受 DeepSeek 的布局证明，仍隐藏 guest，30 秒后误报适配超时。新增浏览器回归先在原实现失败，再修复通过。
+
+在文档控制器增加独立认证阶段：仅显式登录期间接受精确 Google HTTPS 来源（排除用户信息、非标准端口和相似域名），DOM 就绪后显示表单、取消适配期限、恢复窗口宽度，不声明 DeepSeek 已登录。返回 DeepSeek 重新走原有加载/布局证明。新增中英登录提示和失败文案；DeepSeek 脚本与释放清理均不在 Google 页面运行。未修改宿主、凭据白名单、网页缓存策略或提供方认证机制。同步 README、类型与整个 lib 产物；并入后版本递增 0.2.22→0.2.23，随 0.2.23 候选交付。
+
+本次 Windows 构建发现 esbuild 输出路径使用反斜杠，旧的 client.js 后缀匹配失败；改用 path.basename。bootstrap/header 负对照也改为同时接受两种路径分隔符，确保 Windows 上实际执行故障注入。
+
+验证：类型、构建与分发通过；bootstrap 65、header 50、guest 14、外链 36、下载回归、窗口契约 48、SDK 11、兼容 26×4、sidebar-022 54、品牌 27、切换器 7、侧栏 48、设置 77、标题 38、窗口识别 5×119 全部通过；两项负对照正确失败并被捕获；diff 检查通过。按项目既有基线说明未运行 pnpm test。具体命令与实机/合成边界见 handoff 当前快照。
+
+实机：用户在最小本地修复后自行完成 Google 登录并确认可以聊天；最终源码构建客户端和翻译已替换本机已有安装中的对应文件，保留可回滚备份，重新载入后登录状态及输入框正常。未退出账号重复完整授权，未测试其他提供方、企业 SSO 或所有验证码路径；服务端登录有效期仍由官网决定。
