@@ -72,7 +72,8 @@
     "check:website-bootstrap": "node ./scripts/check-website-bootstrap.mjs",
     "check:website-header": "node ./scripts/check-website-header.mjs",
     "check:shortcuts": "node scripts/check-shortcuts.mjs",
-    "check:shortcut-capture": "node scripts/check-shortcut-capture-browser.mjs"
+    "check:shortcut-capture": "node scripts/check-shortcut-capture-browser.mjs",
+    "check:website-text-avatar": "node ./scripts/check-website-text-avatar.mjs"
   },
   "dsh": {
     "bundle": {

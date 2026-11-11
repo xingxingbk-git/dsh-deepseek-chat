@@ -330,17 +330,17 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
   // is zero. Its owned layout boundary can validate a replacement main sibling
   // without briefly revealing the already hidden sidebar.
   const confirmedBoundary = track.hasAttribute(marker) && layout?.hasAttribute('data-dsh-chat-layout')
-  // Identity uses the unchanged strict footer proof; a main-layout failure must
+  // Identity uses bounded footer proof; a main-layout failure must
   // not prevent an independently confirmed account from saving its own grant.
   const viewportHeight = doc.defaultView?.innerHeight ?? 0
-  const nicknameLeaf = (row: HTMLElement) => {
+  const nicknameLeaf = (row: HTMLElement, avatar: HTMLElement | null = null) => {
     const texts = doc.createTreeWalker(row, 4)
     let found: { element: HTMLElement; name: string } | null = null
     let text: Node | null
     while ((text = texts.nextNode())) {
       const parent = text.parentElement
       const excluded = parent?.closest('svg,script,style,[hidden],[aria-hidden="true"]')
-      if (!parent || (excluded && row.contains(excluded))) continue
+      if (!parent || avatar?.contains(parent) || (excluded && row.contains(excluded))) continue
       const name = (text.textContent ?? '').trim()
       if (!name) continue
       // Read one bounded nickname leaf, never the sidebar's aggregate text.
@@ -349,32 +349,43 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
     }
     return found
   }
-  const checkProfile = (row: HTMLElement, image: HTMLImageElement, geometry: boolean) => {
+  const checkProfile = (row: HTMLElement, avatar: HTMLElement, geometry: boolean) => {
+    const textAvatar = avatar.tagName !== 'IMG'
+    // The website's initial avatar is a leaf div in its focusable account row,
+    // with one nickname and a trailing menu glyph. Do not accept arbitrary
+    // footer text as account evidence or include the initial in the nickname.
+    if (textAvatar && (!row.matches('div[tabindex="0"]') || row.firstElementChild !== avatar
+      || avatar.tagName !== 'DIV' || avatar.childElementCount !== 0
+      || !/^[\p{L}\p{N}]$/u.test((avatar.textContent ?? '').trim())
+      || row.querySelectorAll('svg').length !== 1)) return null
     if (!row.isConnected || !track.contains(row) || row === sidebar || row === track || row === layout
-      || row.contains(newChat) || row.matches('a[href]') || image.closest('a[href]')
+      || row.contains(newChat) || row.matches('a[href]') || avatar.closest('a[href]')
       || row.closest('[role="dialog"],[role="menu"],[role="listbox"],.ds-modal-content,.ds-dropdown-menu,.ds-select-dropdown,.ds-popover')
       || row.querySelector('a[href],textarea,input,[contenteditable="true"],[role="menu"],[role="dialog"],.ds-dropdown-menu,.ds-modal-content')
-      || row.querySelectorAll('img').length !== 1 || !row.contains(image)) return null
+      || row.querySelectorAll('img').length !== (textAvatar ? 0 : 1) || !row.contains(avatar)) return null
+    const nickname = nicknameLeaf(row, textAvatar ? avatar : null)
+    if (!nickname) return null
     if (geometry) {
-      const bounds = row.getBoundingClientRect(), avatarBounds = image.getBoundingClientRect(), column = track.getBoundingClientRect()
+      const bounds = row.getBoundingClientRect(), avatarBounds = avatar.getBoundingClientRect(), column = track.getBoundingClientRect()
       if (column.width < 160 || column.width > 480 || column.left < -1 || column.left > 16
         || bounds.top < viewportHeight * .75 || bounds.bottom > viewportHeight + 1 || bounds.height < 24 || bounds.height > 100
         || bounds.width < 80 || bounds.width > column.width + 1 || bounds.left < column.left - 1 || bounds.right > column.right + 1
         || avatarBounds.width < 8 || avatarBounds.width > 80 || avatarBounds.height < 8 || avatarBounds.height > 80
         || avatarBounds.left < bounds.left - 1 || avatarBounds.right > bounds.right + 1
         || avatarBounds.top < bounds.top - 1 || avatarBounds.bottom > bounds.bottom + 1) return null
+      if (textAvatar && (avatarBounds.width < 20 || Math.abs(avatarBounds.width - avatarBounds.height) > 2
+        || avatarBounds.left > bounds.left + 24 || nickname.element.getBoundingClientRect().left < avatarBounds.right)) return null
     }
-    const nickname = nicknameLeaf(row)
-    return nickname ? { row, image, name: nickname.name } : null
+    return { row, avatar, name: nickname.name, proof: textAvatar ? 'footer-text-v1' : 'footer-v1' }
   }
   type PublicProfile = NonNullable<ReturnType<typeof checkProfile>>
   let identifiedProfile: PublicProfile | null = null
   // Reuse only a row and avatar previously proven in a visible footer. Legacy
   // markers placed on whole columns carry no such proof and are removed.
   for (const candidate of doc.querySelectorAll<HTMLElement>(`[${profileMarker}]`)) {
-    const image = candidate.querySelector<HTMLImageElement>(`img[${profileAvatarMarker}]`)
-    const valid = candidate.getAttribute(profileProofMarker) === 'footer-v1' && image ? checkProfile(candidate, image, false) : null
-    if (!identifiedProfile && valid) identifiedProfile = valid
+    const avatar = candidate.querySelector<HTMLElement>(`[${profileAvatarMarker}]`)
+    const valid = avatar ? checkProfile(candidate, avatar, false) : null
+    if (!identifiedProfile && valid && candidate.getAttribute(profileProofMarker) === valid.proof) identifiedProfile = valid
     else { candidate.removeAttribute(profileMarker); candidate.removeAttribute(profileProofMarker) }
   }
   const findVisibleProfile = (): PublicProfile | null => {
@@ -386,6 +397,12 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
         const valid = checkProfile(row, image, true)
         if (valid) return valid
       }
+    }
+    const textProfileRows = track.querySelectorAll<HTMLElement>('div[tabindex="0"]')
+    for (const row of textProfileRows) {
+      const avatar = row.firstElementChild
+      const valid = avatar instanceof HTMLElement ? checkProfile(row, avatar, true) : null
+      if (valid) return valid
     }
     return null
   }
@@ -413,8 +430,8 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
   const profile = identifiedProfile?.row ?? null
   if (identifiedProfile) {
     profile!.setAttribute(profileMarker, '')
-    profile!.setAttribute(profileProofMarker, 'footer-v1')
-    identifiedProfile.image.setAttribute(profileAvatarMarker, '')
+    profile!.setAttribute(profileProofMarker, identifiedProfile.proof)
+    identifiedProfile.avatar.setAttribute(profileAvatarMarker, '')
   }
   const accountName = identifiedProfile?.name ?? null
   const authenticated = identifiedProfile ? true : undefined
