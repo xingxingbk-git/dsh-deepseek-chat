@@ -2,6 +2,16 @@
 
 去掉 guard 对 slot children 键名的依赖，改为 locale/component/inject + 渲染时 hook 探测；回归覆盖无 children/三种旧新形态/首帧映射/清理。候选 92bd556817d8（245781bytes/47文件）已装 desktop。handoff 增加 DSH 升级检查清单。未提交/未推送。
 
+## 2026-11-12 发布 npm 0.2.26
+
+按顺序发布 0.2.26（rc.2 全局面板入口隐藏修复）：网页登录+2FA，publish 后 registry 异步生效；公开 tarball 与正式包逐字节一致（247123bytes/48文件，SHA256 bc2287aa52c5fc472ed8309273d9525c57e43bc9cd9bc2dac7448bd0fb8357d2），latest/dist-tags=0.2.26；临时凭据 logout、目录清理、PTY 关闭。Git 未提交/未推送。
+
+## 2026-11-12 DSH 0.2.2-rc.2 CHAT 侧栏全局面板入口隐藏（含修正）
+
+首版把 rc.2 panelList 当 DIV 识别导致未生效（实际 nav）；修正后实测仍存在，追加根标记兜底：client 在 html 上维护 data-dsh-chat-mode，CSS 用 `[data-sidebar-scrollport] > nav[aria-label]` 在 CHAT 隐藏 panelList（不依赖 adapter）；sidebar-022 65 项通过；候选 70aa043984a1（247122bytes/48文件）已装 desktop。未提交/未推送。
+
+rc.2 将 Plugins/Automation/More 入口移到 scrollArea 内 panelList；sidebar-adapter 严格识别 rc.2 网格结构并标记 data-dsh-chat-panel-list，CHAT 下隐藏、HARNESS/清理恢复；sidebar-022 增至 63 项，全部门禁/5组×119/构建40产物通过；候选 49de8333c3e6（247050bytes/48文件）已装 desktop。未提交/未推送。
+
 ## 2026-11-11 发布 npm 0.2.25
 
 按顺序发布 0.2.25：网页登录+2FA，publish 后 registry 异步生效；公开 tarball 与正式包逐字节一致（246755bytes/48文件，SHA256 89cab74c21458df98f505ede54887c281aeebf74ea1213bbbf5295b9ff44e3cf），latest/dist-tags=0.2.25；临时凭据 logout、目录清理、PTY 关闭。本机 desktop 仍为 0.2.24 同内容候选 46d4661d77cd。Git 未提交/未推送。

@@ -7,8 +7,8 @@ window.fixtureDone=(async()=>{
   const check=(name,passed)=>results.push({name,passed:Boolean(passed)})
   const tick=()=>new Promise(resolve=>setTimeout(resolve,0))
   const releaseStyles=acquireChatStyles(document)
-  const mode='data-dsh-chat-sidebar-mode', fill='data-dsh-chat-brand-fill', panel='data-dsh-chat-panel-region', session='data-dsh-chat-new-session'
-  const clean=root=>!root.hasAttribute(mode) && !root.querySelector(`[${fill}],[${panel}],[${session}]`)
+  const mode='data-dsh-chat-sidebar-mode', fill='data-dsh-chat-brand-fill', panel='data-dsh-chat-panel-region', list='data-dsh-chat-panel-list', session='data-dsh-chat-new-session'
+  const clean=root=>!root.hasAttribute(mode) && !root.querySelector(`[${fill}],[${panel}],[${list}],[${session}]`)
   const node=(tag,attributes={})=>{const el=document.createElement(tag);for(const [key,value] of Object.entries(attributes))el.setAttribute(key,value);return el}
   function shell({brandTag='span',button=false,disabled=false,wrapped=true}={}) {
     const root=node('div'),row=node('div',{'data-window-drag':'true'}),brand=node(brandTag),identity=node('span',{'aria-hidden':'true'})
@@ -28,6 +28,25 @@ window.fixtureDone=(async()=>{
       attach:()=>attachSidebarAdapter(name,()=>state,()=>calls.chat++)}
   }
   const remove=f=>f.root.remove()
+  function rc2Shell({chat=true,button=true}={}) {
+    const root=node('div'),row=node('div',{'data-window-drag':'true'})
+    const brand=node('span'),identity=node('span',{'aria-hidden':'true'})
+    const mark=node('span'),seat=node('span'),outlet=node('span',{'data-slot':'sidebar.brand.name'}),name=node('span')
+    const newButton=button ? node('button',{'type':'button'}) : null
+    const scrollRegion=node('div'),scrollArea=node('div',{'data-sidebar-scrollport':''}),panelList=node('nav',{'aria-label':'Fictional global panels'}),regionArea=node('div')
+    const workspaceSlot=node('div',{'data-slot':'sidebar.workspaces'}),footer=node('div')
+    const plugin=node('button'),automation=node('button'),more=node('button')
+    mark.textContent='Fictional mark';name.textContent='Fictional plugin';plugin.textContent='Plugins';automation.textContent='Automation';more.textContent='More'
+    if(newButton){newButton.append(node('span'));newButton.firstChild.textContent='New session'}
+    panelList.append(plugin,automation,more);regionArea.append(workspaceSlot);scrollArea.append(panelList,regionArea)
+    scrollRegion.append(scrollArea);identity.append(mark,seat);brand.append(identity);seat.append(outlet);outlet.append(name);row.append(brand)
+    root.append(row,...(newButton ? [newButton] : []),scrollRegion,footer);document.body.append(root)
+    const state={chat,canCreate:true},calls={chat:0,native:0}
+    newButton?.addEventListener('click',()=>calls.native++)
+    return {root,row,brand,identity,seat,name,newButton,scrollRegion,scrollArea,panelList,regionArea,workspaceSlot,footer,plugin,automation,more,state,calls,
+      attach:()=>attachSidebarAdapter(name,()=>state,()=>calls.chat++)}
+  }
+
   {
     const f=shell(),adapter=f.attach()
     check('0.2.2 denied session/create matches SPAN, labelled NAV and local workspace slot',adapter?.valid())
@@ -149,6 +168,37 @@ window.fixtureDone=(async()=>{
     adapter.dispose()
     check('pre-existing root, NAV and brand attributes restore exactly',f.root.getAttribute(mode)==='native-mode' && f.nav.getAttribute(panel)==='native-panel' && f.brand.getAttribute(fill)==='native-brand')
     remove(f)
+  }
+  {
+    const f=rc2Shell(),adapter=f.attach()
+    check('0.2.2-rc.2 shell is proven by the direct new-session BUTTON branch',adapter?.valid()===true)
+    check('CHAT hides the rc.2 Plugins/Automation/More panel list',f.panelList.getAttribute(list)==='true' && getComputedStyle(f.panelList).display==='none')
+    check('CHAT keeps the rc.2 workspace section outside the hidden list',getComputedStyle(f.workspaceSlot).display!=='none' && getComputedStyle(f.regionArea).display!=='none')
+    f.plugin.click()
+    check('rc.2 panel entries keep their native clicks',f.calls.chat===0 && f.calls.native===0)
+    f.newButton.click()
+    check('rc.2 native new-session BUTTON still redirects to CHAT once',f.calls.chat===1 && f.calls.native===0)
+    f.state.chat=false;adapter.sync()
+    check('HARNESS restores the rc.2 panel list',getComputedStyle(f.panelList).display!=='none' && f.root.getAttribute(mode)==='harness')
+    f.state.chat=true;adapter.sync()
+    check('CHAT re-hides the same rc.2 panel list',getComputedStyle(f.panelList).display==='none')
+    adapter.dispose()
+    check('rc.2 cleanup restores the panel list and every owned marker',clean(f.root))
+    remove(f)
+  }
+  {
+    const f=rc2Shell()
+    document.documentElement.setAttribute('data-dsh-chat-mode','chat')
+    check('rc.2 structural fallback hides the panel list even without an adapter',getComputedStyle(f.panelList).display==='none')
+    document.documentElement.removeAttribute('data-dsh-chat-mode')
+    check('rc.2 structural fallback leaves the panel list visible outside CHAT',getComputedStyle(f.panelList).display!=='none')
+    remove(f)
+  }
+  {
+    const f=rc2Shell(),extra=node('div');f.scrollArea.append(extra)
+    const adapter=f.attach()
+    check('rc.2-like shape with extra scroll-area children is not guessed',adapter?.valid()===true && !f.panelList.hasAttribute(list))
+    adapter?.dispose();remove(f)
   }
   releaseStyles()
   return results
