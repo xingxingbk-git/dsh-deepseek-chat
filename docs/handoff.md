@@ -18,6 +18,14 @@
 5. 文字头像与图片头像账号都能识别、会话菜单与侧栏折叠正常。
 6. 跑 `check:sidebar-search-guard`、`check:shortcuts`、`check:website-bootstrap`、`check:composer-focus` 与全量门禁。
 
+## 2026-11-12 0.2.26 已发布 npm
+
+发布 0.2.26（含 rc.2 侧栏全局面板入口隐藏修复：adapter 识别 + html 根标记/CSS 结构兜底双路径；sidebar-022 65 项）。流程：临时 npm 配置网页登录 → 2FA → publish（后台处理后生效）→ 校验公开 tarball 与正式包**逐字节一致**（247123 bytes / 48 文件，SHA256 `bc2287aa52c5fc472ed8309273d9525c57e43bc9cd9bc2dac7448bd0fb8357d2`）；latest/dist-tags=0.2.26；临时凭据已 logout、目录删除、PTY 关闭。本机 desktop 已装同内容候选 `70aa043984a1`（版本号 0.2.25）。Git 改动未提交/未推送（等用户指令）。
+
+## 2026-11-12 未发布改动：DSH 0.2.2-rc.2 侧栏全局面板入口在 CHAT 下隐藏（含首次误判修正）
+
+DSH 更新到 0.2.2-rc.2 后，CHAT 模式侧栏显示出 HARNESS 的「插件」「自动化任务」「更多」三个全局面板入口（截图红框）。根因：rc.2 把全局面板入口从旧的 root 直接子 NAV 移到 scrollArea（grid）内的 panelList（grid-area 2），旧适配只标记 root 直接子元素 NAV 为 panel-region，新入口未被覆盖。修复（`src/sidebar-adapter.ts` + `src/styles.ts`）：在已证实的 root/brand 链内严格识别 rc.2 结构（root > scrollRegion > scrollArea > [panelList, regionArea(data-slot=sidebar.workspaces)]，panelList 为区域前唯一兄弟且含 button），CHAT 模式给 panelList 标记 `data-dsh-chat-panel-list="true"` 并由 CSS 隐藏；HARNESS 恢复可见、dispose 恢复全部属性；未知结构不猜测。两次候选未生效的修正：① 首版识别误把 panelList 当 DIV（实际是 `nav`，aria-label=panels.label），已放宽为 NAV/DIV + aria-label/button；② 实测仍存在，判断侧栏 adapter 可能未 attach（品牌链/dom 结构差异），追加**不依赖 adapter 的兜底**：client publish 时给 `document.documentElement` 设置 `data-dsh-chat-mode`（CHAT/HARNESS 同步，dispose 移除），CSS 增加结构规则 `html[data-dsh-chat-mode="chat"] [data-sidebar-scrollport] > nav[aria-label]{display:none}`（rc.2 展开态 scrollArea 的直接子 NAV 只有 panelList；会话列表在 regionArea 内不受影响）；adapter 的 panel-list 标记仍在（覆盖折叠态）。sidebar-022 增至 65 项（含无 adapter 的兜底隐藏/非 CHAT 可见）。候选 `artifacts/dsh-deepseek-chat-0.2.25-70aa043984a1.tgz`（247122 bytes/48文件，版本号 0.2.25）已装 desktop；全部门禁/5组×119/构建 40 产物通过。DSH 0.2.2-rc.2。未提交/未推送（等用户验收）。另：安装时发现用户环境的 `dsh-codex-subscription@3.2.6` 与 rc.2 不兼容警告（非本插件，未处理）。
+
 ## 2026-11-11 0.2.25 已发布 npm
 
 发布 0.2.25（按顺序递增；包含：HARNESS 搜索框重开修复、CHAT 任何状态 Cmd/Ctrl+N 打开 CHAT 新会话（宿主 keydown 拦截 + 可选 shortcuts 服务 registry 的 webview 路径接管）、此前 0.2.24 的自动聚焦/文字头像/设置样式文案等全部内容）。流程：临时 npm 配置网页登录 → 2FA → publish（后台处理后生效）→ 校验公开 tarball 与正式包**逐字节一致**（246755 bytes / 48 文件，SHA256 `89cab74c21458df98f505ede54887c281aeebf74ea1213bbbf5295b9ff44e3cf`）；latest/dist-tags=0.2.25；临时凭据已 logout、目录删除、PTY 关闭。本机 desktop 仍装 0.2.24 本地候选 `46d4661d77cd`（内容与 0.2.25 相同，仅版本号不同）。Git 改动未提交/未推送（等用户指令）。

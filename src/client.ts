@@ -135,6 +135,8 @@ export function apply(ctx: Context): void {
   function publish(): void {
     if (disposed) return
     const state = mode.getSnapshot()
+    // Root marker for the DOM-level rc.2 fallback (independent of the sidebar adapter).
+    if (typeof document !== 'undefined' && document.documentElement) document.documentElement.setAttribute('data-dsh-chat-mode', state.mode)
     cached = {
       mode: state.mode, modeEnabled: mode.canEnter(), authorizationStatus: state.authorization.status,
       availabilityMessage: availability(), accountLabel: websiteNavigation.accountName ?? null,
@@ -790,6 +792,7 @@ export function apply(ctx: Context): void {
       languageObserver?.disconnect()
       stopSearchGuard(); for (const cleanup of guardedEntries.values()) cleanup(); guardedEntries.clear()
       mode.dispose(); sidebar?.dispose(); releaseSettingsIcon(); releaseStyles(); stopPanel(); stopMode(); disposed = true; lifetime.abort(); listeners.clear()
+      if (typeof document !== 'undefined' && document.documentElement) document.documentElement.removeAttribute('data-dsh-chat-mode')
       globalThis.removeEventListener('focus', refreshOnFocus)
     }
   }, 'dsh-deepseek-chat reversible website UI')

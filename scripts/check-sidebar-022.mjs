@@ -43,7 +43,7 @@ try {
   await send('Page.setDocumentContent',{frameId:frame,html},session)
   const evaluation=await send('Runtime.evaluate',{expression:'window.fixtureDone',awaitPromise:true,returnByValue:true},session)
   if(evaluation.exceptionDetails)throw new Error(JSON.stringify(evaluation.exceptionDetails))
-  const results=evaluation.result.value,expectedCases=54
+  const results=evaluation.result.value,expectedCases=65
   const passed=Array.isArray(results) && results.length===expectedCases && results.every(result=>result.passed===true) && pageErrors.length===0
   console.log(JSON.stringify({passed,expectedCases,actualCases:results?.length,pageErrors,source:'synthetic published-shell shapes; actual adapter and CSS; no DSH/account/network',results},null,2))
   if(!passed)process.exitCode=1

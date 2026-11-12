@@ -102,6 +102,28 @@ export function attachSidebarAdapter(
   const restoreAll = () => { for (const element of originalAttributes.keys()) restore(element) }
   let disposed = false, newButton: HTMLButtonElement | null = null, originallyDisabled = false
   let navigation = new Set<Element>()
+  let panelLists = new Set<Element>()
+  // 0.2.2-rc.2 moved the global-panel entries (Plugins/Automation/More) above the
+  // workspace section inside scrollArea; the old direct-child NAV no longer covers
+  // them. Prove that local grid shape before marking anything.
+  const panelList = (): Element | null => {
+    if (!anchorValid()) return null
+    const outlets = Array.from(root.querySelectorAll('[data-slot="sidebar.workspaces"]'))
+    if (outlets.length !== 1) return null
+    const outlet = outlets[0]
+    const region = outlet.parentElement
+    if (!region || region.tagName !== 'DIV' || outlet.parentElement !== region) return null
+    const scrollArea = region.parentElement
+    const scrollRegion = scrollArea?.parentElement
+    if (!scrollArea || scrollArea.tagName !== 'DIV' || !scrollRegion || scrollRegion.tagName !== 'DIV'
+      || scrollRegion.parentElement !== root) return null
+    const children = Array.from(scrollArea.children)
+    if (children.length !== 2 || children[1] !== region) return null
+    const list = children[0]
+    if (list === region || (list.tagName !== 'NAV' && list.tagName !== 'DIV')) return null
+    if (!list.hasAttribute('aria-label') && list.querySelector('button') === null) return null
+    return list
+  }
   const bindButton = (next: HTMLButtonElement | null) => {
     if (newButton === next) return
     if (newButton) { newButton.disabled = originallyDisabled; restore(newButton) }
@@ -124,7 +146,7 @@ export function attachSidebarAdapter(
   const sync = () => {
     if (disposed) return
     const current = controls()
-    if (!current) { bindButton(null); restoreAll(); navigation.clear(); return }
+    if (!current) { bindButton(null); restoreAll(); navigation.clear(); panelLists.clear(); return }
     const state = read()
     bindButton(current.button)
     mark(brand, 'data-dsh-chat-brand-fill', 'brand')
@@ -136,6 +158,10 @@ export function attachSidebarAdapter(
     for (const nav of navigation) if (!nextNavigation.has(nav)) restore(nav)
     for (const nav of nextNavigation) mark(nav, 'data-dsh-chat-panel-region', 'true')
     navigation = nextNavigation
+    const nextPanelList = panelList()
+    for (const list of panelLists) if (list !== nextPanelList) restore(list)
+    panelLists.clear()
+    if (nextPanelList) { mark(nextPanelList, 'data-dsh-chat-panel-list', 'true'); panelLists.add(nextPanelList) }
   }
   const observer = new MutationObserver(sync)
   observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-hidden', 'aria-label', 'data-window-drag', 'data-slot'] })
@@ -146,7 +172,7 @@ export function attachSidebarAdapter(
     dispose() {
       if (disposed) return
       disposed = true; observer.disconnect(); root.removeEventListener('click', intercept, true)
-      bindButton(null); restoreAll(); navigation.clear()
+      bindButton(null); restoreAll(); navigation.clear(); panelLists.clear()
     },
   }
 }
