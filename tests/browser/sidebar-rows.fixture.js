@@ -13,7 +13,7 @@ const css = element => getComputedStyle(element)
 const rect = element => element.getBoundingClientRect()
 const near = (a, b) => Math.abs(a - b) < 0.6
 const transparent = value => value === 'rgba(0, 0, 0, 0)'
-const rows = [{href:'https://chat.deepseek.com/a/chat/synthetic', title:'Synthetic conversation '.repeat(30), group:'今天'}]
+const rows = [{href:'https://chat.deepseek.com/a/chat/synthetic', title:'Synthetic conversation '.repeat(30), group:'今天'},{href:'https://chat.deepseek.com/a/chat/synthetic-2', title:'Second synthetic conversation', group:'今天'}]
 let state = {
   mode:'chat', modeEnabled:true, desktopAvailable:true, language:'zh-CN',
   websiteAuthenticationStatus:'signed-in', webLoading:false,
@@ -46,7 +46,7 @@ const scrollbar = element => {
   return {left:r.right-(element.offsetWidth-element.clientWidth),right:r.right,top:r.top,bottom:r.bottom}
 }
 const compareScrollbar = () => {
-  const own=scrollbar($('.dsh-chat-navigation-list')), native=scrollbar($('#native-list'))
+  const own=scrollbar($('.dsh-chat-navigation-list-area')), native=scrollbar($('#native-list-area'))
   const ownHost=rect($('#chat-shell')), nativeHost=rect($('#native-shell'))
   return near(own.left-ownHost.left,native.left-nativeHost.left) && near(own.right-ownHost.left,native.right-nativeHost.left)
     && near(own.top-ownHost.top,native.top-nativeHost.top) && near(own.bottom-ownHost.top,native.bottom-nativeHost.top)
@@ -56,6 +56,11 @@ window.fixtureReady = tick()
 window.testBaseline = async () => {
   check('production navigation renders a selected long-title conversation',Boolean(item()?.hasAttribute('data-selected')))
   check('default list paint edges match native session rows',compare())
+  const secondItem=$('.dsh-chat-conversation-item+.dsh-chat-conversation-item'), secondNative=$('#native-row2')
+  check('rows keep the native 2px vertical gap',secondItem!==null && secondNative!==null && css(secondItem).marginTop===css(secondNative).marginTop)
+  check('row height matches the native 32px session row',near(rect(item()).height,rect($('#native-row')).height))
+  const groupTitle=$('.dsh-chat-conversation-group h3')
+  check('conversation groups keep their own title spacing',groupTitle!==null && css(groupTitle).marginTop==='15px' && css(groupTitle).marginBottom==='4px')
   check('selected row excludes transparent paint insets',css(item()).backgroundClip==='padding-box' && css(item()).borderLeftColor==='rgba(0, 0, 0, 0)' && css(item()).borderLeftWidth==='3px')
   check('selected row uses the same fill and radius as HARNESS',css(item()).backgroundColor===css($('#native-row')).backgroundColor && css(item()).borderRadius===css($('#native-row')).borderRadius)
   const search=$('.dsh-chat-search-button'),refresh=$('.dsh-chat-search-actions .dsh-chat-icon-button')
@@ -65,14 +70,14 @@ window.testBaseline = async () => {
   document.documentElement.style.removeProperty('--dsw-radius-sm')
   check('more action retains its separate native extra-small radius',css(more()).borderRadius==='4px')
   check('root right inset matches native root',css($('.dsh-chat-navigation')).paddingRight===css($('#native-root')).paddingRight)
-  check('list preserves native stable gutter and external scrollbar gap',css($('.dsh-chat-navigation-list')).scrollbarGutter==='stable' && css($('.dsh-chat-navigation-list')).marginRight==='2px')
+  check('list preserves native stable gutter and external scrollbar gap',css($('.dsh-chat-navigation-list-area')).scrollbarGutter===css($('#native-list-area')).scrollbarGutter && css($('.dsh-chat-navigation-list-area')).marginRight===css($('#native-list-area')).marginRight)
   for (const width of [192,280,420]) {
     document.querySelectorAll('.shell').forEach(el=>el.style.width=`${width}px`)
     await tick()
     check(`paint edges still match native at width ${width}`,compare())
     check(`scrollbar horizontal and vertical bounds match native at width ${width}`,compareScrollbar())
-    measurements.push({width,chatPaint:paint(item()),nativePaint:paint($('#native-row')),chatScrollbar:scrollbar($('.dsh-chat-navigation-list')),nativeScrollbar:scrollbar($('#native-list'))})
-    check(`long titles do not cause horizontal scrolling at width ${width}`,$('.dsh-chat-navigation-list').scrollWidth <= $('.dsh-chat-navigation-list').clientWidth)
+    measurements.push({width,chatPaint:paint(item()),nativePaint:paint($('#native-row')),chatScrollbar:scrollbar($('.dsh-chat-navigation-list-area')),nativeScrollbar:scrollbar($('#native-list-area'))})
+    check(`long titles do not cause horizontal scrolling at width ${width}`,$('.dsh-chat-navigation-list-area').scrollWidth <= $('.dsh-chat-navigation-list-area').clientWidth)
     check(`more button stays inside row paint at width ${width}`,rect(more()).right<=paint(item()).right && rect(more()).left>=paint(item()).left)
   }
   for (const inset of [12,16]) {
@@ -122,12 +127,12 @@ window.testOtherStates = async () => {
   const filler=document.createElement('div');filler.style.height='1600px';$('#native-list').append(filler)
   update({websiteNavigation:{...state.websiteNavigation,conversations:Array.from({length:60},(_,i)=>({...rows[0],href:`https://chat.deepseek.com/a/chat/synthetic-${i}`}))}})
   await tick()
-  check('overflow scenario really has scrollable content on both sides',$('.dsh-chat-navigation-list').scrollHeight>$('.dsh-chat-navigation-list').clientHeight && $('#native-list').scrollHeight>$('#native-list').clientHeight)
+  check('overflow scenario really has scrollable content on both sides',$('.dsh-chat-navigation-list-area').scrollHeight>$('.dsh-chat-navigation-list-area').clientHeight && $('#native-list-area').scrollHeight>$('#native-list-area').clientHeight)
   check('visible overflow scrollbars keep matching boundaries',compareScrollbar())
   check('overflow content keeps native row width',compare())
-  $('.dsh-chat-navigation-list').scrollTop=150;$('#native-list').scrollTop=150;await tick()
+  $('.dsh-chat-navigation-list-area').scrollTop=150;$('#native-list-area').scrollTop=150;await tick()
   check('scrolling changes neither row width nor scrollbar placement',compare() && compareScrollbar())
   root.unmount()
   check('navigation unmount cleans subscriptions',listeners.size===0)
-  return {results,measurements,limits:'Production React/CSS against synthetic DSH 0.2.2-rc.1 geometry; Menu API stand-in; no user content, live DSH or native compositor.'}
+  return {results,measurements,limits:'Production React/CSS against synthetic DSH 0.2.2-rc.2 geometry; Menu API stand-in; no user content, live DSH or native compositor.'}
 }

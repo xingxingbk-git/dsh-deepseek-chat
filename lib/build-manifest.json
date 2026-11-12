@@ -1,13 +1,13 @@
 {
   "format": 1,
   "name": "dsh-deepseek-chat",
-  "version": "0.2.26",
+  "version": "0.2.27",
   "inputs": {
     "assets/icon.svg": "8ea4f1d75f655c24e7f42fd5ed76763872d2c2c9d0661e14d64bcbc4dc5f84c8",
     "cordis.patch.yml": "d68da47a95a1800cbc29de786bf910d7327564715c13935760e485ee7408bb51",
     "locale/en.json": "5a4265b401b779ab6224fefe72b3961b0fbce881aa784657ff80c4caaf450fba",
     "locale/zh-CN.json": "b2f1a9886ad81e6fcb252df651dc18fa4b96f466d9df53de4b3de0d405ad1f81",
-    "package.json": "420ffbc7eca6699bc2e2916ae73e34a2666710b3fcb02f46571073728a771c10",
+    "package.json": "01951276e739aa66618b011de54e4fbc38f651f3b799f9b291ab68da8a3421d0",
     "pnpm-lock.yaml": "b47388509b9a3dde4e96b0b08dca43973024282e1fae4340ff7728cab002a410",
     "scripts/build.mjs": "a3fcbb7d8dad12706be8e8eb0bd2ce15023d3e087aab3d775bf90fc85e163f74",
     "scripts/check-artifact.mjs": "6fec38fb74e41dfeacef7147280c69854087d0665747d7d65137cc98f9dc673b",
@@ -31,7 +31,7 @@
     "src/settings-icon.ts": "a7a02490e93570741f938ec2a874b37e383b8521abf5cca2e2def199c6093f91",
     "src/shortcuts.ts": "9be27050325b9b6a295ef5b91d89434834979ee873a54499f34aecdc18347724",
     "src/sidebar-adapter.ts": "3c99e8fc4223817a27ebdb2ea957ace73f6b33de6e74ffb2d8374523ea7cca7f",
-    "src/styles.ts": "63538ded67daa53632bd150382f324ec71aeb6c8d3922e50453776a84b04ce1a",
+    "src/styles.ts": "6ab9abb6899d36a53df0f5b16591783aa4adba4c9631c104aa9963f1d6267bd8",
     "src/surface-clip.ts": "8a8cd5bb5de919390c6f167a64906b37a8bdad33edb8a47fc77aca52070ca7f5",
     "src/ui.tsx": "e0cc458822137043b50378e04164d5136e6a0def9ab92ac30a3ccbf18c924c58",
     "src/web-surface.tsx": "897251d7d24387eb0b739fb2de5c5600567a19a4df87ddac3ca93058748040e1",
@@ -56,7 +56,7 @@
     "tsconfig.json": "1ad0b3b39537564a180dc7f4084ceb3098b567f509320c77d71bc37aaf4f1879"
   },
   "artifacts": {
-    "lib/client.js": "d36dcd2932ccd95a4dc212b21bf008426b64ea0b3979a022f267457b33021288",
+    "lib/client.js": "8694e423cf7b95c768579a71da79be27d37dc0a71b97b81cb0096ff18bdea23c",
     "lib/index.js": "8579e0d07f0e1b015bdd3cbcb1cd3d2547687dd6b0558b0fe0c668d6340cc1b9",
     "lib/types/authorization.d.ts": "130649eed3635e75c3f50c13de93c52440a27f1b88136ab2297552570c013d49",
     "lib/types/brand-notice.d.ts": "2d877ab37d904025f54c8b0717cdd50bc36aabbb00406f4068335f09d5c14a79",

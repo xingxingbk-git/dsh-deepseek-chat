@@ -1,6 +1,6 @@
 {
   "name": "dsh-deepseek-chat",
-  "version": "0.2.26",
+  "version": "0.2.27",
   "description": "CHAT / HARNESS mode switcher for DeepSeek Harness",
   "repository": {
     "type": "git",
@@ -74,7 +74,8 @@
     "check:shortcuts": "node scripts/check-shortcuts.mjs",
     "check:shortcut-capture": "node scripts/check-shortcut-capture-browser.mjs",
     "check:website-text-avatar": "node ./scripts/check-website-text-avatar.mjs",
-    "check:sidebar-search-guard": "node ./scripts/check-sidebar-search-guard.mjs"
+    "check:sidebar-search-guard": "node ./scripts/check-sidebar-search-guard.mjs",
+    "check:sidebar-scroll": "node scripts/check-sidebar-scroll.mjs"
   },
   "dsh": {
     "bundle": {
