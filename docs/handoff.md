@@ -16,7 +16,25 @@
 3. 切到 CHAT、打开/新建会话后输入框自动聚焦（含先加载后进入）。
 4. 切换快捷键在 HARNESS/CHAT 输入框与网页内均生效；设置页录制框可正常改键。
 5. 文字头像与图片头像账号都能识别、会话菜单与侧栏折叠正常。
-6. 跑 `check:sidebar-search-guard`、`check:shortcuts`、`check:website-bootstrap`、`check:composer-focus` 与全量门禁。
+6. CHAT 侧栏「对话」列表行的左右宽度、行距、行高、文本起点与滚动条位置应与 HARNESS 原生会话行一致（rc.2 把 WorkspaceBrowser 改为 listArea 自身滚动；`check:sidebar-rows` 以 rc.2 原生几何为准）。
+7. CHAT 侧栏滚动行为与 HARNESS 统一：「对话」标题行固定在顶部，只滚动会话列表，滚动时出现滚动条（外层不再滚动；`check:sidebar-scroll` 覆盖）。
+8. 跑 `check:sidebar-search-guard`、`check:sidebar-rows`、`check:sidebar-scroll`、`check:sidebar-022`、`check:shortcuts`、`check:website-bootstrap`、`check:composer-focus` 与全量门禁。
+
+## 2026-11-12 0.2.27 已发布 npm
+
+发布 0.2.27（DSH 0.2.2-rc.2 侧栏统一系列）：① CHAT 模式隐藏全局面板入口（插件/自动化任务/更多）；② CHAT 对话列表宽度按 rc.2 原生几何对齐（root/listArea/list 三层结构，行宽与原生会话行一致、行间距 2px、行高 32px、滚动条边界一致）；③ 滚动行为统一——「对话」标题固定在顶部、只滚动会话列表、滚动时出现滚动条（外层不再滚动）；④ 分组标题（置顶/今天/昨天/7天前）保留 15px 间距。验证：sidebar-rows 51、sidebar-scroll 5、sidebar-022 65、全部门禁/负对照/5组×119、构建 40 产物。流程：临时 npm 配置网页登录 → 2FA → publish → 校验公开 tarball 与正式包**逐字节一致**（247211 bytes / 48 文件，SHA256 `fb1ed63aa870755f60ac53a069f8da455190d154b872f5bf23feddccf57364e6`）；latest/dist-tags=0.2.27；临时凭据已 logout、目录删除、PTY 关闭。本机 desktop 装同内容 0.2.26 候选 `d9cecccb5c59`。Git 改动未提交/未推送（等用户指令）。
+
+## 2026-11-12 未发布改动：CHAT 会话分组标题间距恢复
+
+用户反馈：行间距统一后，CHAT 的「置顶 / 今天 / 昨天 / 7天前」分组贴在一起（之前分组上下有留白）；HARNESS 没有这种分组，分组间距应保留插件自己的视觉。修复：`.dsh-chat-conversation-group h3` 恢复 `margin:15px … 4px`（组间 15px 留白；标题与首行 = 4px + 行间距 2px = 6px，与旧版一致），保留组内行间距 2px（与 HARNESS 行距一致）；去掉此前为对齐 sectionLabel 加的组间 4px 规则。`check-sidebar-rows` 增加分组标题间距断言（15px/4px），51 项通过。候选 `artifacts/dsh-deepseek-chat-0.2.26-d9cecccb5c59.tgz`（247210 bytes/48文件）已装 desktop。全部门禁/构建 40 产物通过。未提交/未推送（等用户验收）。
+
+## 2026-11-12 未发布改动：CHAT 侧栏滚动行为与 HARNESS 统一
+
+用户说明 HARNESS 的滚动形态：先整体侧栏滚动，上方全局面板滚出后「工作区」标题行固定在顶部，只滚动工作区列表并出现滚动条；CHAT 没有上方入口，因此「对话」标题行应直接固定在顶部、只滚会话列表并出现滚动条。实现（`src/styles.ts`）：`html[data-dsh-chat-mode="chat"] [data-sidebar-scrollport]{grid-template-rows:0 0 0 minmax(0,1fr);overflow:hidden}`——CHAT 模式隐藏全局面板行后让工作区行占满侧栏视口（外层不再滚动），由插件导航内部滚动；导航 header 固定、`.dsh-chat-navigation-list-area` 为滚动容器（`scrollbar-gutter:stable`，继承 DSH 全局滚动条皮肤）。新增 `check:sidebar-scroll`（`tests/browser/sidebar-scroll.fixture.js` + `scripts/check-sidebar-scroll.mjs`）：以 rc.2 侧栏 grid + `display:contents` 的 slot outlet 为参考，断言工作区行占满、标题行在列表滚动时固定、列表可滚动并保留滚动条 gutter、外层不滚动，共 5 项。全部门禁/构建 40 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.26-3a29416f5357.tgz`（247218 bytes/48文件）已装 desktop。未提交/未推送（等用户验收）。
+
+## 2026-11-12 未发布改动：CHAT 对话列表宽度与 DSH 0.2.2-rc.2 原生行对齐
+
+用户反馈 CHAT 模式「对话」列表行宽度与侧栏其他元素不一致（DSH rc.2 更新后再次出现）。根因：rc.2 把 WorkspaceBrowser 改为 listArea 自身滚动（`.Kjh-qa_listArea{margin-right:calc(2px - inline);padding-right:calc(inline - scrollbar - 2);scrollbar-gutter:stable;overflow:hidden auto}`，root 无右 padding），而插件 CHAT 导航仍按 rc.1 的两层结构（navigation 根 `padding-right:inline` + list-area `margin-right:-inline` + list `margin-right:2` 并承担滚动），导致对话行比原生行窄约 8px、滚动条位置与 header 顶部各偏 2px。修复（`src/styles.ts`）：按 rc.2 几何重写 `.dsh-chat-navigation`（padding-right 0）、`.dsh-chat-navigation-list-area`（listArea 滚动版：margin-left -4 / margin-right calc(2px - inline) / padding-right calc(inline - 5 - 2) / scrollbar-gutter stable / overflow hidden auto）、`.dsh-chat-navigation-list`（合并为 treeBody/list：padding-bottom 16、overflow visible）、header（去掉 2px top margin 与 -4px 负 margin）。回归：`check-sidebar-rows` 的 native 参考更新为 rc.2 结构，48 项（行 paint 边缘、滚动条水平/垂直边界在 192/280/420 宽度与 inset 12/16 下与原生一致）通过；全部门禁、5组×119、构建 40 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.26-b3a00dd41b0a.tgz`（247086 bytes/48文件）已装 desktop。未提交/未推送（等用户验收）。
 
 ## 2026-11-12 0.2.26 已发布 npm
 

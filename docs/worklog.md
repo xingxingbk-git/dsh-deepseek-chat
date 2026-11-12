@@ -2,6 +2,22 @@
 
 去掉 guard 对 slot children 键名的依赖，改为 locale/component/inject + 渲染时 hook 探测；回归覆盖无 children/三种旧新形态/首帧映射/清理。候选 92bd556817d8（245781bytes/47文件）已装 desktop。handoff 增加 DSH 升级检查清单。未提交/未推送。
 
+## 2026-11-12 发布 npm 0.2.27
+
+按顺序发布 0.2.27（rc.2 侧栏统一系列：全局面板入口隐藏、对话列表宽度/行距/行高/滚动行为、分组标题间距）：网页登录+2FA，publish 后 registry 异步生效；公开 tarball 与正式包逐字节一致（247211bytes/48文件，SHA256 fb1ed63aa870755f60ac53a069f8da455190d154b872f5bf23feddccf57364e6），latest/dist-tags=0.2.27；临时凭据 logout、目录清理、PTY 关闭。Git 未提交/未推送。
+
+## 2026-11-12 CHAT 会话分组标题间距恢复
+
+行间距统一后分组贴在一起；恢复 h3 `15/4` 间距（组间 15、标题-首行 6），保留行间 2px；sidebar-rows 增至 51 项通过；候选 d9cecccb5c59（247210bytes/48文件）已装 desktop。未提交/未推送。
+
+## 2026-11-12 CHAT 侧栏滚动行为统一
+
+CHAT 模式 scrollArea 行分配改为 0 0 0 1fr + overflow hidden：工作区行占满、外层不滚动；导航 header 固定、list-area 滚动（继承全局滚动条皮肤）。新增 check:sidebar-scroll 5 项（占满/标题固定/可滚动/gutter/外层不滚动）；全部门禁/构建40产物通过；候选 3a29416f5357（247218bytes/48文件）已装 desktop。未提交/未推送。
+
+## 2026-11-12 CHAT 对话列表宽度对齐 rc.2
+
+rc.2 WorkspaceBrowser 改为 listArea 滚动、root 无右 padding；插件 CHAT 导航按 rc.2 几何重写（根 padding-right 0、list-area 滚动版、list 合并、header 去 2px/-4px margin）。check-sidebar-rows native 参考更新为 rc.2，48 项通过；全部门禁/5组×119/构建40产物通过；候选 b3a00dd41b0a（247086bytes/48文件）已装 desktop。未提交/未推送。
+
 ## 2026-11-12 发布 npm 0.2.26
 
 按顺序发布 0.2.26（rc.2 全局面板入口隐藏修复）：网页登录+2FA，publish 后 registry 异步生效；公开 tarball 与正式包逐字节一致（247123bytes/48文件，SHA256 bc2287aa52c5fc472ed8309273d9525c57e43bc9cd9bc2dac7448bd0fb8357d2），latest/dist-tags=0.2.26；临时凭据 logout、目录清理、PTY 关闭。Git 未提交/未推送。

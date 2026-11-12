@@ -13,7 +13,7 @@ const shim = 'import React from \'react\';\n' + names.map(name => name === 'Tool
   : name === 'Button' ? 'export const Button=({children,...props})=>React.createElement(\'button\',props,children);'
   : `export const ${name}=()=>React.createElement('svg',{width:16,height:16,'aria-hidden':true});`).join('\n')
 const code = (await build({ absWorkingDir: root, entryPoints: ['tests/browser/sidebar-rows.fixture.js'], bundle: true, write: false, format: 'iife', platform: 'browser', target: 'chrome130', plugins: [{ name: 'native-primitives-stand-in', setup(plugin) { plugin.onResolve({ filter: /^@deepseek-ai\/dsh-client-ui-primitives$/ }, () => ({ path: 'primitives', namespace: 'fixture' })); plugin.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: shim, loader: 'js', resolveDir: root })) } }] })).outputFiles[0].text
-// Frozen, minimal public 0.2.2-rc.1 SidebarRoot/WorkspaceBrowser/SessionRow CSS.
+// Frozen, minimal public 0.2.2-rc.2 SidebarRoot/WorkspaceBrowser/SessionRow CSS.
 // No native private components are imported; only the plugin React is exercised.
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>
 :root{--dsw-radius-sm:8px;--dsw-radius-md:12px;--dsw-radius-xs:4px;--dsw-alias-label-primary:rgb(240,240,240);--dsw-alias-label-tertiary:rgb(140,140,140);--dsw-alias-label-secondary:rgb(170,170,170);--dsw-alias-interactive-bg-hover:rgb(50,50,50)}
@@ -22,17 +22,18 @@ body{margin:0;display:flex;font:14px Arial;color:var(--dsw-alias-label-primary)}
 .shell{--dsh-sidebar-inline-padding:8px;--dsh-sidebar-row-padding:12px;--dsh-sidebar-paint-inset:3px;--dsh-sidebar-label-gap:6px;width:280px;height:280px;flex-shrink:0;padding:6px var(--dsh-sidebar-inline-padding);display:flex;flex-direction:column}
 .region{min-height:0;margin-left:-4px;margin-right:calc(-1 * var(--dsh-sidebar-inline-padding));flex-direction:column;flex:1;padding-left:4px;display:flex;overflow:hidden}
 #chat{display:contents}
-#native-root{--native-edge:var(--dsh-sidebar-inline-padding);min-height:0;padding-right:var(--native-edge);display:flex;flex-direction:column;flex:1}
-#native-header{height:36px;flex:none;margin:2px -4px 4px 0}
-#native-list-area{min-height:0;margin-left:-4px;margin-right:calc(-1 * var(--native-edge));flex-direction:column;flex:1;padding-left:4px;display:flex;overflow:visible}
+#native-root{--native-edge:var(--dsh-sidebar-inline-padding);min-height:0;display:flex;flex-direction:column;flex:1;position:relative}
+#native-header{height:36px;flex:none;margin-bottom:4px}
+#native-list-area{min-height:0;margin-left:-4px;margin-right:calc(2px - var(--native-edge));padding-left:4px;padding-right:calc(var(--native-edge) - 5px - 2px);scrollbar-gutter:stable;display:block;overflow:hidden auto;flex:1}
 #native-tree-body{flex-direction:column;flex:1;min-height:0;display:flex;position:relative}
-#native-list{min-height:0;margin-left:-4px;margin-right:2px;padding-left:4px;padding-right:calc(var(--native-edge) - 5px - 2px);scrollbar-gutter:stable;flex:1;padding-bottom:16px;overflow-y:auto}
-#native-row{display:flex;align-items:center;border-radius:var(--dsw-radius-md);border-inline:var(--dsh-sidebar-paint-inset) solid transparent;background-clip:padding-box;background-color:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary);padding:0 8px;padding-inline-start:calc(var(--dsh-sidebar-row-padding) - var(--dsh-sidebar-paint-inset));height:32px}
+#native-list{min-height:0;flex:1;padding-bottom:16px;overflow:visible}
+#native-row,#native-row2{display:flex;align-items:center;border-radius:var(--dsw-radius-md);border-inline:var(--dsh-sidebar-paint-inset) solid transparent;background-clip:padding-box;background-color:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary);padding:0 8px;padding-inline-start:calc(var(--dsh-sidebar-row-padding) - var(--dsh-sidebar-paint-inset));height:32px}
+#native-list>*+*{margin-top:2px}
 #native-more{display:inline-flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;margin:-4px;padding:0;border:0;border-radius:var(--dsw-radius-xs);background:transparent;color:var(--dsw-alias-label-tertiary)}
 #native-more:hover{color:var(--dsw-alias-label-primary)}
-</style></head><body><div id="chat-shell" class="shell"><div class="region"><div id="chat"></div></div></div><div id="native-shell" class="shell"><div class="region"><div id="native-root"><header id="native-header"></header><div id="native-list-area"><div id="native-tree-body"><div id="native-list"><div id="native-row"><span style="flex:1">Synthetic native row</span><button id="native-more">...</button></div></div></div></div></div></div></div><script>${code.replaceAll('</script', '<\\/script')}</script></body></html>`
+</style></head><body><div id="chat-shell" class="shell"><div class="region"><div id="chat"></div></div></div><div id="native-shell" class="shell"><div class="region"><div id="native-root"><header id="native-header"></header><div id="native-list-area"><div id="native-tree-body"><div id="native-list"><div id="native-row"><span style="flex:1">Synthetic native row</span><button id="native-more">...</button></div><div id="native-row2"><span style="flex:1">Second synthetic native row</span></div></div></div></div></div></div></div><script>${code.replaceAll('</script', '<\\/script')}</script></body></html>`
 // Includes width/inset loops, explicit scrollbar bounds, overflow and scrolling checks.
-const expectedCases = 48
+const expectedCases = 51
 const prefix = path.join(tmpdir(), 'dsh-sidebar-rows-')
 const profile = await mkdtemp(prefix)
 const chrome = process.env.CHROME_PATH || (process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : 'google-chrome')
