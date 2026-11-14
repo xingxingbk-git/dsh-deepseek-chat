@@ -352,11 +352,12 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
   const checkProfile = (row: HTMLElement, avatar: HTMLElement, geometry: boolean) => {
     const textAvatar = avatar.tagName !== 'IMG'
     // The website's initial avatar is a leaf div in its focusable account row,
-    // with one nickname and a trailing menu glyph. Do not accept arbitrary
-    // footer text as account evidence or include the initial in the nickname.
+    // with one nickname and a trailing menu glyph. An unset (empty) avatar and
+    // short multi-letter labels are also user avatars, not footer text: accept
+    // 0-4 letters/digits while keeping the row/nickname/geometry proof.
     if (textAvatar && (!row.matches('div[tabindex="0"]') || row.firstElementChild !== avatar
       || avatar.tagName !== 'DIV' || avatar.childElementCount !== 0
-      || !/^[\p{L}\p{N}]$/u.test((avatar.textContent ?? '').trim())
+      || !/^[\p{L}\p{N}]{0,4}$/u.test((avatar.textContent ?? '').trim())
       || row.querySelectorAll('svg').length !== 1)) return null
     if (!row.isConnected || !track.contains(row) || row === sidebar || row === track || row === layout
       || row.contains(newChat) || row.matches('a[href]') || avatar.closest('a[href]')

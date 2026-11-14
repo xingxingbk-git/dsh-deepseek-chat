@@ -2,6 +2,18 @@
 
 去掉 guard 对 slot children 键名的依赖，改为 locale/component/inject + 渲染时 hook 探测；回归覆盖无 children/三种旧新形态/首帧映射/清理。候选 92bd556817d8（245781bytes/47文件）已装 desktop。handoff 增加 DSH 升级检查清单。未提交/未推送。
 
+## 2026-11-14 DSH 0.2.2-rc.3 新会话按钮官方 HOC slot
+
+rc.3 把新会话按钮包进 newSessionRow 并由 `sidebar.session.action`（hoc）渲染；旧 adapter 按钮分支失效（兼容提示 + CHAT 按钮走 HARNESS）。修复：注册 `sidebar.session.action` HOC（需带官方 required `id`；CHAT 消费点击开官网新会话、HARNESS 透传、display:contents 不破布局）+ adapter rc.3 分支接管 newSessionRow 内按钮（DOM 兜底）。sidebar-022 70、sidebar-rows 53，全部门禁/构建40产物通过；候选 02dd23a0d4ea（247529bytes/48文件）已装 desktop。未提交/未推送。
+
+## 2026-11-14 发布 npm 0.2.28
+
+按顺序发布 0.2.28（rc.3 新会话按钮 HOC id + DOM 兜底；issue #23 空头像/多字符头像识别）：网页登录+2FA，publish 后 registry 异步生效；公开 tarball 与正式包逐字节一致（247536bytes/48文件，SHA256 9bdcd23655aa28cfdc39e104614902ab95e01415012d682a598d0a3343036629），latest/dist-tags=0.2.28；临时凭据 logout、目录清理、PTY 关闭。Git 未提交/未推送。
+
+## 2026-11-14 issue #23 修复
+
+「chat 界面识别失败」定位为官网账号区域识别：文字头像正则要求恰好一个字母/数字，空头像不匹配。修复为正则 `{0,4}`（允许空文本默认头像与 1-4 字符头像），其余严格证明不变；website-text-avatar 36 项 + 负对照通过；候选 fb3a95144baa（247536bytes/48文件，含第一问题修复）已装 desktop。未提交/未推送。
+
 ## 2026-11-12 发布 npm 0.2.27
 
 按顺序发布 0.2.27（rc.2 侧栏统一系列：全局面板入口隐藏、对话列表宽度/行距/行高/滚动行为、分组标题间距）：网页登录+2FA，publish 后 registry 异步生效；公开 tarball 与正式包逐字节一致（247211bytes/48文件，SHA256 fb1ed63aa870755f60ac53a069f8da455190d154b872f5bf23feddccf57364e6），latest/dist-tags=0.2.27；临时凭据 logout、目录清理、PTY 关闭。Git 未提交/未推送。

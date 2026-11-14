@@ -1,4 +1,5 @@
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
+import type { ReactNode } from 'react';
 import { guardHarnessSearchReplay } from './search-replay-guard.js';
 import type { WebsiteFile } from './website-downloads.js';
 import type { WebsiteCommand, WebsiteNavigation } from './website-navigation.js';
@@ -111,6 +112,12 @@ export declare function DshChatModeSelector({ bridge, state, compact }: DshChatB
     readonly compact?: boolean;
 }): import("react/jsx-runtime").JSX.Element;
 /** Keep interactive controls in the sidebar row, outside its decorative/new-chat brand. */
+/** DSH 0.2.2-rc.3 exposes the new-session row as an official HOC slot. In CHAT
+ * the native action is consumed before it can start a HARNESS session; the
+ * child stays the shipped button so layout and hover behaviour are untouched. */
+export declare function DshChatNewSessionAction({ bridge, children }: DshChatBridgeProps & {
+    children?: ReactNode;
+}): import("react/jsx-runtime").JSX.Element;
 export declare function DshChatBrandName({ bridge }: PropsRuntime<'sidebar.brand.name'> & DshChatBridgeProps): import("react/jsx-runtime").JSX.Element;
 /** DOM siblings remain React descendants of the Windows New Session brand. */
 export declare function DshChatBrandControl({ bridge }: DshChatBridgeProps): import("react/jsx-runtime").JSX.Element;

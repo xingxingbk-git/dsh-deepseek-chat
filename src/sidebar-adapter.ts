@@ -70,6 +70,16 @@ export function attachSidebarAdapter(
     const next = row.nextElementSibling, children = Array.from(root.children)
     const buttons = children.filter(element => element.tagName === 'BUTTON')
     const navs = children.filter(element => element.tagName === 'NAV')
+    // 0.2.2-rc.3 wraps the shipped new-session button in a `newSessionRow`
+    // container whose content is the official `sidebar.session.action` HOC
+    // slot. Keep the DOM takeover as a fallback for the HOC (a missing or
+    // declined id must not reintroduce a HARNESS session) and bind the single
+    // button that slot currently renders.
+    if (next !== null && next.tagName === 'DIV' && buttons.length === 0 && navs.length <= 1
+      && next.querySelector('[data-slot="sidebar.session.action"]') !== null) {
+      const slotButtons = Array.from(next.querySelectorAll('button'))
+      return { button: slotButtons.length === 1 ? slotButtons[0] : null, navs }
+    }
     // rc.2/0.2.1 and permitted 0.2.2: one direct new-session control after the row.
     if (next?.tagName === 'BUTTON' && buttons.length === 1 && buttons[0] === next) return { button: next as HTMLButtonElement, navs }
     // 0.2.2 session/create denial removes that button AND makes the brand a SPAN.

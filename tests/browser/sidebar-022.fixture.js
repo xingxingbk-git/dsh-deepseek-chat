@@ -28,6 +28,24 @@ window.fixtureDone=(async()=>{
       attach:()=>attachSidebarAdapter(name,()=>state,()=>calls.chat++)}
   }
   const remove=f=>f.root.remove()
+  function rc3Shell({chat=true}={}) {
+    const root=node('div'),row=node('div',{'data-window-drag':'true'})
+    const brand=node('span'),identity=node('span',{'aria-hidden':'true'})
+    const mark=node('span'),seat=node('span'),outlet=node('span',{'data-slot':'sidebar.brand.name'}),name=node('span')
+    const newSessionRow=node('div'),actionOutlet=node('span',{'data-slot':'sidebar.session.action'}),actionButton=node('button')
+    actionButton.textContent='Fictional new session';actionOutlet.append(actionButton);newSessionRow.append(actionOutlet)
+    const scrollRegion=node('div'),scrollArea=node('div',{'data-sidebar-scrollport':''}),panelList=node('nav',{'aria-label':'Fictional global panels'}),regionArea=node('div'),footer=node('div')
+    const workspaceSlot=node('div',{'data-slot':'sidebar.workspaces'})
+    panelList.append(node('button'),node('button'),node('button'))
+    regionArea.append(workspaceSlot);scrollArea.append(panelList,regionArea);scrollRegion.append(scrollArea)
+    identity.append(mark,seat);brand.append(identity);seat.append(outlet);outlet.append(name);row.append(brand)
+    root.append(row,newSessionRow,scrollRegion,footer);document.body.append(root)
+    const state={chat,canCreate:true},calls={chat:0,native:0}
+    actionButton.addEventListener('click',()=>calls.native++)
+    return {root,row,brand,identity,seat,outlet,name,newSessionRow,actionOutlet,actionButton,scrollRegion,scrollArea,panelList,regionArea,workspaceSlot,footer,state,calls,
+      attach:()=>attachSidebarAdapter(name,()=>state,()=>calls.chat++)}
+  }
+
   function rc2Shell({chat=true,button=true}={}) {
     const root=node('div'),row=node('div',{'data-window-drag':'true'})
     const brand=node('span'),identity=node('span',{'aria-hidden':'true'})
@@ -199,6 +217,18 @@ window.fixtureDone=(async()=>{
     const adapter=f.attach()
     check('rc.2-like shape with extra scroll-area children is not guessed',adapter?.valid()===true && !f.panelList.hasAttribute(list))
     adapter?.dispose();remove(f)
+  }
+  {
+    const f=rc3Shell(),adapter=f.attach()
+    check('0.2.2-rc.3 new-session row is accepted by the adapter',adapter?.valid()===true)
+    check('rc.3 shell keeps the brand visual markers',f.brand.getAttribute(fill)==='brand' && f.seat.getAttribute(fill)==='name')
+    f.actionButton.click()
+    check('rc.3 new-session button is redirected to CHAT by the DOM fallback',f.calls.chat===1 && f.calls.native===0 && f.actionButton.getAttribute(session)==='true')
+    f.state.chat=false;adapter.sync()
+    check('rc.3 HARNESS restores the sidebar mode marker',f.root.getAttribute(mode)==='harness')
+    adapter.dispose()
+    check('rc.3 cleanup restores the shell',clean(f.root))
+    remove(f)
   }
   releaseStyles()
   return results

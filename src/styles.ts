@@ -4,6 +4,7 @@ export const chatStyles = String.raw`
 .dsh-chat-rename-input:disabled{color:var(--dsw-alias-label-dimmed)}
 .dsh-chat-rename-error{margin-top:8px;font-size:12px;line-height:18px;color:var(--dsw-alias-state-error-primary)}
 .dsh-chat-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.dsh-chat-new-session-action{display:contents}
 .dsh-chat-navigation,.dsh-chat-brand-control,.dsh-chat-brand-name,.dsh-chat-main-anchor,.dsh-chat-web-surface{font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);color:var(--dsw-alias-label-primary,#22242a);box-sizing:border-box;font-size:14px}
 .dsh-chat-navigation *,.dsh-chat-brand-control *,.dsh-chat-brand-name *,.dsh-chat-main-anchor *,.dsh-chat-web-surface *,.dsh-chat-settings *{box-sizing:border-box}
 .dsh-chat-navigation button,.dsh-chat-brand-control button,.dsh-chat-main-anchor button,.dsh-chat-web-surface button{font:inherit;-webkit-app-region:no-drag}
