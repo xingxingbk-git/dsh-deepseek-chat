@@ -13,7 +13,7 @@ import { translate } from './i18n.js'
 import { authorizationSchema, DSH_CHAT_REMOTE_CONTRIBUTION } from './protocol.js'
 import type { AuthorizationState, DshChatClientMetadata, WebsiteSession } from './protocol.js'
 import { acquireChatStyles } from './styles.js'
-import { guardHarnessSearchReplay, DshChatBrandName, DshChatChatNavigation, DshChatChatPanel, DshChatLeadingControls, DshChatChatSettings, DshChatSettingsIcon, DshChatNewSessionAction } from './ui.js'
+import { guardHarnessSearchReplay, DshChatBrandName, DshChatChatNavigation, DshChatChatPanel, DshChatLeadingControls, DshChatChatSettings, DshChatSettingsIcon, DshChatNewSessionAction, DshChatCompatibilityToast } from './ui.js'
 import type { DshChatUIBridge, DshChatViewState, DshChatViewportRect, WebsiteNotice } from './ui.js'
 import { DshChatWebSurface } from './web-surface.js'
 import { DshChatWindowDragSurface } from './window-drag-surface.js'
@@ -508,8 +508,8 @@ export function apply(ctx: Context): void {
       settingsOpen=next;publish()
     },
     setSwitchPreference: async (field: keyof SwitchPreferences, value: string | number | boolean) => {
-      if(disposed || !['switchStyle','chatLabel','harnessLabel','websiteLifetime','websiteReleaseDelay','brandNoticeDismissed','shortcutEnabled','shortcutChat','shortcutHarness'].includes(field))return false
-      if(field==='brandNoticeDismissed'||field==='shortcutEnabled') {
+      if(disposed || !['switchStyle','chatLabel','harnessLabel','websiteLifetime','websiteReleaseDelay','shortcutEnabled','shortcutChat','shortcutHarness'].includes(field))return false
+      if(field==='shortcutEnabled') {
         if(typeof value!=='boolean') return false
       } else if(typeof value==='number') {
         if(field!=='websiteReleaseDelay' || !Number.isInteger(value) || value<5 || value>3600) return false
@@ -538,7 +538,6 @@ export function apply(ctx: Context): void {
             || (field==='switchStyle' && switchPreferences.switchStyle===value)
             || (field==='chatLabel' && switchPreferences.chatLabel===value)
             || (field==='harnessLabel' && switchPreferences.harnessLabel===value)
-            || (field==='brandNoticeDismissed' && switchPreferences.brandNoticeDismissed===value)
             || (field==='shortcutEnabled' && switchPreferences.shortcutEnabled===value)
             || (field==='shortcutChat' && switchPreferences.shortcutChat===value)
             || (field==='shortcutHarness' && switchPreferences.shortcutHarness===value)
@@ -789,6 +788,7 @@ export function apply(ctx: Context): void {
       ))
     ctx.slots.inject('shell.overlay', () => [
       ctx.slots.register({ name: 'shell.overlay', id: 'dsh-deepseek-chat.website', order: 90, inject: () => ({ bridge, nativeBrowser }) }, DshChatWebSurface),
+      ctx.slots.register({ name: 'shell.overlay', id: 'dsh-deepseek-chat.compatibility-toast', order: 95, inject: () => ({ bridge }) }, DshChatCompatibilityToast),
     ])
     const stopMode = mode.subscribe(publish)
     const stopPanel = ctx.layout.panelInfo.subscribe(() => { mode.observePanel(ctx.layout.panelInfo.getSnapshot().activePanelId) })

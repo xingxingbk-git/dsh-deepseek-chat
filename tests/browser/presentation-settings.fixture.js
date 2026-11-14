@@ -11,10 +11,10 @@ window.fixtureDone=(async()=>{
  const check=(name,passed)=>results.push({name,passed:!!passed})
  const tick=()=>new Promise(resolve=>setTimeout(resolve,0))
  let failNext=false,hold=null
- let state={mode:'harness',modeEnabled:true,authorizationStatus:'authorized',availabilityMessage:'',accountLabel:null,error:null,desktopAvailable:true,webLoading:false,webError:null,accountStorageKey:null,authorizationGeneration:1,websiteReloadRevision:0,settingsOpen:false,language:'zh-CN',websiteAuthenticationStatus:'signed-in',websiteAuthenticationRevision:0,websiteSessionStatus:'saved',websiteSessionError:null,viewport:null,brandAnchor:null,sidebarAdapted:true,websiteNavigation:{status:'ready',authenticated:true,accountName:'Fixture account',conversations:[],canCreate:true},websiteNavigationRefreshing:false,websiteNavigationRefreshError:null,showWebsiteNavigation:false,switchPreferences:{switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS',brandNoticeDismissed:false},switchPreferencesStatus:'ready',switchPreferencesPending:false,switchPreferencesError:null}
+ let state={mode:'harness',modeEnabled:true,authorizationStatus:'authorized',availabilityMessage:'',accountLabel:null,error:null,desktopAvailable:true,webLoading:false,webError:null,accountStorageKey:null,authorizationGeneration:1,websiteReloadRevision:0,settingsOpen:false,language:'zh-CN',websiteAuthenticationStatus:'signed-in',websiteAuthenticationRevision:0,websiteSessionStatus:'saved',websiteSessionError:null,viewport:null,brandAnchor:null,sidebarAdapted:true,websiteNavigation:{status:'ready',authenticated:true,accountName:'Fixture account',conversations:[],canCreate:true},websiteNavigationRefreshing:false,websiteNavigationRefreshError:null,showWebsiteNavigation:false,switchPreferences:{switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS'},switchPreferencesStatus:'ready',switchPreferencesPending:false,switchPreferencesError:null}
  const update=patch=>{state={...state,...patch};flushSync(()=>listeners.forEach(fn=>fn()))}
  const bridge={getSnapshot:()=>state,subscribe:fn=>{listeners.add(fn);return()=>listeners.delete(fn)},setSettingsOpen:()=>{},selectMode:mode=>update({mode}),commandWebsite:cmd=>commands.push(cmd),logoutWebsite:()=>{},refreshAuthorization:()=>{},beginWebsiteSignIn:()=>{},setSwitchPreference:async(field,value)=>{
-  if(field!=='switchStyle' && field!=='brandNoticeDismissed' && !validSwitchLabel(value))throw Error('Invalid persistence attempt')
+  if(field!=='switchStyle' && !validSwitchLabel(value))throw Error('Invalid persistence attempt')
   writes.push({field,value})
   if(hold)await hold
   if(failNext){failNext=false;return false}
@@ -222,12 +222,7 @@ window.fixtureDone=(async()=>{
   update({sidebarAdapted:false});await tick()
   const compactSelector=document.querySelector('#sidebar-wide .dsh-chat-modes')
   check('an unadapted shell demotes text pills to compact icons',compactSelector.querySelectorAll('button svg').length===2&&compactSelector.querySelectorAll('.dsh-chat-mode-label').length===0)
-  update({switchPreferences:{...state.switchPreferences,brandNoticeDismissed:true}});await tick()
-  const restore=[...document.querySelectorAll('#settings button')].find(button=>button.textContent==='重新显示提示')
-  check('dismissed compatibility notice offers a restore action',Boolean(restore))
-  flushSync(()=>restore?.click());await tick()
-  check('restoring writes the dismissal back to false',writes.some(entry=>entry.field==='brandNoticeDismissed'&&entry.value===false))
-  update({sidebarAdapted:true,switchPreferences:{...state.switchPreferences,brandNoticeDismissed:false}});await tick()
+  update({sidebarAdapted:true});await tick()
   const nativeBrands=Array.from(document.querySelectorAll('[data-dsh-chat-brand-fill="brand"]'))
   flushSync(()=>root.unmount());for(const adapter of adapters.values())adapter.dispose()
   check('disposing layout restores native brand attributes',nativeBrands.length===3 && nativeBrands.every(el=>!el.hasAttribute('data-dsh-chat-brand-fill')))

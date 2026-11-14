@@ -121,6 +121,9 @@ export declare function DshChatNewSessionAction({ bridge, children }: DshChatBri
 export declare function DshChatBrandName({ bridge }: PropsRuntime<'sidebar.brand.name'> & DshChatBridgeProps): import("react/jsx-runtime").JSX.Element;
 /** DOM siblings remain React descendants of the Windows New Session brand. */
 export declare function DshChatBrandControl({ bridge }: DshChatBridgeProps): import("react/jsx-runtime").JSX.Element;
+/** One transient system banner per load while the sidebar adapter cannot prove
+ * this DSH shell. It disappears by itself and never persists a dismissal. */
+export declare function DshChatCompatibilityToast({ bridge }: DshChatBridgeProps): import("react/jsx-runtime").JSX.Element | null;
 /** Only the middle browsing region changes; the shipped shell and Settings stay mounted. */
 export { guardHarnessSearchReplay };
 export declare function DshChatChatNavigation({ bridge, wide, expandSidebar }: PropsRuntime<'sidebar.workspaces'> & DshChatBridgeProps): import("react/jsx-runtime").JSX.Element;

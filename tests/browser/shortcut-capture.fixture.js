@@ -17,7 +17,7 @@ window.fixtureDone = (async () => {
     language: 'zh-CN', sidebarAdapted: true, switchPreferencesStatus: 'ready', switchPreferencesPending: false,
     switchPreferencesError: null,
     switchPreferences: {
-      switchStyle: 'text', chatLabel: 'CHAT', harnessLabel: 'HARNESS', brandNoticeDismissed: false,
+      switchStyle: 'text', chatLabel: 'CHAT', harnessLabel: 'HARNESS',
       websiteLifetime: 'retain', websiteReleaseDelay: 60,
       shortcutEnabled: true, shortcutChat: 'Tab', shortcutHarness: 'Tab',
     },

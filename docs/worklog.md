@@ -6,6 +6,14 @@
 
 rc.3 把新会话按钮包进 newSessionRow 并由 `sidebar.session.action`（hoc）渲染；旧 adapter 按钮分支失效（兼容提示 + CHAT 按钮走 HARNESS）。修复：注册 `sidebar.session.action` HOC（需带官方 required `id`；CHAT 消费点击开官网新会话、HARNESS 透传、display:contents 不破布局）+ adapter rc.3 分支接管 newSessionRow 内按钮（DOM 兜底）。sidebar-022 70、sidebar-rows 53，全部门禁/构建40产物通过；候选 02dd23a0d4ea（247529bytes/48文件）已装 desktop。未提交/未推送。
 
+## 2026-11-14 发布 npm 0.2.30
+
+按顺序发布 0.2.30（侧栏不兼容提示改 DSH 系统级 Toast：新文案、黄色警告图标、6 秒停留+1 秒淡出、无按钮、CHAT/HARNESS 每次加载一次；删除旧品牌提示/设置卡片/持久化）：网页登录+2FA，registry 异步生效；公开 tarball 与正式包逐字节一致（246665bytes/47文件，SHA256 412bf5bf3ef7b517bcc9cd2832940561b49d7482e2a5c157aa878251f671f59f），latest/dist-tags=0.2.30；临时凭据 logout、目录清理、PTY 关闭。Git 未提交/未推送。
+
+## 2026-11-14 侧栏不兼容提示改为 DSH 系统 Toast
+
+移除品牌行小提示框/Chat 设置恢复卡片/brandNoticeDismissed；新增 DshChatCompatibilityToast（官方 Toast + IconWarningOutlineRegular，5s 停留+1s 淡出、无按钮、CHAT+HARNESS 均提示、每次加载一次）注册到 shell.overlay。删除 brand-notice.tsx/样式/偏好/i18n；check-brand-notice 重写 24 项，presentation 85 项；全部门禁/负对照/构建 39 产物通过；文案定为「「DeepSeek Chat」插件与当前DSH版本不兼容，建议更新插件或DSH版本」、6 秒停留；临时强制不兼容构建预览后恢复，正式候选 e89da7ea9197（246667bytes/47文件）已装。未发布/未提交。
+
 ## 2026-11-14 发布 npm 0.2.29
 
 按顺序发布 0.2.29（CHAT 跳转浏览器按钮：DSH 官方 `IconRightUpOutlineRegular`、跳转在刷新前；issue #23 默认图标头像识别修复）：网页登录+2FA，registry 异步生效；公开 tarball 与正式包逐字节一致（247728bytes/48文件，SHA256 652f6c7004dfe78b679a94ec0c80b9e4883ece358889daef82cd50b198080598），latest/dist-tags=0.2.29；临时凭据 logout、目录清理、PTY 关闭。Git 未提交/未推送。

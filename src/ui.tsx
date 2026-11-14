@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { createElement, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { BrandWordmark, IconSearchOutlineRegular, IconCloseFillRegular, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, IconRefreshOutlineRegular, IconRightUpOutlineRegular, IconLoadingOutlineRegular, IconEllipsisOutlineRegular, IconEditOutlineRegular, IconPinOutlineRegular, IconShareOutlineRegular, IconTrashOutlineRegular, Menu, Modal, Button, Input, IconChevronDownOutlineRegular, Tooltip, Switch } from '@deepseek-ai/dsh-client-ui-primitives'
+import { BrandWordmark, IconSearchOutlineRegular, IconCloseFillRegular, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, IconRefreshOutlineRegular, IconRightUpOutlineRegular, IconWarningOutlineRegular, IconLoadingOutlineRegular, IconEllipsisOutlineRegular, IconEditOutlineRegular, IconPinOutlineRegular, IconShareOutlineRegular, IconTrashOutlineRegular, Menu, Modal, Button, Input, IconChevronDownOutlineRegular, Tooltip, Switch, Toast } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ComponentType } from 'react'
 import type { StoredEntry } from '@deepseek-ai/dsh-client-ui-slots'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
@@ -11,7 +11,6 @@ import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import { acquireChatStyles, ensureChatStyles } from './styles.js'
 import { translate } from './i18n.js'
 import { readSurfaceBorderRadius } from './surface-clip.js'
-import { DshChatBrandNotice } from './brand-notice.js'
 import { guardHarnessSearchReplay } from './search-replay-guard.js'
 import { markBrandVisual } from './sidebar-adapter.js'
 import { captureShortcut, displayShortcut, shortcutPlatform, validShortcut, SHORTCUT_CAPTURE_HINT, SHORTCUT_INVALID_HINT, SHORTCUT_PENDING_HINT, SHORTCUT_RESERVED_HINT, type ShortcutPlatform } from './shortcuts.js'
@@ -334,18 +333,23 @@ export function DshChatBrandControl({ bridge }: DshChatBridgeProps) {
     onClick={event => event.stopPropagation()}>
     <DshChatStyles />
     <DshChatModeSelector bridge={bridge} state={state} />
-    {/* Session-service failures belong in Chat settings, not over the sidebar.
-        The compatibility notice is lower-priority than the page, dismissible and
-        restorable from Chat settings; a dismissed notice never returns by itself. */}
-    {state.sidebarAdapted === false && state.switchPreferences?.brandNoticeDismissed !== true
-      && <DshChatBrandNotice anchor={control} role="status">
-        <p>{t("侧栏结构发生了变化，已进入兼容模式：顶部新会话仍使用 HARNESS。CHAT 中请从官网侧栏导航新建对话。")}</p>
-        <button type="button" className="dsh-chat-brand-notice-close" aria-label={t("不再提示")} title={t("不再提示")}
-          onClick={event=>{event.stopPropagation();void bridge.setSwitchPreference?.('brandNoticeDismissed',true)}}>
-          <IconCloseFillRegular size={14}/>
-        </button>
-      </DshChatBrandNotice>}
   </div>
+}
+
+/** One transient system banner per load while the sidebar adapter cannot prove
+ * this DSH shell. It disappears by itself and never persists a dismissal. */
+export function DshChatCompatibilityToast({ bridge }: DshChatBridgeProps) {
+  const state = useDshChat(bridge)
+  const prompted = useRef(false)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    if (prompted.current || state.sidebarAdapted !== false) return
+    prompted.current = true
+    setVisible(true)
+  }, [state.sidebarAdapted])
+  if (!visible) return null
+  return <Toast text={translate(state.language, '「DeepSeek Chat」插件与当前DSH版本不兼容，建议更新插件或DSH版本')}
+    icon={<IconWarningOutlineRegular size={18}/>} holdMs={6000} onDone={() => setVisible(false)} />
 }
 
 function DshChatConversationRow({bridge, item, selected, disabled, onRename, language}: DshChatBridgeProps & {
@@ -792,19 +796,6 @@ function WebsiteLifetimeSettings({bridge,state}:{bridge:DshChatUIBridge;state:Ds
   </div>
 }
 
-/** Restore the compatibility notice after the user dismissed it. */
-function BrandNoticeSettings({bridge,state}:{bridge:DshChatUIBridge;state:DshChatViewState}) {
-  const t=(text:string|null|undefined)=>translate(state.language,text)
-  if(state.switchPreferences?.brandNoticeDismissed !== true) return null
-  return <section className="dsh-chat-settings-card dsh-chat-brand-notice-settings" aria-label={t('侧栏兼容提示')}>
-    <div className="dsh-chat-preference-row">
-      <h3>{t('侧栏兼容提示')}</h3>
-      <Button variant="outline" disabled={state.switchPreferencesStatus!=='ready'} onClick={()=>void bridge.setSwitchPreference?.('brandNoticeDismissed',false)}>{t('重新显示提示')}</Button>
-    </div>
-    <p className="dsh-chat-preference-note">{t('提示默认不再显示；重新显示后，若侧栏结构仍不兼容，会在品牌行下方再次出现。')}</p>
-  </section>
-}
-
 export function DshChatChatSettings({bridge,close}: PropsRuntime<'settings.section'> & DshChatBridgeProps) {
   const state = useDshChat(bridge)
   const t = (text: string | null | undefined) => translate(state.language, text)
@@ -854,6 +845,5 @@ export function DshChatChatSettings({bridge,close}: PropsRuntime<'settings.secti
       <ShortcutSettings bridge={bridge} state={state}/>
       <WebsiteLifetimeSettings bridge={bridge} state={state}/>
     </section>
-    <BrandNoticeSettings bridge={bridge} state={state}/>
   </section>
 }
