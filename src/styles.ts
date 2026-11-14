@@ -64,8 +64,7 @@ html[data-dsh-chat-mode="chat"] [data-sidebar-scrollport]{grid-template-rows:0 0
 .dsh-chat-settings .dsh-chat-shortcut-input{height:var(--dsh-chat-control-height)!important;min-height:var(--dsh-chat-control-height)!important}
 .dsh-chat-settings .dsh-chat-label-save,
 .dsh-chat-settings .dsh-chat-style-trigger,
-.dsh-chat-settings .dsh-chat-shortcut-actions button,
-.dsh-chat-settings .dsh-chat-brand-notice-settings button{height:var(--dsh-chat-control-height)!important;min-height:var(--dsh-chat-control-height)!important}
+.dsh-chat-settings .dsh-chat-shortcut-actions button{height:var(--dsh-chat-control-height)!important;min-height:var(--dsh-chat-control-height)!important}
 .dsh-chat-shortcut-settings .dsh-chat-shortcut-section{display:flex;flex-direction:column;gap:12px}
 .dsh-chat-shortcut-header{justify-content:space-between}
 .dsh-chat-shortcut-title{display:flex;align-items:center;gap:10px;min-width:0}
@@ -99,13 +98,6 @@ html[data-dsh-chat-mode="chat"] [data-sidebar-scrollport]{grid-template-rows:0 0
 .dsh-chat-brand-control .dsh-chat-modes button{display:inline-flex;align-items:center;justify-content:center;font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);padding:0 8px;height:21px;min-height:21px;max-height:21px;font-size:9px;line-height:13px;letter-spacing:.2px;border-radius:7px}
 .dsh-chat-brand-control .dsh-chat-modes button[aria-pressed="true"]{box-shadow:none}
 .dsh-chat-brand-control .dsh-chat-modes button:focus-visible{outline-offset:-2px}
-.dsh-chat-authorization-notice{position:absolute;top:calc(100% + 6px);right:0;width:230px;max-width:calc(100vw - 24px);padding:10px 12px;z-index:40;border:1px solid var(--dsw-alias-border-l2,#dee1e8);border-radius:8px;background:var(--dsw-specific-sidebar-fill,#f4f5f8);box-shadow:0 4px 16px #0d1a3520;font-size:11px;line-height:1.6;color:var(--dsw-alias-label-primary,#22242a)}
-.dsh-chat-authorization-notice p{margin:0 0 5px}
-.dsh-chat-brand-notice{box-sizing:border-box;font-family:var(--dsw-font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);pointer-events:auto;-webkit-app-region:no-drag;overscroll-behavior:contain}
-.dsh-chat-brand-notice p{padding-right:18px}
-.dsh-chat-brand-notice-close{position:absolute;top:8px;right:8px;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary,inherit);cursor:pointer}
-.dsh-chat-brand-notice-close:hover{background:var(--dsw-alias-interactive-bg-hover-solid,var(--dsw-alias-border-l3));color:var(--dsw-alias-label-primary,inherit)}
-.dsh-chat-brand-notice-close:focus-visible{outline:2px solid var(--dsw-alias-label-primary);outline-offset:1px}
 [data-dsh-chat-brand-fallback] .dsh-chat-brand-wordmark{display:none}
 .dsh-chat-web-toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:20;max-width:calc(100% - 32px);margin:0;padding:8px 14px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2,#dee1e8);background:var(--dsw-specific-sidebar-fill,#f4f5f8);box-shadow:0 6px 20px #0d1a3526;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-primary,#22242a);pointer-events:none}
 .dsh-chat-web-toast-error{border-color:var(--dsw-alias-state-error-primary,#ef5350);color:var(--dsw-alias-state-error-primary,#ef5350)}

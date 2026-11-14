@@ -28,6 +28,19 @@ DSH 更新到 0.2.2-rc.3 后出现兼容提示（侧栏结构变化，CHAT 顶�
 - 首次候选（d7a5c7f49cba）仍失效：官方 slots 契约要求 HOC 注册必须带 `id`（required），插件漏传导致该 layer 未生效、按钮仍走 DSH 原生；已补 `id: 'dsh-deepseek-chat.new-session-action'`。同时把 DOM adapter 的 rc.3 分支改为**接管 newSessionRow 内的按钮**（点击拦截到 CHAT 新会话、复用禁用/标记逻辑），作为 HOC 的兜底——HOC 未生效时按钮也不会再建 HARNESS 会话。
 - 回归：sidebar-022 70 项（rc.3 shell 识别/品牌标记/按钮由 DOM 兜底重定向/HARNESS 恢复/清理 + 源码断言）；sidebar-rows 53 项（HOC 在 CHAT 拦截、HARNESS 透传）。全部门禁/构建 40 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.27-02dd23a0d4ea.tgz`（247529 bytes/48文件）已装 desktop（DSH 0.2.2-rc.3）。未提交/未推送（等用户验收）。
 
+## 2026-11-14 0.2.30 已发布 npm
+
+发布 0.2.30：侧栏不兼容提示改为 DSH 官方系统级 Toast——文案「「DeepSeek Chat」插件与当前DSH版本不兼容，建议更新插件或DSH版本」，黄色警告图标 `IconWarningOutlineRegular`，`holdMs=6000`（6 秒停留 + 1 秒淡出自动消失），无关闭/操作按钮、点击穿透，CHAT/HARNESS 都提示，每次 DSH 启动或插件加载最多一次；删除品牌行下方小提示框、Chat 设置「侧栏兼容提示」卡片/恢复按钮、`brandNoticeDismissed` 持久化偏好与 `brand-notice.tsx`。流程：临时 npm 配置网页登录 → 2FA → publish → 校验公开 tarball 与正式包**逐字节一致**（246665 bytes / 47 文件，SHA256 `412bf5bf3ef7b517bcc9cd2832940561b49d7482e2a5c157aa878251f671f59f`）；latest/dist-tags=0.2.30；临时凭据 logout、目录删除、PTY 关闭。本机 desktop 装同内容候选 `e89da7ea9197`（0.2.29 版本号）。Git 改动未提交/未推送（等用户指令）。
+
+## 2026-11-14 未发布改动：侧栏不兼容提示改为 DSH 系统级 Toast
+
+按用户要求重做兼容提示交互：去掉品牌行下方小提示框与 Chat 设置里的「侧栏兼容提示」卡片/恢复按钮，也去掉 `brandNoticeDismissed` 持久化偏好；改为复用 DSH 官方系统提示组件（`@deepseek-ai/dsh-client-ui-primitives` 的 `Toast`）：
+- 新增 `DshChatCompatibilityToast`（ui.tsx），注册到 `shell.overlay`（client.ts，id `dsh-deepseek-chat.compatibility-toast`）；
+- 触发：侧栏适配失败（`sidebarAdapted === false`）时显示一次；文案统一为「插件不兼容 DSH 当前版本的侧边栏，请更新插件或 DSH」；图标用 `IconWarningOutlineRegular`（黄色警告，不用绿色对勾）；`holdMs=6000`（6 秒停留 + 1 秒淡出后自动消失）；无关闭/操作按钮、点击穿透；
+- CHAT 与 HARNESS 都提示；每次插件加载/DSH 重启最多提示一次（本次加载不再重复；重载后重新判断）；
+- 删除 `src/brand-notice.tsx`、相关样式（`.dsh-chat-brand-notice*`、`.dsh-chat-authorization-notice*`）、偏好字段与 i18n 文案；修正 settings 控件共享高度规则（只去掉旧提示按钮选择器）；
+- 回归：`check-brand-notice` 重写为系统提示测试（inc. 文案/警告图标/5000ms/无按钮/不重复/自动卸载/重载再提示 + 源码移除断言），`presentation-settings` 85 项更新通过；全部门禁/负对照/构建 39 产物通过。文案最终确定为「「DeepSeek Chat」插件与当前DSH版本不兼容，建议更新插件或DSH版本」、停留 6 秒（+1 秒淡出）；已用临时强制不兼容构建实机预览确认，随后恢复强制改动。正式候选 `artifacts/dsh-deepseek-chat-0.2.29-e89da7ea9197.tgz`（246667 bytes/47 文件）已装 desktop。未提交/未发布（等用户发布指令）。
+
 ## 2026-11-14 0.2.29 已发布 npm
 
 发布 0.2.29：① CHAT 侧栏「对话」标题行新增「在浏览器中打开」按钮——复用 DSH 官方图标 `IconRightUpOutlineRegular`（与 HARNESS 变更请求同款，size 14），点击经 `window.open` 用系统默认浏览器打开当前会话 URL（无选中则新会话页 https://chat.deepseek.com/），按钮顺序为「搜索 → 跳转 → 刷新」，尺寸/间距/圆角与 HARNESS header 规范一致（28×28、gap 4px、`--dsw-radius-sm`）；② issue #23 修复——允许默认图标头像（账号行首个 `div` 内 `div.ds-icon > svg`）识别，行内 svg 总数 = 头像内 svg 数 + 1（菜单），文字/空/图片头像与严格行证明不变。流程：临时 npm 配置网页登录 → 2FA → publish → 校验公开 tarball 与正式包**逐字节一致**（247728 bytes / 48 文件，SHA256 `652f6c7004dfe78b679a94ec0c80b9e4883ece358889daef82cd50b198080598`）；latest/dist-tags=0.2.29；临时凭据 logout、目录删除、PTY 关闭。本机 desktop 装同内容候选 `652f6c7004df`。Git 改动未提交/未推送（等用户指令）。

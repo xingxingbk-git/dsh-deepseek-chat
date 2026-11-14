@@ -5,7 +5,6 @@ export declare const Config: import("@deepseek-ai/schemastery").default<Schemast
     harnessLabel: import("@deepseek-ai/schemastery").default<string, string, "volatile-defined">;
     websiteLifetime: import("@deepseek-ai/schemastery").default<"retain" | "immediate" | "delayed", "retain" | "immediate" | "delayed", "volatile-defined">;
     websiteReleaseDelay: import("@deepseek-ai/schemastery").default<number, number, "volatile-defined">;
-    brandNoticeDismissed: import("@deepseek-ai/schemastery").default<boolean, boolean, "volatile-defined">;
     shortcutEnabled: import("@deepseek-ai/schemastery").default<boolean, boolean, "volatile-defined">;
     shortcutChat: import("@deepseek-ai/schemastery").default<string, string, "volatile-defined">;
     shortcutHarness: import("@deepseek-ai/schemastery").default<string, string, "volatile-defined">;
@@ -15,7 +14,6 @@ export declare const Config: import("@deepseek-ai/schemastery").default<Schemast
     harnessLabel: import("@deepseek-ai/schemastery").default<string, string, "volatile-defined">;
     websiteLifetime: import("@deepseek-ai/schemastery").default<"retain" | "immediate" | "delayed", "retain" | "immediate" | "delayed", "volatile-defined">;
     websiteReleaseDelay: import("@deepseek-ai/schemastery").default<number, number, "volatile-defined">;
-    brandNoticeDismissed: import("@deepseek-ai/schemastery").default<boolean, boolean, "volatile-defined">;
     shortcutEnabled: import("@deepseek-ai/schemastery").default<boolean, boolean, "volatile-defined">;
     shortcutChat: import("@deepseek-ai/schemastery").default<string, string, "volatile-defined">;
     shortcutHarness: import("@deepseek-ai/schemastery").default<string, string, "volatile-defined">;

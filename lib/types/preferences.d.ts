@@ -8,7 +8,6 @@ export interface SwitchPreferences {
     readonly harnessLabel: string;
     readonly websiteLifetime: WebsiteLifetime;
     readonly websiteReleaseDelay: number;
-    readonly brandNoticeDismissed: boolean;
     readonly shortcutEnabled: boolean;
     readonly shortcutChat: string;
     readonly shortcutHarness: string;

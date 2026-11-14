@@ -11,7 +11,8 @@ const names = ui.match(/import \{([^}]+)\} from '@deepseek-ai\/dsh-client-ui-pri
 const shim = `import React from 'react';\n` + names.map(name => name === 'Tooltip'
   ? `export const Tooltip=({children})=>{window.nativeTooltipCalls=(window.nativeTooltipCalls??0)+1;return children};`
   : name === 'Button' ? `export const Button=({children,...props})=>React.createElement('button',props,children);`
-  : `export const ${name}=()=>React.createElement('svg',{width:16,height:16,'aria-hidden':true});`).join('\n')
+  : name === 'Toast' ? `export const Toast=({text,icon,holdMs,onDone})=>{window.__dshToastOnDone=onDone;return React.createElement('div',{'data-toast':true,'data-hold':holdMs,role:'alert'},icon,React.createElement('span',null,text))};`
+  : `export const ${name}=()=>React.createElement('svg',{width:16,height:16,'aria-hidden':true,'data-icon':'${name}'});`).join('\n')
 const code = (await build({ absWorkingDir: root, entryPoints: ['tests/browser/brand-notice.fixture.js'], bundle: true, write: false, format: 'iife', platform: 'browser', target: 'chrome130', plugins: [{name:'native-primitives-stand-in',setup(plugin){plugin.onResolve({filter:/^@deepseek-ai\/dsh-client-ui-primitives$/},()=>({path:'primitives',namespace:'fixture'}));plugin.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:shim,loader:'js',resolveDir:root}))}}] })).outputFiles[0].text
 // Geometry copied from the public 0.2.2 SidebarRoot CSS. Native shell and
 // primitive controls here are structural stand-ins, not an installed DSH.
@@ -25,7 +26,7 @@ body.light{--dsw-specific-sidebar-fill:#f4f5f8;--dsw-alias-label-primary:#222}
 .native-brand{width:130px;height:24px;flex:0 0 130px}
 #native-new-session{height:38px;flex:none;border:1px solid #888;border-radius:8px;background:transparent}
 </style></head><body><div class="native-root"><div class="native-top-strip"></div><div class="native-logo-row" data-window-drag><span class="native-brand" aria-hidden="true">Synthetic brand</span><span id="control" class="dsh-chat-brand-control-host"></span></div><button id="native-new-session">Synthetic New Session</button></div><script>${code.replaceAll('</script', '<\\/script')}</script></body></html>`
-const expectedCases = 31
+const expectedCases = 24
 const prefix = path.join(tmpdir(), 'dsh-brand-notice-')
 const profile = await mkdtemp(prefix)
 const chrome = process.env.CHROME_PATH || (process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : 'google-chrome')
@@ -59,7 +60,20 @@ try {
   const evaluation=await send('Runtime.evaluate',{expression:'new Promise((resolve,reject)=>{const run=()=>{if(window.fixtureDone)window.fixtureDone.then(resolve,reject);else if(document.readyState==="complete")reject(new Error("fixture did not initialize"));else setTimeout(run,10)};run()})',awaitPromise:true,returnByValue:true},session)
   if(evaluation.exceptionDetails)throw new Error(JSON.stringify(evaluation.exceptionDetails))
   const report=evaluation.result.value
-  const passed=report.results.length===expectedCases&&report.results.every(item=>item.passed)
+  const sources={
+    ui:await readFile(path.join(root,'src/ui.tsx'),'utf8'),
+    client:await readFile(path.join(root,'src/client.ts'),'utf8'),
+    schema:await readFile(path.join(root,'src/preferences-schema.ts'),'utf8'),
+    preferences:await readFile(path.join(root,'src/preferences.ts'),'utf8'),
+    removed:await readFile(path.join(root,'src/brand-notice.tsx'),'utf8').then(()=>true,()=>false),
+  }
+  const sourceOk=!sources.ui.includes('brandNoticeDismissed') && !sources.ui.includes('DshChatBrandNotice') && !sources.ui.includes('侧栏结构发生了变化')
+    && sources.ui.includes('插件与当前DSH版本不兼容') && sources.ui.includes('DshChatCompatibilityToast')
+    && sources.client.includes('dsh-deepseek-chat.compatibility-toast') && !sources.client.includes('brandNoticeDismissed')
+    && !sources.schema.includes('brandNoticeDismissed') && !sources.preferences.includes('brandNoticeDismissed')
+    && sources.removed===false
+  if(!sourceOk) console.error('Brand notice source removal is incomplete')
+  const passed=sourceOk&&report.results.length===expectedCases&&report.results.every(item=>item.passed)
   console.log(JSON.stringify({passed,expectedCases,actualCases:report.results.length,source:'Actual production React/CSS; synthetic native shell/primitive stand-ins; page requests intercepted, no live DSH or website',...report},null,2))
   if(!passed)process.exitCode=1
 } catch(error){console.error(error);process.exitCode=1}

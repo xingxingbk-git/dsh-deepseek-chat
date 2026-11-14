@@ -24,6 +24,8 @@ export const IconNewChatOutlineRegular=()=>React.createElement('svg',{width:16,h
 export const IconPanelLeftOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconRefreshOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconRightUpOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
+export const IconWarningOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
+export const Toast=({text})=>React.createElement('div',{role:'alert','data-toast':true},text);
 export const IconLoadingOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconEllipsisOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconEditOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
