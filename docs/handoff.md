@@ -12,13 +12,29 @@
 
 **DSH 升级检查清单（每次大版本/预发升级后）**
 1. HARNESS 展开侧栏搜索 → 关闭 → 切 CHAT → 切回 HARNESS，搜索框应保持关闭（重放防护）。
-2. CHAT 内按 Cmd/Ctrl+N 应打开 CHAT 新会话，不跳 HARNESS。
+2. CHAT 内按 Cmd/Ctrl+N、或点顶部「新会话」按钮，都应打开 CHAT 新会话，不跳 HARNESS（按钮自 0.2.2-rc.3 起经官方 `sidebar.session.action` HOC slot 接管；无兼容提示）。
 3. 切到 CHAT、打开/新建会话后输入框自动聚焦（含先加载后进入）。
 4. 切换快捷键在 HARNESS/CHAT 输入框与网页内均生效；设置页录制框可正常改键。
 5. 文字头像与图片头像账号都能识别、会话菜单与侧栏折叠正常。
 6. CHAT 侧栏「对话」列表行的左右宽度、行距、行高、文本起点与滚动条位置应与 HARNESS 原生会话行一致（rc.2 把 WorkspaceBrowser 改为 listArea 自身滚动；`check:sidebar-rows` 以 rc.2 原生几何为准）。
 7. CHAT 侧栏滚动行为与 HARNESS 统一：「对话」标题行固定在顶部，只滚动会话列表，滚动时出现滚动条（外层不再滚动；`check:sidebar-scroll` 覆盖）。
 8. 跑 `check:sidebar-search-guard`、`check:sidebar-rows`、`check:sidebar-scroll`、`check:sidebar-022`、`check:shortcuts`、`check:website-bootstrap`、`check:composer-focus` 与全量门禁。
+
+## 2026-11-14 未发布改动：DSH 0.2.2-rc.3 新会话按钮改用官方 HOC slot
+
+DSH 更新到 0.2.2-rc.3 后出现兼容提示（侧栏结构变化，CHAT 顶部新会话仍走后端 HARNESS）：rc.3 把顶部新会话按钮包进 `newSessionRow` 容器，并通过官方 HOC slot `sidebar.session.action` 渲染（`renderSlot('sidebar.session.action', {wide}, {children: 默认按钮})`）；旧 `attachSidebarAdapter` 的按钮分支要求品牌行后紧跟 BUTTON，识别失败 → 兼容提示 + 按钮点击走 DSH 原生新会话（切回 HARNESS）。修复：
+- 新增 `DshChatNewSessionAction` HOC 组件并在 client 注册 `sidebar.session.action`（0.2.2-rc.3+ 才存在；旧版本 inject 未触发、回退 DOM adapter）：CHAT 模式在捕获阶段消费点击并调用 `bridge.commandWebsite({type:'new'})`，HARNESS 模式原样透传 children（shipped 按钮，布局/悬停不变）；包装层 `display:contents` 不改变布局。
+- `sidebar-adapter` 新增 rc.3 分支：接受 `newSessionRow`（含 `[data-slot="sidebar.session.action"]`、root 直接无 button）结构，只做品牌标记与 panel-region 标记，不再接管按钮点击（交给官方 slot）；兼容提示因此消失。
+- 首次候选（d7a5c7f49cba）仍失效：官方 slots 契约要求 HOC 注册必须带 `id`（required），插件漏传导致该 layer 未生效、按钮仍走 DSH 原生；已补 `id: 'dsh-deepseek-chat.new-session-action'`。同时把 DOM adapter 的 rc.3 分支改为**接管 newSessionRow 内的按钮**（点击拦截到 CHAT 新会话、复用禁用/标记逻辑），作为 HOC 的兜底——HOC 未生效时按钮也不会再建 HARNESS 会话。
+- 回归：sidebar-022 70 项（rc.3 shell 识别/品牌标记/按钮由 DOM 兜底重定向/HARNESS 恢复/清理 + 源码断言）；sidebar-rows 53 项（HOC 在 CHAT 拦截、HARNESS 透传）。全部门禁/构建 40 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.27-02dd23a0d4ea.tgz`（247529 bytes/48文件）已装 desktop（DSH 0.2.2-rc.3）。未提交/未推送（等用户验收）。
+
+## 2026-11-14 0.2.28 已发布 npm
+
+发布 0.2.28：① DSH 0.2.2-rc.3 顶部「新会话」按钮双路径修复——官方 `sidebar.session.action` HOC 按契约补 required `id`，并由 DOM adapter 兜底接管 `newSessionRow` 内按钮（CHAT 点击打开官网新会话、HARNESS 透传）；② issue #23 修复——官网账号区域文字头像正则放宽为 `^[\p{L}\p{N}]{0,4}$`，允许默认空头像与 1-4 字符文字头像，其余严格证明不变。流程：临时 npm 配置网页登录（首次链接过期后重发）→ 2FA → publish → 校验公开 tarball 与正式包**逐字节一致**（247536 bytes / 48 文件，SHA256 `9bdcd23655aa28cfdc39e104614902ab95e01415012d682a598d0a3343036629`）；latest/dist-tags=0.2.28；临时凭据已 logout、目录删除、PTY 关闭。本机 desktop 装同内容候选 `fb3a95144baa`（0.2.27 版本号）。Git 改动未提交/未推送（等用户指令）。
+
+## 2026-11-14 issue #23 修复（空头像/多字符文字头像导致官网账号区域识别失败）
+
+用户 mxujm1 反馈「chat 界面识别失败」（DSH 0.2.2-rc.1/rc.2 + 插件 0.2.27，Windows）：截图显示「暂未识别官网账号区域，新的登录记忆暂无法保存」+「CHAT 界面识别失败」。定位：`src/website-navigation.ts` 的 `checkProfile` 文字头像分支要求头像元素 `DIV`、无子元素、文本匹配 `^[\p{L}\p{N}]$`（恰好一个字母/数字）；用户的官网账号是**默认空头像**（无文字、无 img）→ 空文本不匹配 → 账号区域识别失败 → 导航/身份识别失败 → 整体报错。0.2.24 修复只覆盖了字母/数字文字头像，未覆盖空头像。修复：文字头像正则放宽为 `^[\p{L}\p{N}]{0,4}$`——允许**空文本默认头像**与**1-4 个字母/数字的多字符头像**，其余严格证明保持不变（账号行 `div[tabindex="0"]`、头像为首个空子 DIV、行内恰好 1 个 svg、唯一昵称叶子、行内无链接/输入/menu 等、底部几何/列宽/头像尺寸校验）；proof 仍为 `footer-text-v1`（缓存复验同函数，空↔文字切换仍有效）。回归：website-text-avatar 增至 36 项（空头像认证、多字符头像认证、空头像缺昵称/嵌套内容拒绝、超长标签拒绝，负对照通过）。候选 `artifacts/dsh-deepseek-chat-0.2.27-fb3a95144baa.tgz`（247536 bytes/48文件，含第一问题修复）已装 desktop。未提交/未推送（等用户验收）。
 
 ## 2026-11-12 0.2.27 已发布 npm
 

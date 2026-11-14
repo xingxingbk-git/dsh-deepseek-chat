@@ -13,7 +13,7 @@ import { translate } from './i18n.js'
 import { authorizationSchema, DSH_CHAT_REMOTE_CONTRIBUTION } from './protocol.js'
 import type { AuthorizationState, DshChatClientMetadata, WebsiteSession } from './protocol.js'
 import { acquireChatStyles } from './styles.js'
-import { guardHarnessSearchReplay, DshChatBrandName, DshChatChatNavigation, DshChatChatPanel, DshChatLeadingControls, DshChatChatSettings, DshChatSettingsIcon } from './ui.js'
+import { guardHarnessSearchReplay, DshChatBrandName, DshChatChatNavigation, DshChatChatPanel, DshChatLeadingControls, DshChatChatSettings, DshChatSettingsIcon, DshChatNewSessionAction } from './ui.js'
 import type { DshChatUIBridge, DshChatViewState, DshChatViewportRect, WebsiteNotice } from './ui.js'
 import { DshChatWebSurface } from './web-surface.js'
 import { DshChatWindowDragSurface } from './window-drag-surface.js'
@@ -778,6 +778,15 @@ export function apply(ctx: Context): void {
     if (languageObserver) syncLanguage()
     ctx.slots.inject('main', () => ctx.slots.register({ name: 'main', key: CHAT_PANEL, inject: () => ({ bridge }) }, DshChatChatPanel))
     ctx.slots.inject('sidebar.brand.name', () => ctx.slots.register({ name: 'sidebar.brand.name', priority: -100, inject: () => ({ bridge }) }, DshChatBrandName))
+    // Official 0.2.2-rc.3 extension point: the shipped new-session button is
+    // wrapped by this HOC slot, so CHAT can keep using it without DOM scraping.
+    // The 0.2.2-rc.1 type bundle predates this slot; the runtime contract is
+    // checked by DSH itself (hoc slots only exist on 0.2.2-rc.3+).
+    ;(ctx.slots as unknown as { inject(name: string, callback: () => () => void): void })
+      .inject('sidebar.session.action', () => (
+        (ctx.slots as unknown as { register(options: Record<string, unknown>, component: unknown): () => void })
+          .register({ name: 'sidebar.session.action', id: 'dsh-deepseek-chat.new-session-action', order: 0, inject: () => ({ bridge }) }, DshChatNewSessionAction)
+      ))
     ctx.slots.inject('shell.overlay', () => [
       ctx.slots.register({ name: 'shell.overlay', id: 'dsh-deepseek-chat.website', order: 90, inject: () => ({ bridge, nativeBrowser }) }, DshChatWebSurface),
     ])

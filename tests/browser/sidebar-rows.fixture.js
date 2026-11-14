@@ -1,7 +1,7 @@
 import React from 'react'
 import {createRoot} from 'react-dom/client'
 import {flushSync} from 'react-dom'
-import {DshChatChatNavigation} from '../../src/ui.tsx'
+import {DshChatChatNavigation,DshChatNewSessionAction} from '../../src/ui.tsx'
 
 // Production React/CSS, synthetic navigation, and API-only Menu stand-in.
 // Native reference geometry is frozen from DSH Desktop 0.2.2-rc.1 WorkspaceBrowser/SessionRow.
@@ -61,6 +61,19 @@ window.testBaseline = async () => {
   check('row height matches the native 32px session row',near(rect(item()).height,rect($('#native-row')).height))
   const groupTitle=$('.dsh-chat-conversation-group h3')
   check('conversation groups keep their own title spacing',groupTitle!==null && css(groupTitle).marginTop==='15px' && css(groupTitle).marginBottom==='4px')
+
+  const hocHost=document.createElement('div');document.body.append(hocHost)
+  const hocRoot=createRoot(hocHost)
+  let hocNative=0
+  const renderHoc=()=>flushSync(()=>hocRoot.render(React.createElement(DshChatNewSessionAction,{bridge,children:React.createElement('button',{id:'hoc-new',onClick:()=>{hocNative++}},'New session')})))
+  renderHoc()
+  document.getElementById('hoc-new').click()
+  check('CHAT consumes the official new-session HOC action',commands.at(-1)?.type==='new' && hocNative===0)
+  update({mode:'harness'});renderHoc()
+  document.getElementById('hoc-new').click()
+  check('HARNESS passes the official new-session HOC action through',hocNative===1 && commands.at(-1)?.type==='new')
+  update({mode:'chat'});renderHoc()
+  hocRoot.unmount();hocHost.remove()
   check('selected row excludes transparent paint insets',css(item()).backgroundClip==='padding-box' && css(item()).borderLeftColor==='rgba(0, 0, 0, 0)' && css(item()).borderLeftWidth==='3px')
   check('selected row uses the same fill and radius as HARNESS',css(item()).backgroundColor===css($('#native-row')).backgroundColor && css(item()).borderRadius===css($('#native-row')).borderRadius)
   const search=$('.dsh-chat-search-button'),refresh=$('.dsh-chat-search-actions .dsh-chat-icon-button')

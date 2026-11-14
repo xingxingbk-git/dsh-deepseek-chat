@@ -10,6 +10,7 @@ window.fixtureDone = (async () => {
   document.body.append(frame)
   const doc = frame.contentDocument
   const initial = '<div class="ede5bc47 avatar">F</div>'
+  const emptyAvatar = '<div class="ede5bc47 avatar"></div>'
   const picture = '<img class="avatar" width="32" height="32" alt="Fictional avatar">'
   const row = avatar => `<div class="_2afd28d profile" tabindex="0">${avatar}<div class="_9d8da05 nickname">Fixture account</div><div class="ds-icon more"><svg width="16" height="16"><path d="M1 1L8 8"/></svg></div><div class="ds-focus-ring"></div></div>`
   const setup = (avatar = initial) => {
@@ -30,8 +31,13 @@ window.fixtureDone = (async () => {
   const run = (command = {type:'snapshot',showOriginal:false}, pathname = '/') => frame.contentWindow.eval(`(()=>{const location={origin:'https://chat.deepseek.com',pathname:${JSON.stringify(pathname)}};return ${websiteCommandScript(command)}})()`)
   setup(picture)
   check('existing image avatar still authenticates', run().authenticated === true)
-  setup()
+  setup(emptyAvatar)
   let state = run()
+  check('default empty avatar authenticates with its nickname', state.authenticated === true && state.accountName === 'Fixture account')
+  setup(); doc.querySelector('.avatar').textContent = 'DS'
+  check('short multi-character avatar is accepted', run().authenticated === true)
+  setup()
+  state = run()
   check('text avatar password-login footer authenticates', state.authenticated === true && state.accountName === 'Fixture account')
   check('text avatar presents the chat instead of concealing it', state.desktopReady === true && !doc.documentElement.hasAttribute('data-dsh-chat-preparing') && getComputedStyle(doc.body).opacity !== '0')
   check('avatar initial is not included in the account name', state.accountName === 'Fixture account')
@@ -65,6 +71,15 @@ window.fixtureDone = (async () => {
     setup(); change()
     check(`rejects ${label}`, run().authenticated !== true)
   }
+  for (const [label, mutate] of [
+    ['empty avatar without a nickname', () => doc.querySelector('.nickname').remove()],
+    ['empty avatar with nested content', () => { doc.querySelector('.avatar').innerHTML = '<span></span>' }],
+  ]) {
+    setup(emptyAvatar); mutate()
+    check(`rejects ${label}`, run().authenticated !== true)
+  }
+  setup(); doc.querySelector('.avatar').textContent = 'ABCDE'
+  check('rejects an overlong avatar label', run().authenticated !== true)
   for (const letter of ['中', '7', '𐐀']) {
     setup();doc.querySelector('.avatar').textContent=letter
     check(`accepts one Unicode letter or number ${letter}`, run().authenticated === true)

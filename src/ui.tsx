@@ -4,6 +4,7 @@ import { BrandWordmark, IconSearchOutlineRegular, IconCloseFillRegular, IconNewC
 import type { ComponentType } from 'react'
 import type { StoredEntry } from '@deepseek-ai/dsh-client-ui-slots'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
+import type { ReactNode } from 'react'
 import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
@@ -253,6 +254,19 @@ export function DshChatModeSelector({ bridge, state, compact = false }: DshChatB
 }
 
 /** Keep interactive controls in the sidebar row, outside its decorative/new-chat brand. */
+/** DSH 0.2.2-rc.3 exposes the new-session row as an official HOC slot. In CHAT
+ * the native action is consumed before it can start a HARNESS session; the
+ * child stays the shipped button so layout and hover behaviour are untouched. */
+export function DshChatNewSessionAction({ bridge, children }: DshChatBridgeProps & { children?: ReactNode }) {
+  const state = useDshChat(bridge)
+  if (state.mode !== 'chat' || !state.modeEnabled) return <>{children}</>
+  return <div className="dsh-chat-new-session-action" onClickCapture={event => {
+    event.preventDefault()
+    event.stopPropagation()
+    bridge.commandWebsite({ type: 'new' })
+  }}>{children}</div>
+}
+
 export function DshChatBrandName({ bridge }: PropsRuntime<'sidebar.brand.name'> & DshChatBridgeProps) {
   const name = useRef<HTMLSpanElement>(null)
   const [controlHost, setControlHost] = useState<HTMLElement | null>(null)

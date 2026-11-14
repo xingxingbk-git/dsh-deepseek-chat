@@ -43,8 +43,15 @@ try {
   await send('Page.setDocumentContent',{frameId:frame,html},session)
   const evaluation=await send('Runtime.evaluate',{expression:'window.fixtureDone',awaitPromise:true,returnByValue:true},session)
   if(evaluation.exceptionDetails)throw new Error(JSON.stringify(evaluation.exceptionDetails))
-  const results=evaluation.result.value,expectedCases=65
-  const passed=Array.isArray(results) && results.length===expectedCases && results.every(result=>result.passed===true) && pageErrors.length===0
+  const results=evaluation.result.value,expectedCases=70
+  const {readFile}=await import('node:fs/promises')
+  const clientSource=await readFile(path.join(root,'src/client.ts'),'utf8')
+  const uiSource=await readFile(path.join(root,'src/ui.tsx'),'utf8')
+  const styleSource=await readFile(path.join(root,'src/styles.ts'),'utf8')
+  const sourceOk=clientSource.includes("sidebar.session.action") && uiSource.includes('export function DshChatNewSessionAction')
+    && styleSource.includes('.dsh-chat-new-session-action{display:contents}')
+  if(!sourceOk) console.error('Missing official new-session HOC wiring')
+  const passed=Array.isArray(results) && results.length===expectedCases && results.every(result=>result.passed===true) && pageErrors.length===0 && sourceOk
   console.log(JSON.stringify({passed,expectedCases,actualCases:results?.length,pageErrors,source:'synthetic published-shell shapes; actual adapter and CSS; no DSH/account/network',results},null,2))
   if(!passed)process.exitCode=1
 } catch(error){console.error(error);process.exitCode=1}
