@@ -124,6 +124,18 @@ window.testFocusAndMenu = async () => {
   check('menu closes after choosing an action',more().getAttribute('aria-expanded')==='false' && !item().hasAttribute('data-menu-open'))
   flushSync(()=>$('.dsh-chat-conversation-row').click())
   check('conversation selection still uses the website open command',commands.at(-1)?.type==='open' && commands.at(-1)?.href===rows[0].href)
+  const opened=[], realOpen=window.open
+  window.open=(url,name,features)=>{opened.push({url,name,features});return null}
+  try {
+    const openExternal=$('[aria-label="在浏览器中打开"]')
+    check('the navigation header offers an open-in-browser control',openExternal!==null && !openExternal.disabled)
+    update({websiteNavigation:{...state.websiteNavigation,selectedHref:rows[1].href}});await tick()
+    openExternal.click()
+    check('open-in-browser targets the selected website conversation',opened.length===1 && opened[0].url===rows[1].href && opened[0].name==='_blank' && String(opened[0].features).includes('noopener'))
+    update({websiteNavigation:{...state.websiteNavigation,selectedHref:null}});await tick()
+    openExternal.click()
+    check('open-in-browser falls back to the website new-conversation page',opened.length===2 && opened[1].url==='https://chat.deepseek.com/')
+  } finally { window.open=realOpen }
 }
 window.testOtherStates = async () => {
   update({websiteNavigation:{...state.websiteNavigation,selectedHref:rows[0].href}})

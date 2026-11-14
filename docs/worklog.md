@@ -6,6 +6,15 @@
 
 rc.3 把新会话按钮包进 newSessionRow 并由 `sidebar.session.action`（hoc）渲染；旧 adapter 按钮分支失效（兼容提示 + CHAT 按钮走 HARNESS）。修复：注册 `sidebar.session.action` HOC（需带官方 required `id`；CHAT 消费点击开官网新会话、HARNESS 透传、display:contents 不破布局）+ adapter rc.3 分支接管 newSessionRow 内按钮（DOM 兜底）。sidebar-022 70、sidebar-rows 53，全部门禁/构建40产物通过；候选 02dd23a0d4ea（247529bytes/48文件）已装 desktop。未提交/未推送。
 
+## 2026-11-14 发布 npm 0.2.29
+
+按顺序发布 0.2.29（CHAT 跳转浏览器按钮：DSH 官方 `IconRightUpOutlineRegular`、跳转在刷新前；issue #23 默认图标头像识别修复）：网页登录+2FA，registry 异步生效；公开 tarball 与正式包逐字节一致（247728bytes/48文件，SHA256 652f6c7004dfe78b679a94ec0c80b9e4883ece358889daef82cd50b198080598），latest/dist-tags=0.2.29；临时凭据 logout、目录清理、PTY 关闭。Git 未提交/未推送。
+
+## 2026-11-14 CHAT 跳转浏览器按钮 + issue #23 图标头像修复
+
+跳转按钮：header 搜索/刷新后第三个外链图标按钮，点击经 window.open 用系统浏览器打开当前会话 URL（无选中则新会话页）；sidebar-rows 56。
+issue #23：用户真实 DOM 显示「空头像」实为 div.ds-icon > svg 默认图标头像（行内 2 svg）；允许该单图标结构（行内 svg 总数 = 头像内 + 1），website-text-avatar 40（含负对照）。候选 0750c2b5b2b8（247827bytes/48文件）已装 desktop。未提交/未推送。
+
 ## 2026-11-14 发布 npm 0.2.28
 
 按顺序发布 0.2.28（rc.3 新会话按钮 HOC id + DOM 兜底；issue #23 空头像/多字符头像识别）：网页登录+2FA，publish 后 registry 异步生效；公开 tarball 与正式包逐字节一致（247536bytes/48文件，SHA256 9bdcd23655aa28cfdc39e104614902ab95e01415012d682a598d0a3343036629），latest/dist-tags=0.2.28；临时凭据 logout、目录清理、PTY 关闭。Git 未提交/未推送。

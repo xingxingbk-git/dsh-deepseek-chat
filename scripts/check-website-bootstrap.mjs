@@ -71,7 +71,7 @@ check('a callback restores the normal desktop proof and deadline', () => {
 auth.dispose()
 check('a disposed owner cannot reveal a late provider document', () => assert.equal(auth.authentication(callback, 'https://appleid.apple.com/'), false))
 
-const primitives = ['BrandWordmark', 'IconSearchOutlineRegular', 'IconCloseFillRegular', 'IconNewChatOutlineRegular', 'IconPanelLeftOutlineRegular', 'IconRefreshOutlineRegular', 'IconLoadingOutlineRegular', 'IconEllipsisOutlineRegular', 'IconEditOutlineRegular', 'IconPinOutlineRegular', 'IconShareOutlineRegular', 'IconTrashOutlineRegular', 'IconChevronDownOutlineRegular', 'Menu', 'Modal', 'Tooltip', 'Button', 'Input', 'Switch']
+const primitives = ['BrandWordmark', 'IconSearchOutlineRegular', 'IconCloseFillRegular', 'IconNewChatOutlineRegular', 'IconPanelLeftOutlineRegular', 'IconRefreshOutlineRegular', 'IconRightUpOutlineRegular', 'IconLoadingOutlineRegular', 'IconEllipsisOutlineRegular', 'IconEditOutlineRegular', 'IconPinOutlineRegular', 'IconShareOutlineRegular', 'IconTrashOutlineRegular', 'IconChevronDownOutlineRegular', 'Menu', 'Modal', 'Tooltip', 'Button', 'Input', 'Switch']
 const surfaceSource = await readFile(path.join(root, 'src/web-surface.tsx'), 'utf8')
 check('a failed start does not consume the one-shot desktop recovery', () => {
   assert.match(surfaceSource, /desktopChromeTries < DESKTOP_CHROME_LIMIT\n\s*&& bootstrap\.recheck\(requestDocumentRevision\)\) \{\n\s*desktopChromeTries\+\+/)

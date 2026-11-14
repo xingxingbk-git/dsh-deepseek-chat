@@ -352,13 +352,20 @@ export function adaptWebsiteNavigation(doc: Document, page: Pick<Location, 'orig
   const checkProfile = (row: HTMLElement, avatar: HTMLElement, geometry: boolean) => {
     const textAvatar = avatar.tagName !== 'IMG'
     // The website's initial avatar is a leaf div in its focusable account row,
-    // with one nickname and a trailing menu glyph. An unset (empty) avatar and
-    // short multi-letter labels are also user avatars, not footer text: accept
-    // 0-4 letters/digits while keeping the row/nickname/geometry proof.
+    // with one nickname and a trailing menu glyph. An unset (empty) avatar can
+    // render either as an empty div or as a single `div.ds-icon > svg` default
+    // glyph, and short multi-letter labels are user avatars too: accept 0-4
+    // letters/digits and that one-glyph wrapper while keeping the row proof.
+    const avatarSvgCount = avatar.querySelectorAll('svg').length
+    const glyphHost = avatar.firstElementChild
+    const avatarGlyph = avatar.childElementCount === 1 && avatarSvgCount === 1 && glyphHost !== null
+      && (glyphHost.tagName === 'svg'
+        || (glyphHost.tagName === 'DIV' && glyphHost.classList.contains('ds-icon')
+          && glyphHost.childElementCount === 1 && glyphHost.firstElementChild?.tagName === 'svg'))
     if (textAvatar && (!row.matches('div[tabindex="0"]') || row.firstElementChild !== avatar
-      || avatar.tagName !== 'DIV' || avatar.childElementCount !== 0
+      || avatar.tagName !== 'DIV' || (avatar.childElementCount !== 0 && !avatarGlyph)
       || !/^[\p{L}\p{N}]{0,4}$/u.test((avatar.textContent ?? '').trim())
-      || row.querySelectorAll('svg').length !== 1)) return null
+      || row.querySelectorAll('svg').length !== avatarSvgCount + 1)) return null
     if (!row.isConnected || !track.contains(row) || row === sidebar || row === track || row === layout
       || row.contains(newChat) || row.matches('a[href]') || avatar.closest('a[href]')
       || row.closest('[role="dialog"],[role="menu"],[role="listbox"],.ds-modal-content,.ds-dropdown-menu,.ds-select-dropdown,.ds-popover')

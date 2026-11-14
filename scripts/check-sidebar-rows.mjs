@@ -33,7 +33,7 @@ body{margin:0;display:flex;font:14px Arial;color:var(--dsw-alias-label-primary)}
 #native-more:hover{color:var(--dsw-alias-label-primary)}
 </style></head><body><div id="chat-shell" class="shell"><div class="region"><div id="chat"></div></div></div><div id="native-shell" class="shell"><div class="region"><div id="native-root"><header id="native-header"></header><div id="native-list-area"><div id="native-tree-body"><div id="native-list"><div id="native-row"><span style="flex:1">Synthetic native row</span><button id="native-more">...</button></div><div id="native-row2"><span style="flex:1">Second synthetic native row</span></div></div></div></div></div></div></div><script>${code.replaceAll('</script', '<\\/script')}</script></body></html>`
 // Includes width/inset loops, explicit scrollbar bounds, overflow and scrolling checks.
-const expectedCases = 53
+const expectedCases = 56
 const prefix = path.join(tmpdir(), 'dsh-sidebar-rows-')
 const profile = await mkdtemp(prefix)
 const chrome = process.env.CHROME_PATH || (process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : 'google-chrome')

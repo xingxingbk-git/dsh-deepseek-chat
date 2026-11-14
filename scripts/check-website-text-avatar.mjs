@@ -19,7 +19,7 @@ let results
 try {
   results = await runHeadlessFixture(`<!doctype html><meta charset="utf-8"><body><script>${bundle.outputFiles[0].text.replaceAll('</script','<\\/script')}</script></body>`)
 } catch (error) {
-  if (!negative || !(String(error).includes('default empty avatar authenticates') || String(error).includes('text avatar password-login footer authenticates'))) throw error
+  if (!negative || !(String(error).includes('default empty avatar authenticates') || String(error).includes('default icon avatar authenticates') || String(error).includes('text avatar password-login footer authenticates'))) throw error
   console.log(JSON.stringify({passed:true,negativeControlCaught:true,source:'text-avatar recognition removed in memory'}))
   process.exit(0)
 }

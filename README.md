@@ -10,7 +10,7 @@
 
 DeepSeek Chat 是一款 **DSH 桌面插件**：选择 **CHAT** 在 DSH 内使用真实的 [DeepSeek Chat 官网](https://chat.deepseek.com/)；选择 **HARNESS** 随时回到原来的工作区。插件不接管你的账号体系，官网登录独立保存。
 
-当前发布版 **0.2.28** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
+当前发布版 **0.2.29** · 适用于 **DSH 桌面版** · CHAT 网页的语言、外观和字号跟随 DSH。
 
 ## 核心功能
 
@@ -54,13 +54,13 @@ DeepSeek Chat 是一款 **DSH 桌面插件**：选择 **CHAT** 在 DSH 内使用
 在 DSH 插件安装输入框中输入：
 
 ```text
-dsh-deepseek-chat@0.2.28
+dsh-deepseek-chat@0.2.29
 ```
 
 或使用命令行：
 
 ```bash
-dsh plugin --profile desktop add dsh-deepseek-chat@0.2.28
+dsh plugin --profile desktop add dsh-deepseek-chat@0.2.29
 ```
 
 ### 从 GitHub 安装
@@ -78,7 +78,7 @@ dsh plugin --profile desktop add https://github.com/xingxingbk-git/dsh-deepseek-
 ### 使用本地安装包
 
 ```bash
-dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.28.tgz
+dsh plugin --profile desktop add /absolute/path/dsh-deepseek-chat-0.2.29.tgz
 ```
 
 安装或更新后请**完整退出并重新打开 DSH**。使用其他配置环境时，把命令中的 `desktop` 换成对应名称。

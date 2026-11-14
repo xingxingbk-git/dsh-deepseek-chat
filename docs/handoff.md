@@ -28,6 +28,17 @@ DSH 更新到 0.2.2-rc.3 后出现兼容提示（侧栏结构变化，CHAT 顶�
 - 首次候选（d7a5c7f49cba）仍失效：官方 slots 契约要求 HOC 注册必须带 `id`（required），插件漏传导致该 layer 未生效、按钮仍走 DSH 原生；已补 `id: 'dsh-deepseek-chat.new-session-action'`。同时把 DOM adapter 的 rc.3 分支改为**接管 newSessionRow 内的按钮**（点击拦截到 CHAT 新会话、复用禁用/标记逻辑），作为 HOC 的兜底——HOC 未生效时按钮也不会再建 HARNESS 会话。
 - 回归：sidebar-022 70 项（rc.3 shell 识别/品牌标记/按钮由 DOM 兜底重定向/HARNESS 恢复/清理 + 源码断言）；sidebar-rows 53 项（HOC 在 CHAT 拦截、HARNESS 透传）。全部门禁/构建 40 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.27-02dd23a0d4ea.tgz`（247529 bytes/48文件）已装 desktop（DSH 0.2.2-rc.3）。未提交/未推送（等用户验收）。
 
+## 2026-11-14 0.2.29 已发布 npm
+
+发布 0.2.29：① CHAT 侧栏「对话」标题行新增「在浏览器中打开」按钮——复用 DSH 官方图标 `IconRightUpOutlineRegular`（与 HARNESS 变更请求同款，size 14），点击经 `window.open` 用系统默认浏览器打开当前会话 URL（无选中则新会话页 https://chat.deepseek.com/），按钮顺序为「搜索 → 跳转 → 刷新」，尺寸/间距/圆角与 HARNESS header 规范一致（28×28、gap 4px、`--dsw-radius-sm`）；② issue #23 修复——允许默认图标头像（账号行首个 `div` 内 `div.ds-icon > svg`）识别，行内 svg 总数 = 头像内 svg 数 + 1（菜单），文字/空/图片头像与严格行证明不变。流程：临时 npm 配置网页登录 → 2FA → publish → 校验公开 tarball 与正式包**逐字节一致**（247728 bytes / 48 文件，SHA256 `652f6c7004dfe78b679a94ec0c80b9e4883ece358889daef82cd50b198080598`）；latest/dist-tags=0.2.29；临时凭据 logout、目录删除、PTY 关闭。本机 desktop 装同内容候选 `652f6c7004df`。Git 改动未提交/未推送（等用户指令）。
+
+## 2026-11-14 未发布改动：CHAT 跳转浏览器按钮 + issue #23 图标头像修复
+
+用户要求在两处继续优化：① CHAT 侧栏「对话」标题行在搜索/刷新后增加「在浏览器中打开」按钮；② issue #23 用户升级 0.2.28 后仍报「CHAT 界面识别失败」，并提供了真实账号行 DOM。
+- 跳转按钮（`src/ui.tsx`）：`dsh-chat-search-actions` 内新增第三个图标按钮（自绘 16px stroke 外链 SVG，与搜索/刷新同风格），点击调用 `window.open(navigation.selectedHref ?? 'https://chat.deepseek.com/', '_blank', 'noopener,noreferrer')`——与 CHAT 外链相同，经 DSH 桌面 window-open 处理器交给系统默认浏览器；已选中会话则打开该会话 URL，新会话/无选中打开新会话页；不处理目标浏览器登录态/账号差异。`sidebar-rows` 增至 56 项（按钮存在/跟随选中会话/无选中回退新会话页）。
+- issue #23 根因补充：用户 DOM 显示「空头像」实际是**默认图标头像**——账号行首个 `div.ede5bc47` 内含 `div.ds-icon > svg`（人形图标），行内共 2 个 svg（头像图标 + 菜单图标）；0.2.28 的放宽只接受「空子元素 + 行内 1 个 svg」，因此仍失败。修复：`checkProfile` 允许头像为单个 `div.ds-icon > svg`（或直接 svg 子元素）的默认图标结构，要求行内 svg 总数 = 头像内 svg 数 + 1（菜单 1 个），保留账号行/昵称/几何/无链接输入等严格证明；`website-text-avatar` 增至 40 项（默认图标头像正例 + 双图标/深嵌套/缺菜单图标负对照）。
+- 候选 `artifacts/dsh-deepseek-chat-0.2.28-0750c2b5b2b8.tgz`（247827 bytes/48 文件）已装 desktop（DSH 0.2.2-rc.3）。全部门禁/负对照/构建 40 产物通过（`check-website-downloads` 脚本名在仓库不存在，非本轮回归）。未提交/未推送（等用户验收）。
+
 ## 2026-11-14 0.2.28 已发布 npm
 
 发布 0.2.28：① DSH 0.2.2-rc.3 顶部「新会话」按钮双路径修复——官方 `sidebar.session.action` HOC 按契约补 required `id`，并由 DOM adapter 兜底接管 `newSessionRow` 内按钮（CHAT 点击打开官网新会话、HARNESS 透传）；② issue #23 修复——官网账号区域文字头像正则放宽为 `^[\p{L}\p{N}]{0,4}$`，允许默认空头像与 1-4 字符文字头像，其余严格证明不变。流程：临时 npm 配置网页登录（首次链接过期后重发）→ 2FA → publish → 校验公开 tarball 与正式包**逐字节一致**（247536 bytes / 48 文件，SHA256 `9bdcd23655aa28cfdc39e104614902ab95e01415012d682a598d0a3343036629`）；latest/dist-tags=0.2.28；临时凭据已 logout、目录删除、PTY 关闭。本机 desktop 装同内容候选 `fb3a95144baa`（0.2.27 版本号）。Git 改动未提交/未推送（等用户指令）。
