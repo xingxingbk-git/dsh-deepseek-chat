@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { createElement, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { BrandWordmark, IconSearchOutlineRegular, IconCloseFillRegular, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, IconRefreshOutlineRegular, IconLoadingOutlineRegular, IconEllipsisOutlineRegular, IconEditOutlineRegular, IconPinOutlineRegular, IconShareOutlineRegular, IconTrashOutlineRegular, Menu, Modal, Button, Input, IconChevronDownOutlineRegular, Tooltip, Switch } from '@deepseek-ai/dsh-client-ui-primitives'
+import { BrandWordmark, IconSearchOutlineRegular, IconCloseFillRegular, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, IconRefreshOutlineRegular, IconRightUpOutlineRegular, IconLoadingOutlineRegular, IconEllipsisOutlineRegular, IconEditOutlineRegular, IconPinOutlineRegular, IconShareOutlineRegular, IconTrashOutlineRegular, Menu, Modal, Button, Input, IconChevronDownOutlineRegular, Tooltip, Switch } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ComponentType } from 'react'
 import type { StoredEntry } from '@deepseek-ai/dsh-client-ui-slots'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
@@ -407,6 +407,12 @@ function DshChatRenameConversation({bridge, item, onClose, language}: DshChatBri
 /** Only the middle browsing region changes; the shipped shell and Settings stay mounted. */
 export { guardHarnessSearchReplay }
 
+/** Open the current official-website target in the system browser. DSH's
+ * desktop window-open handler routes it externally, the same path as CHAT links. */
+function openWebsiteExternally(href: string): void {
+  try { globalThis.open(href, '_blank', 'noopener,noreferrer') } catch { /* ignore */ }
+}
+
 export function DshChatChatNavigation({ bridge, wide, expandSidebar }: PropsRuntime<'sidebar.workspaces'> & DshChatBridgeProps) {
   const state = useDshChat(bridge)
   const t = (text: string | null | undefined) => translate(state.language, text)
@@ -451,7 +457,7 @@ export function DshChatChatNavigation({ bridge, wide, expandSidebar }: PropsRunt
             {searching && <button type="button" className="dsh-chat-search-clear" aria-label={t("关闭官网对话搜索")} onClick={event=>{event.stopPropagation();closeSearch()}}><IconCloseFillRegular/></button>}
           </div>
         </div>
-        <div className="dsh-chat-search-actions"><Tooltip label={t(refreshing ? '正在刷新官网对话列表…' : '刷新官网对话列表')} delayMs={500}><button type="button" className="dsh-chat-icon-button" aria-label={t("刷新官网对话列表")} aria-busy={refreshing} disabled={refreshDisabled} onClick={()=>bridge.refreshWebsiteNavigation()}><IconRefreshOutlineRegular size={14} className={refreshing ? 'dsh-chat-refreshing' : undefined}/></button></Tooltip></div>
+        <div className="dsh-chat-search-actions"><Tooltip label={t("在浏览器中打开")} delayMs={500}><button type="button" className="dsh-chat-icon-button" aria-label={t("在浏览器中打开")} disabled={!state.modeEnabled || !state.desktopAvailable} onClick={()=>openWebsiteExternally(navigation.selectedHref ?? 'https://chat.deepseek.com/')}><IconRightUpOutlineRegular size={14}/></button></Tooltip><Tooltip label={t(refreshing ? '正在刷新官网对话列表…' : '刷新官网对话列表')} delayMs={500}><button type="button" className="dsh-chat-icon-button" aria-label={t("刷新官网对话列表")} aria-busy={refreshing} disabled={refreshDisabled} onClick={()=>bridge.refreshWebsiteNavigation()}><IconRefreshOutlineRegular size={14} className={refreshing ? 'dsh-chat-refreshing' : undefined}/></button></Tooltip></div>
       </header>
       <div className="dsh-chat-navigation-list-area">
       <div className="dsh-chat-navigation-list">

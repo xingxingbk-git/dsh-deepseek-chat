@@ -11,6 +11,7 @@ window.fixtureDone = (async () => {
   const doc = frame.contentDocument
   const initial = '<div class="ede5bc47 avatar">F</div>'
   const emptyAvatar = '<div class="ede5bc47 avatar"></div>'
+  const glyphAvatar = '<div class="ede5bc47 avatar"><div class="ds-icon"><svg width="16" height="16"><path d="M1 1L8 8"/></svg></div></div>'
   const picture = '<img class="avatar" width="32" height="32" alt="Fictional avatar">'
   const row = avatar => `<div class="_2afd28d profile" tabindex="0">${avatar}<div class="_9d8da05 nickname">Fixture account</div><div class="ds-icon more"><svg width="16" height="16"><path d="M1 1L8 8"/></svg></div><div class="ds-focus-ring"></div></div>`
   const setup = (avatar = initial) => {
@@ -36,6 +37,9 @@ window.fixtureDone = (async () => {
   check('default empty avatar authenticates with its nickname', state.authenticated === true && state.accountName === 'Fixture account')
   setup(); doc.querySelector('.avatar').textContent = 'DS'
   check('short multi-character avatar is accepted', run().authenticated === true)
+  setup(glyphAvatar)
+  state = run()
+  check('default icon avatar authenticates with its nickname', state.authenticated === true && state.accountName === 'Fixture account')
   setup()
   state = run()
   check('text avatar password-login footer authenticates', state.authenticated === true && state.accountName === 'Fixture account')
@@ -80,6 +84,12 @@ window.fixtureDone = (async () => {
   }
   setup(); doc.querySelector('.avatar').textContent = 'ABCDE'
   check('rejects an overlong avatar label', run().authenticated !== true)
+  setup(glyphAvatar); doc.querySelector('.avatar .ds-icon').insertAdjacentHTML('beforeend', '<svg width="16" height="16"><path d="M1 1L2 2"/></svg>')
+  check('rejects an icon avatar with two glyphs', run().authenticated !== true)
+  setup(glyphAvatar); doc.querySelector('.avatar .ds-icon').innerHTML = '<span><svg width="16" height="16"><path d="M1 1L2 2"/></svg></span>'
+  check('rejects an icon avatar nested deeper than one icon wrapper', run().authenticated !== true)
+  setup(glyphAvatar); doc.querySelector('.more').remove()
+  check('rejects an icon avatar without the menu glyph', run().authenticated !== true)
   for (const letter of ['中', '7', '𐐀']) {
     setup();doc.querySelector('.avatar').textContent=letter
     check(`accepts one Unicode letter or number ${letter}`, run().authenticated === true)

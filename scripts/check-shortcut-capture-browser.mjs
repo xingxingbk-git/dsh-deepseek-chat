@@ -23,6 +23,7 @@ export const IconCloseFillRegular=()=>React.createElement('svg',{width:16,height
 export const IconNewChatOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconPanelLeftOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconRefreshOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
+export const IconRightUpOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconLoadingOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconEllipsisOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconEditOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
