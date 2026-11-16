@@ -6,6 +6,10 @@
 
 rc.3 把新会话按钮包进 newSessionRow 并由 `sidebar.session.action`（hoc）渲染；旧 adapter 按钮分支失效（兼容提示 + CHAT 按钮走 HARNESS）。修复：注册 `sidebar.session.action` HOC（需带官方 required `id`；CHAT 消费点击开官网新会话、HARNESS 透传、display:contents 不破布局）+ adapter rc.3 分支接管 newSessionRow 内按钮（DOM 兜底）。sidebar-022 70、sidebar-rows 53，全部门禁/构建40产物通过；候选 02dd23a0d4ea（247529bytes/48文件）已装 desktop。未提交/未推送。
 
+## 2026-11-16 发布 npm 0.2.31
+
+按顺序发布 0.2.31（快捷键保存校验修复 + 快捷键字段 DSH 风格：矩形框/点击后框内操作/编辑态隐藏前缀/提示在录制按钮内）：网页登录+2FA，registry 异步生效（公开 tarball 首次 404，等待 CDN 传播后校验）；公开 tarball 与正式包逐字节一致（247232bytes/47文件，SHA256 4f78f8e6c2306bbaedff5841ef7243d3cb8bb7946f84891fd5b95113c15de48d），latest/dist-tags=0.2.31；临时凭据 logout、目录清理、PTY 关闭。Git 未提交/未推送。
+
 ## 2026-11-16 快捷键编辑态隐藏前缀并去掉框外提示
 
 去掉框下方红色提示（提示仅在录制按钮内）；编辑态隐藏前缀+分割线、失焦恢复，避免撑宽；shortcut-capture 32 项；全部门禁/构建 39 产物；候选 929df9534e40（247232bytes/47文件）已装。未提交/未发布。
