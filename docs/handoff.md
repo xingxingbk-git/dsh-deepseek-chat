@@ -28,6 +28,31 @@ DSH 更新到 0.2.2-rc.3 后出现兼容提示（侧栏结构变化，CHAT 顶�
 - 首次候选（d7a5c7f49cba）仍失效：官方 slots 契约要求 HOC 注册必须带 `id`（required），插件漏传导致该 layer 未生效、按钮仍走 DSH 原生；已补 `id: 'dsh-deepseek-chat.new-session-action'`。同时把 DOM adapter 的 rc.3 分支改为**接管 newSessionRow 内的按钮**（点击拦截到 CHAT 新会话、复用禁用/标记逻辑），作为 HOC 的兜底——HOC 未生效时按钮也不会再建 HARNESS 会话。
 - 回归：sidebar-022 70 项（rc.3 shell 识别/品牌标记/按钮由 DOM 兜底重定向/HARNESS 恢复/清理 + 源码断言）；sidebar-rows 53 项（HOC 在 CHAT 拦截、HARNESS 透传）。全部门禁/构建 40 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.27-02dd23a0d4ea.tgz`（247529 bytes/48文件）已装 desktop（DSH 0.2.2-rc.3）。未提交/未推送（等用户验收）。
 
+## 2026-11-16 0.2.31 已发布 npm
+
+发布 0.2.31：① 修复含修饰键的快捷键保存失败——`setSwitchPreference` 改为按字段分流校验（`validSwitchPreference`：快捷键走 `validShortcut` 绑定解析，不再被切换按钮文字标签 10 字符宽度限制误伤）；② 快捷键输入字段对齐 DSH：矩形框（34px/12px 圆角/边框/左侧前缀+分割线）、官方 `ShortcutKeys` 键帽显示、点击后框内展开「恢复默认/移除」+ DSH 风格录制按钮，编辑时隐藏前缀/分割线避免撑宽，失焦/完成/Esc 后恢复，提示只在录制按钮内。流程：临时 npm 配置网页登录 → 2FA → publish → 校验公开 tarball 与正式包**逐字节一致**（247232 bytes / 47 文件，SHA256 `4f78f8e6c2306bbaedff5841ef7243d3cb8bb7946f84891fd5b95113c15de48d`；tarball 首次 404，等待 CDN 传播后一致）；latest/dist-tags=0.2.31；临时凭据 logout、目录删除、PTY 关闭。本机 desktop 装同内容候选 `929df9534e40`（0.2.30 版本号）。Git 改动未提交/未推送（等用户指令）。
+
+## 2026-11-16 未发布改动：快捷键编辑态隐藏前缀/分割线并去掉框外提示
+
+按用户反馈继续调整：① 去掉矩形框下方的红色提示文字（「请再按一个主键」等只在录制按钮内展示）；② 进入编辑态时隐藏左侧前缀与竖分割线（`[data-editing] .dsh-chat-shortcut-prefix{display:none}`），为框内「恢复默认/移除/录制按钮」腾出宽度，编辑结束/失焦后前缀与分割线恢复，避免编辑时把矩形框撑宽。回归：shortcut-capture 增至 32 项（前缀编辑时隐藏、编辑结束恢复、编辑态框内不横向溢出）；全部门禁/构建 39 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.30-929df9534e40.tgz`（247232 bytes/47 文件）已装 desktop。未提交/未发布。
+
+## 2026-11-16 未发布改动：快捷键字段改回矩形框 + 点击后展开 DSH 内联操作
+
+按用户反馈调整：快捷键字段恢复为与上方标签输入框一致的**矩形框**（34px 高、12px 圆角、`.5px` 边框、左侧/右侧前缀 + 分割线），默认只显示当前快捷键（官方 `ShortcutKeys` 键帽）；**点击框进入编辑后，恢复默认/移除/录制按钮在同一个框内展开**（参考 DSH 点击编辑后才出现这些操作），录制成功/恢复默认/移除/Escape/失焦后收起回显。录制按钮仍是 DSH 26px/10px 圆角样式，键帽为官方 ShortcutKeys 符号。回归：shortcut-capture 29 项（含"非编辑态不显示操作""点击展开在框内""前缀分割线""录制/移除/恢复默认/Escape/失焦收起"），presentation 88 项（字段 34px 框 + 编辑态 recorder 26px/圆角 10px + 内联操作 12px）；全部门禁/构建 39 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.30-33c7a9784dd7.tgz`（247327 bytes/47 文件）已装 desktop。未提交/未发布。
+
+## 2026-11-16 未发布改动：快捷键输入组件对齐 DSH 风格
+
+按用户要求把 Chat 设置的快捷键输入控件与 DSH 自带快捷键编辑器对齐，尽可能复用官方组件：
+- 捕获控件由文字输入框改为 DSH 风格的**键帽录制按钮**：复用 primitives 官方 `ShortcutKeys` 组件渲染平台键帽符号（macOS `⌘⌥⌃⇧←`、其他平台 `Win/Ctrl/Alt/Shift`），录制按钮沿用 DSH 尺寸/样式（26px 高、10px 圆角、12px 字号、`.5px` 边框、`bg-module-platform` 背景），空闲显示「按下快捷键」，有绑定时显示键帽；
+- 增加 DSH 同款内联操作「恢复默认」（重置为默认 `Tab`）与「移除」（清空绑定），12px 次要色文字按钮；提示/无效态用红边 + 12px 提示文本；
+- 新增纯函数 `shortcutKeycaps(value, platform)`（`src/shortcuts.ts`）生成键帽标签并加单测；Backspace/Delete 清空后退出录制（与 DSH 编辑器行为一致）；
+- 删除旧输入框相关样式（`.dsh-chat-shortcut-field/input/copy/clear` 等）；
+- 回归：`shortcut-capture` fixture 重写为键帽录制交互（28 项：前缀/恢复默认/移除/捕获组合键/Backspace 移除/Escape 取消/修饰键提示/保留键/平台键帽/保存/开关），`presentation-settings` 87 项（新增录制按钮 26px/圆角 10px、内联操作 12px 断言）；`check-shortcuts` 源码断言更新。全部门禁/构建 39 产物通过。候选 `artifacts/dsh-deepseek-chat-0.2.30-101e525c0b34.tgz`（246970 bytes/47 文件）已装 desktop。未提交/未发布。
+
+## 2026-11-16 未发布改动：修复快捷键保存被文字标签校验拒绝
+
+用户反馈在 Chat 设置保存 `Cmd+Alt+ArrowLeft` / `Cmd+Alt+ArrowRight` 时提示「快捷键设置保存失败，请重试。」。根因：`src/client.ts` 的 `setSwitchPreference` 字符串校验把 `shortcutChat` / `shortcutHarness` 也套用了切换按钮文字标签规则 `validSwitchLabel`（显示宽度 ≤10），而快捷键存储值为物理绑定 `Meta+Alt+ArrowLeft`（20 字符）→ 被拒绝；`Tab` 仅 3 字符恰好通过，故此前未暴露。修复：新增 `validSwitchPreference(field, value)`（preferences.ts）按字段分流——快捷键只校验 `validShortcut`（修饰键+主键绑定），`chatLabel/harnessLabel` 保留宽度限制，`switchStyle/websiteLifetime/websiteReleaseDelay/shortcutEnabled` 各按自身规则；client 改用该函数。回归：`tests/shortcuts.test.ts` 新增偏好写入用例（长组合键接受、显示格式/超长拒绝、标签宽度/枚举/数值边界），`check-shortcuts` 增加源码断言；全部门禁通过。候选 `artifacts/dsh-deepseek-chat-0.2.30-1bc0a499f37c.tgz`（246730 bytes/47 文件）已装 desktop。未提交/未发布。
+
 ## 2026-11-14 0.2.30 已发布 npm
 
 发布 0.2.30：侧栏不兼容提示改为 DSH 官方系统级 Toast——文案「「DeepSeek Chat」插件与当前DSH版本不兼容，建议更新插件或DSH版本」，黄色警告图标 `IconWarningOutlineRegular`，`holdMs=6000`（6 秒停留 + 1 秒淡出自动消失），无关闭/操作按钮、点击穿透，CHAT/HARNESS 都提示，每次 DSH 启动或插件加载最多一次；删除品牌行下方小提示框、Chat 设置「侧栏兼容提示」卡片/恢复按钮、`brandNoticeDismissed` 持久化偏好与 `brand-notice.tsx`。流程：临时 npm 配置网页登录 → 2FA → publish → 校验公开 tarball 与正式包**逐字节一致**（246665 bytes / 47 文件，SHA256 `412bf5bf3ef7b517bcc9cd2832940561b49d7482e2a5c157aa878251f671f59f`）；latest/dist-tags=0.2.30；临时凭据 logout、目录删除、PTY 关闭。本机 desktop 装同内容候选 `e89da7ea9197`（0.2.29 版本号）。Git 改动未提交/未推送（等用户指令）。

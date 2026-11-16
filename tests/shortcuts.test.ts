@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {captureShortcut, displayShortcut, matchesShortcut, normalizeShortcut, parseShortcut,
   reservedShortcut, shortcutAction, shortcutPlatform, shouldHandleShortcut, validShortcut} from '../src/shortcuts.js'
+import {validSwitchPreference} from '../src/preferences.js'
 
 const key = (value:string, mods:Partial<{ctrl:boolean;alt:boolean;shift:boolean;meta:boolean}>={}) =>
   ({key:value,ctrlKey:mods.ctrl??false,altKey:mods.alt??false,shiftKey:mods.shift??false,metaKey:mods.meta??false})
@@ -82,4 +83,33 @@ test('same bindings toggle, different bindings target their own mode',()=>{
   assert.equal(shortcutAction(key('x',{ctrl:true}),'Ctrl+X','Ctrl+Shift+Y'),'chat')
   assert.equal(shortcutAction(key('y',{ctrl:true,shift:true}),'Ctrl+X','Ctrl+Shift+Y'),'harness')
   assert.equal(shortcutAction(key('z'),'Ctrl+X','Ctrl+Shift+Y'),null)
+})
+
+
+test('preference writes validate shortcuts as bindings, not switch labels',()=>{
+  // Modifier bindings are longer than a 10-column label by design.
+  assert.equal(validSwitchPreference('shortcutChat','Meta+Alt+ArrowLeft'),true)
+  assert.equal(validSwitchPreference('shortcutHarness','Meta+Alt+ArrowRight'),true)
+  assert.equal(validSwitchPreference('shortcutChat','Ctrl+Shift+Tab'),true)
+  assert.equal(validSwitchPreference('shortcutChat','Tab'),true)
+  // Only the stored physical form is a binding; the display form is not.
+  assert.equal(validSwitchPreference('shortcutChat','Cmd+Alt+ArrowLeft'),false)
+  assert.equal(validSwitchPreference('shortcutChat','Meta+Alt+ArrowLeft+Extra'),false)
+  assert.equal(validSwitchPreference('shortcutChat',''),false)
+  // Labels keep the switch-button width limit.
+  assert.equal(validSwitchPreference('chatLabel','CHAT'),true)
+  assert.equal(validSwitchPreference('harnessLabel','HARNESS'),true)
+  assert.equal(validSwitchPreference('chatLabel','这是一个非常长的标签文字'),false)
+  // Enum and numeric preferences keep their own rules.
+  assert.equal(validSwitchPreference('switchStyle','icon'),true)
+  assert.equal(validSwitchPreference('switchStyle','pill'),false)
+  assert.equal(validSwitchPreference('websiteLifetime','delayed'),true)
+  assert.equal(validSwitchPreference('websiteLifetime','forever'),false)
+  assert.equal(validSwitchPreference('websiteReleaseDelay',5),true)
+  assert.equal(validSwitchPreference('websiteReleaseDelay',3600),true)
+  assert.equal(validSwitchPreference('websiteReleaseDelay',4),false)
+  assert.equal(validSwitchPreference('websiteReleaseDelay',3601),false)
+  assert.equal(validSwitchPreference('websiteReleaseDelay',60.5),false)
+  assert.equal(validSwitchPreference('shortcutEnabled',true),true)
+  assert.equal(validSwitchPreference('shortcutEnabled','true'),false)
 })

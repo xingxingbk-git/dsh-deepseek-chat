@@ -24,8 +24,7 @@ import type { WebsiteFile } from './website-downloads.js'
 import { createSidebarBinding } from './sidebar-adapter.js'
 import { bindChatSettingsIconSlot, CHAT_SETTINGS_SECTION_ID } from './settings-icon.js'
 import { HOST_ENTRY_ID } from './identity.js'
-import { DEFAULT_SWITCH_PREFERENCES, parseSwitchPreferences, validSwitchLabel, WEBSITE_RELEASE_DELAY_MAX, WEBSITE_RELEASE_DELAY_MIN, type SwitchPreferences } from './preferences.js'
-import { validShortcut } from './shortcuts.js'
+import { DEFAULT_SWITCH_PREFERENCES, parseSwitchPreferences, validSwitchPreference, type SwitchPreferences } from './preferences.js'
 import { shouldHandleShortcut, shortcutAction, shortcutPlatform } from './shortcuts.js'
 import { takeOverDshWebviewShortcuts } from './dsh-new-session.js'
 import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client'
@@ -508,19 +507,7 @@ export function apply(ctx: Context): void {
       settingsOpen=next;publish()
     },
     setSwitchPreference: async (field: keyof SwitchPreferences, value: string | number | boolean) => {
-      if(disposed || !['switchStyle','chatLabel','harnessLabel','websiteLifetime','websiteReleaseDelay','shortcutEnabled','shortcutChat','shortcutHarness'].includes(field))return false
-      if(field==='shortcutEnabled') {
-        if(typeof value!=='boolean') return false
-      } else if(typeof value==='number') {
-        if(field!=='websiteReleaseDelay' || !Number.isInteger(value) || value<5 || value>3600) return false
-      } else {
-        if(typeof value!=='string') return false
-        if(field==='websiteReleaseDelay') return false
-        if((field==='shortcutChat'||field==='shortcutHarness') && !validShortcut(value)) return false
-        if(field==='switchStyle' ? !['text','icon'].includes(value)
-          : field==='websiteLifetime' ? !['retain','immediate','delayed'].includes(value)
-          : !validSwitchLabel(value)) return false
-      }
+      if(disposed || !validSwitchPreference(field, value)) return false
       const form=preferencesForm
       if(!form || switchPreferencesStatus!=='ready' || !form.getSnapshot().writable) {
         switchPreferencesError='设置服务尚未就绪，请重启 DSH 后重试。';publish();return false

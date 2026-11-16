@@ -13,6 +13,10 @@ export interface SwitchPreferences {
     readonly shortcutHarness: string;
 }
 export declare const DEFAULT_SWITCH_PREFERENCES: SwitchPreferences;
+/** One write to the switch preferences: labels keep their width limit, while
+ * shortcut fields must be keyboard bindings (modifiers + one key), never label
+ * text — their stored form is longer than a switch label by design. */
+export declare function validSwitchPreference(field: keyof SwitchPreferences, value: unknown): boolean;
 export declare const SWITCH_LABEL_LIMIT = 10;
 /** Printable ASCII costs one; all other Unicode code points cost two. Never split surrogates. */
 export declare function switchLabelWidth(value: string): number;

@@ -11,7 +11,7 @@ window.fixtureDone=(async()=>{
  const check=(name,passed)=>results.push({name,passed:!!passed})
  const tick=()=>new Promise(resolve=>setTimeout(resolve,0))
  let failNext=false,hold=null
- let state={mode:'harness',modeEnabled:true,authorizationStatus:'authorized',availabilityMessage:'',accountLabel:null,error:null,desktopAvailable:true,webLoading:false,webError:null,accountStorageKey:null,authorizationGeneration:1,websiteReloadRevision:0,settingsOpen:false,language:'zh-CN',websiteAuthenticationStatus:'signed-in',websiteAuthenticationRevision:0,websiteSessionStatus:'saved',websiteSessionError:null,viewport:null,brandAnchor:null,sidebarAdapted:true,websiteNavigation:{status:'ready',authenticated:true,accountName:'Fixture account',conversations:[],canCreate:true},websiteNavigationRefreshing:false,websiteNavigationRefreshError:null,showWebsiteNavigation:false,switchPreferences:{switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS'},switchPreferencesStatus:'ready',switchPreferencesPending:false,switchPreferencesError:null}
+ let state={mode:'harness',modeEnabled:true,authorizationStatus:'authorized',availabilityMessage:'',accountLabel:null,error:null,desktopAvailable:true,webLoading:false,webError:null,accountStorageKey:null,authorizationGeneration:1,websiteReloadRevision:0,settingsOpen:false,language:'zh-CN',websiteAuthenticationStatus:'signed-in',websiteAuthenticationRevision:0,websiteSessionStatus:'saved',websiteSessionError:null,viewport:null,brandAnchor:null,sidebarAdapted:true,websiteNavigation:{status:'ready',authenticated:true,accountName:'Fixture account',conversations:[],canCreate:true},websiteNavigationRefreshing:false,websiteNavigationRefreshError:null,showWebsiteNavigation:false,switchPreferences:{switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS',shortcutEnabled:true,shortcutChat:'Tab',shortcutHarness:'Tab'},switchPreferencesStatus:'ready',switchPreferencesPending:false,switchPreferencesError:null}
  const update=patch=>{state={...state,...patch};flushSync(()=>listeners.forEach(fn=>fn()))}
  const bridge={getSnapshot:()=>state,subscribe:fn=>{listeners.add(fn);return()=>listeners.delete(fn)},setSettingsOpen:()=>{},selectMode:mode=>update({mode}),commandWebsite:cmd=>commands.push(cmd),logoutWebsite:()=>{},refreshAuthorization:()=>{},beginWebsiteSignIn:()=>{},setSwitchPreference:async(field,value)=>{
   if(field!=='switchStyle' && !validSwitchLabel(value))throw Error('Invalid persistence attempt')
@@ -63,12 +63,21 @@ window.fixtureDone=(async()=>{
   check('English account actions keep the padded link and logout on one aligned row',actionsAligned() && getComputedStyle(external).paddingLeft==='14px')
   update({language:'zh-CN'});await tick()
   check('card spacing and stroke use the official account-page values',getComputedStyle(document.querySelector('.dsh-chat-settings')).paddingTop==='8px' && Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>{const css=getComputedStyle(el);return css.paddingTop==='12px' && css.paddingLeft==='16px' && css.marginBottom==='16px' && css.borderTopColor==='rgb(153, 153, 153)'}))
-  const controls = [...document.querySelectorAll('#settings .dsh-chat-label-input, #settings .dsh-chat-label-input input, #settings .dsh-chat-label-save, #settings .dsh-chat-style-trigger, #settings .dsh-chat-lifetime-input, #settings .dsh-chat-shortcut-input, #settings .dsh-chat-shortcut-field, #settings .dsh-chat-shortcut-save')]
+  const controls = [...document.querySelectorAll('#settings .dsh-chat-label-input, #settings .dsh-chat-label-input input, #settings .dsh-chat-label-save, #settings .dsh-chat-style-trigger, #settings .dsh-chat-lifetime-input, #settings .dsh-chat-shortcut-save')]
   const controlHeights = controls.map(element => Math.round(element.getBoundingClientRect().height))
   check('settings inputs, selects and buttons share one control height', controlHeights.length >= 6 && controlHeights.every(height => height === 34))
-  const radiusControls = [...document.querySelectorAll('#settings .dsh-chat-label-input, #settings .dsh-chat-label-save, #settings .dsh-chat-style-trigger, #settings .dsh-chat-lifetime-input, #settings .dsh-chat-shortcut-field, #settings .dsh-chat-shortcut-save')]
+  const radiusControls = [...document.querySelectorAll('#settings .dsh-chat-label-input, #settings .dsh-chat-label-save, #settings .dsh-chat-style-trigger, #settings .dsh-chat-lifetime-input, #settings .dsh-chat-shortcut-save')]
   const controlRadii = radiusControls.map(element => getComputedStyle(element).borderRadius)
   check('settings controls share the native radius instead of mixing 8px and 12px', controlRadii.length >= 5 && controlRadii.every(radius => radius === '12px'))
+  const shortcutField = document.querySelector('#settings .dsh-chat-shortcut-field')
+  check('shortcut fields keep the shared 34px box height', Boolean(shortcutField) && Math.round(shortcutField.getBoundingClientRect().height) === 34)
+  flushSync(() => shortcutField?.querySelector('.dsh-chat-shortcut-display')?.click())
+  await tick()
+  const recorder = document.querySelector('#settings .dsh-chat-shortcut-recorder')
+  const recorderStyle = recorder ? getComputedStyle(recorder) : null
+  check('shortcut recorders follow the DSH 26px keycap-button geometry', Boolean(recorder) && Math.round(recorder.getBoundingClientRect().height) === 26 && recorderStyle.borderRadius === '10px')
+  const inlineAction = document.querySelector('#settings .dsh-chat-shortcut-inline-action')
+  check('shortcut reset/remove actions follow the DSH inline-action typography', Boolean(inlineAction) && getComputedStyle(inlineAction).fontSize === '12px')
   check('every settings card keeps transparent fill and its border',document.querySelectorAll('.dsh-chat-settings-card').length>=2 && Array.from(document.querySelectorAll('.dsh-chat-settings-card')).every(el=>{const css=getComputedStyle(el);return css.backgroundColor==='rgba(0, 0, 0, 0)' && css.borderTopStyle==='solid'}))
   const group=document.querySelector('.dsh-chat-settings-group')
   const groupBlocks=[...document.querySelectorAll('.dsh-chat-settings-group > .dsh-chat-settings-block')]

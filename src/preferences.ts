@@ -15,6 +15,23 @@ export interface SwitchPreferences {
   readonly shortcutHarness: string
 }
 export const DEFAULT_SWITCH_PREFERENCES: SwitchPreferences = Object.freeze({switchStyle:'text',chatLabel:'CHAT',harnessLabel:'HARNESS',websiteLifetime:'retain',websiteReleaseDelay:DEFAULT_WEBSITE_RELEASE_DELAY,shortcutEnabled:true,shortcutChat:DEFAULT_SHORTCUT,shortcutHarness:DEFAULT_SHORTCUT})
+/** One write to the switch preferences: labels keep their width limit, while
+ * shortcut fields must be keyboard bindings (modifiers + one key), never label
+ * text — their stored form is longer than a switch label by design. */
+export function validSwitchPreference(field: keyof SwitchPreferences, value: unknown): boolean {
+  switch (field) {
+    case 'switchStyle': return value === 'text' || value === 'icon'
+    case 'websiteLifetime': return value === 'retain' || value === 'immediate' || value === 'delayed'
+    case 'websiteReleaseDelay': return typeof value === 'number' && Number.isInteger(value)
+      && value >= WEBSITE_RELEASE_DELAY_MIN && value <= WEBSITE_RELEASE_DELAY_MAX
+    case 'shortcutEnabled': return typeof value === 'boolean'
+    case 'shortcutChat':
+    case 'shortcutHarness': return typeof value === 'string' && validShortcut(value)
+    case 'chatLabel':
+    case 'harnessLabel': return validSwitchLabel(value)
+    default: return false
+  }
+}
 export const SWITCH_LABEL_LIMIT = 10
 /** Printable ASCII costs one; all other Unicode code points cost two. Never split surrogates. */
 export function switchLabelWidth(value: string): number {
