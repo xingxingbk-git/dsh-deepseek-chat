@@ -6,7 +6,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..')
 // Node tests do not render the visual SDK, whose browser package imports CSS.
 const visualPrimitives=[
   'BrandWordmark','IconSearchOutlineRegular','IconCloseFillRegular','IconNewChatOutlineRegular',
-  'IconPanelLeftOutlineRegular','IconRefreshOutlineRegular','IconRightUpOutlineRegular','IconWarningOutlineRegular','Toast','IconLoadingOutlineRegular','IconEllipsisOutlineRegular',
+  'IconPanelLeftOutlineRegular','IconRefreshOutlineRegular','IconRightUpOutlineRegular','IconWarningOutlineRegular','Toast','ShortcutKeys','IconLoadingOutlineRegular','IconEllipsisOutlineRegular',
   'IconEditOutlineRegular','IconPinOutlineRegular','IconShareOutlineRegular','IconTrashOutlineRegular',
   'Menu','Modal','Button','Input','IconChevronDownOutlineRegular','Tooltip','Switch',
 ]

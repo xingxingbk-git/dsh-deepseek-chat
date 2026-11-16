@@ -8,7 +8,7 @@
 
 - 入口：`src/index.ts`（Host，Cordis 插件）、`src/client.ts`（Web Client）；`package.json` 的 `dsh.bundle.patch` / `dsh.client` 声明扩展点，`cordis.patch.yml` 是 Cordis layer。
 - 产物：`lib/` 为**预编译分发**（含 `lib/types/`、`lib/build-manifest.json`），与源码一起提交。
-- npm 公开版 **0.2.30**（latest/dist-tags=0.2.30；正式包 246665bytes/47文件，SHA256 `412bf5bf3ef7b517bcc9cd2832940561b49d7482e2a5c157aa878251f671f59f`，公开 tarball 逐字节一致）；本机 desktop 装同内容 0.2.29 本地候选 `e89da7ea9197`；本机桌面版为 DSH **0.2.2-rc.3**。
+- npm 公开版 **0.2.30**（latest/dist-tags=0.2.30；正式包 246665bytes/47文件，SHA256 `412bf5bf3ef7b517bcc9cd2832940561b49d7482e2a5c157aa878251f671f59f`，公开 tarball 逐字节一致）；本机 desktop 现装候选 `929df9534e40`（0.2.30 版本号，247232bytes/47文件：快捷键保存校验修复 + 矩形框字段、点击后框内展开恢复默认/移除/录制、编辑态隐藏前缀/分割线并去掉框外提示、官方 ShortcutKeys 键帽）；本机桌面版为 DSH **0.2.2-rc.3**。
 
 ## 当前状态（2026-11-09）
 - 0.2.24 已发布 npm（2026-11-11）：A) DSH 0.2 全线兼容（engine/peers 从 0.2.0-rc.1 起覆盖 0.2.0/0.2.1/0.2.2 线；旧壳 settings.section.icon 走 DOM fallback + inject try/catch，Menu minWidthFromAnchor 兼容 spread；0.2.0/0.2.1 无 file-actions → 附件保存不可用）；B) Chat 设置控件对齐 DSH 原生样式（34px 高、12px 圆角、快捷键字段原生输入框表面、清除按钮 8px、浮层 12px）；C) 设置页新文案（快捷键 / 缓存策略 / 保持缓存等）、延迟释放秒数输入框统一、英文翻译补齐、README 同步；D) README 兼容范围只提最新 0.2.2 线；E) CHAT 自动聚焦输入框（进入 CHAT/打开会话/新建会话；webview 先获键盘焦点；页面呈现后重聚焦、成功后 900ms 再确认；最多等 30 秒）；F) 文字头像账号识别（外部贡献合并）并补两处 proof 兼容（会话操作/侧栏折叠接受 footer-v1 与 footer-text-v1）；G) 切换快捷键全局优先（输入框/网页内生效；网页内注入 capture keydown 拦截并经 console-message 通知；设置页录制框、IME、长按例外）。验证：compat29×4、tsc、sdk、text-avatar 31+负对照、composer 5+fixture 5、shortcuts/捕获32、presentation 87、全部门禁/负对照/5组×119、构建38产物/4模块通过。公开包 245227bytes/46文件，SHA256 `2161c43f2c4b6bc2e0ee73e395acc9e1c44d1624f35c95e8bd11d6ee14976611`，latest=0.2.24。本机 desktop 装同内容 0.2.23 候选 `a10acda7d424`。main 已提交推送。

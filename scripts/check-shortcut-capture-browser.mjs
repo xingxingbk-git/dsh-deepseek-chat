@@ -26,6 +26,7 @@ export const IconRefreshOutlineRegular=()=>React.createElement('svg',{width:16,h
 export const IconRightUpOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconWarningOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const Toast=({text})=>React.createElement('div',{role:'alert','data-toast':true},text);
+export const ShortcutKeys=({keys})=>React.createElement('span',null,(keys||[]).map((key,index)=>React.createElement('kbd',{key:index},key)));
 export const IconLoadingOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconEllipsisOutlineRegular=()=>React.createElement('svg',{width:16,height:16});
 export const IconEditOutlineRegular=()=>React.createElement('svg',{width:16,height:16});

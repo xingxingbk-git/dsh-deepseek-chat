@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { createElement, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { BrandWordmark, IconSearchOutlineRegular, IconCloseFillRegular, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, IconRefreshOutlineRegular, IconRightUpOutlineRegular, IconWarningOutlineRegular, IconLoadingOutlineRegular, IconEllipsisOutlineRegular, IconEditOutlineRegular, IconPinOutlineRegular, IconShareOutlineRegular, IconTrashOutlineRegular, Menu, Modal, Button, Input, IconChevronDownOutlineRegular, Tooltip, Switch, Toast } from '@deepseek-ai/dsh-client-ui-primitives'
+import { BrandWordmark, IconSearchOutlineRegular, IconCloseFillRegular, IconNewChatOutlineRegular, IconPanelLeftOutlineRegular, IconRefreshOutlineRegular, IconRightUpOutlineRegular, IconWarningOutlineRegular, IconLoadingOutlineRegular, IconEllipsisOutlineRegular, IconEditOutlineRegular, IconPinOutlineRegular, IconShareOutlineRegular, IconTrashOutlineRegular, Menu, Modal, Button, Input, IconChevronDownOutlineRegular, Tooltip, Switch, Toast, ShortcutKeys } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ComponentType } from 'react'
 import type { StoredEntry } from '@deepseek-ai/dsh-client-ui-slots'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
@@ -13,7 +13,7 @@ import { translate } from './i18n.js'
 import { readSurfaceBorderRadius } from './surface-clip.js'
 import { guardHarnessSearchReplay } from './search-replay-guard.js'
 import { markBrandVisual } from './sidebar-adapter.js'
-import { captureShortcut, displayShortcut, shortcutPlatform, validShortcut, SHORTCUT_CAPTURE_HINT, SHORTCUT_INVALID_HINT, SHORTCUT_PENDING_HINT, SHORTCUT_RESERVED_HINT, type ShortcutPlatform } from './shortcuts.js'
+import { captureShortcut, DEFAULT_SHORTCUT, shortcutKeycaps, shortcutPlatform, validShortcut, SHORTCUT_CAPTURE_HINT, SHORTCUT_INVALID_HINT, SHORTCUT_PENDING_HINT, SHORTCUT_RESERVED_HINT, type ShortcutPlatform } from './shortcuts.js'
 import type { WebsiteFile } from './website-downloads.js'
 import type { WebsiteCommand, WebsiteNavigation } from './website-navigation.js'
 import type { ChatLanguage } from './website-settings.js'
@@ -532,58 +532,53 @@ export function DshChatLeadingControls({bridge}: PropsRuntime<'shell.leading'> &
   </div>
 }
 
-/** Capture-style field: focus starts capture; keys are never typed as text. */
+/** Boxed shortcut field (same geometry as the label inputs above). It shows
+ * the current keycaps until clicked; editing then reveals DSH's inline
+ * reset/remove actions and recorder inside the same frame. */
 function ShortcutInput({value,onChange,disabled,label,prefix,platform,t}:{
   value:string;onChange:(next:string)=>void;disabled:boolean;label:string;prefix:string;platform:ShortcutPlatform;t:(text:string)=>string
 }) {
+  const [editing,setEditing]=useState(false)
   const [capturing,setCapturing]=useState(false)
   const [notice,setNotice]=useState<string|null>(null)
-  const wrapRef=useRef<HTMLDivElement>(null)
-  const guidanceRef=useRef<HTMLSpanElement>(null)
-  const display=value ? displayShortcut(value,platform) : ''
-  const placeholder=capturing ? (notice ? '' : t(SHORTCUT_CAPTURE_HINT)) : t('请设置快捷键')
-  // Guidance longer than the capture area scrolls continuously: start to tail,
-  // then restart from the beginning. No pauses, so the text is always moving.
-  useLayoutEffect(()=>{
-    const guidance=guidanceRef.current, wrap=wrapRef.current
-    const text=guidance?.firstElementChild
-    if(!guidance || !wrap || !(text instanceof HTMLElement)) return
-    // Visible text area excludes the guidance padding (10px on each side), so the
-    // last character is fully readable at the end of each pass.
-    const distance=text.scrollWidth-(wrap.clientWidth-20)
-    if(distance < 2) return
-    guidance.dataset.scrolling='true'
-    const seconds=Math.max(1.4, distance/40) // ~40 px/s reads naturally
-    const animation=text.animate([
-      { transform:'translateX(0px)' },
-      { transform:`translateX(${-distance}px)` },
-    ],{duration:seconds*1000,iterations:Infinity,easing:'linear'})
-    return ()=>{animation.cancel();delete guidance.dataset.scrolling}
-  },[notice,capturing])
-  return <div className="dsh-chat-shortcut-control">
-    <div className="dsh-chat-shortcut-field" data-capturing={capturing||undefined}>
-      <span className="dsh-chat-shortcut-prefix" aria-hidden="true">{prefix}</span>
-      <div className="dsh-chat-shortcut-input-wrap" ref={wrapRef}>
-        <input className="dsh-chat-shortcut-input" data-dsh-chat-shortcut-capture="" readOnly value={capturing ? '' : display}
-          placeholder={placeholder} aria-label={label} disabled={disabled}
+  const field=useRef<HTMLDivElement>(null)
+  const recorder=useRef<HTMLButtonElement>(null)
+  const keycaps=value ? shortcutKeycaps(value,platform) : []
+  const stop=()=>{setCapturing(false);setNotice(null)}
+  const leave=()=>{stop();setEditing(false)}
+  const enter=()=>{if(disabled)return;setEditing(true);setNotice(null)}
+  useEffect(()=>{if(editing)recorder.current?.focus()},[editing])
+  return <div ref={field} className="dsh-chat-shortcut-field" data-editing={editing||undefined}
+    onBlurCapture={event=>{if(!field.current?.contains(event.relatedTarget as Node | null))leave()}}>
+    <span className="dsh-chat-shortcut-prefix" aria-hidden="true">{prefix}</span>
+    <div className="dsh-chat-shortcut-body">
+      {editing ? <>
+        <button type="button" className="dsh-chat-shortcut-inline-action" disabled={disabled}
+          onClick={()=>{onChange(DEFAULT_SHORTCUT);leave()}}>{t('恢复默认')}</button>
+        {value!=='' && <button type="button" className="dsh-chat-shortcut-inline-action" disabled={disabled}
+          onClick={()=>{onChange('');leave()}}>{t('移除')}</button>}
+        <button ref={recorder} type="button" className="dsh-chat-shortcut-recorder" data-dsh-chat-shortcut-capture=""
+          aria-label={label} aria-invalid={notice ? true : undefined} disabled={disabled}
           onFocus={()=>{setCapturing(true);setNotice(null)}}
           onBlur={()=>{setCapturing(false);setNotice(null)}}
+          onClick={()=>{setCapturing(true);setNotice(null);recorder.current?.focus()}}
           onKeyDown={event=>{
             if(!capturing)return
             const result=captureShortcut(event,platform)
-            if(result.kind==='cancel'){event.preventDefault();setCapturing(false);event.currentTarget.blur();return}
-            if(result.kind==='clear'){event.preventDefault();onChange('');setNotice(null);return}
-            if(result.kind==='pending'){event.preventDefault();setNotice(t(SHORTCUT_PENDING_HINT));return}
-            if(result.kind==='invalid'){event.preventDefault();setNotice(t(SHORTCUT_INVALID_HINT));return}
-            if(result.kind==='reserved'){event.preventDefault();setNotice(t(SHORTCUT_RESERVED_HINT));return}
-            event.preventDefault();onChange(result.value);setCapturing(false);setNotice(null);event.currentTarget.blur()
-          }}/>
-        {notice && <span className="dsh-chat-shortcut-guidance" ref={guidanceRef} role="status">
-          <span className="dsh-chat-shortcut-guidance-text">{notice}</span>
-        </span>}
-      </div>
-      {!capturing && <button type="button" className="dsh-chat-shortcut-clear" aria-label={t('清空')} title={t('清空')} disabled={disabled}
-        onClick={()=>{onChange('');setNotice(null)}}><IconCloseFillRegular size={12}/></button>}
+            if(result.kind==='cancel'){event.preventDefault();leave();event.currentTarget.blur();return}
+            if(result.kind==='clear'){event.preventDefault();onChange('');leave();event.currentTarget.blur();return}
+            if(result.kind==='pending'){event.preventDefault();setNotice(SHORTCUT_PENDING_HINT);return}
+            if(result.kind==='invalid'){event.preventDefault();setNotice(SHORTCUT_INVALID_HINT);return}
+            if(result.kind==='reserved'){event.preventDefault();setNotice(SHORTCUT_RESERVED_HINT);return}
+            event.preventDefault();onChange(result.value);leave();event.currentTarget.blur()
+          }}>
+          {capturing ? t(notice ?? SHORTCUT_CAPTURE_HINT)
+            : value ? <ShortcutKeys keys={keycaps}/> : t('请设置快捷键')}
+        </button>
+      </> : <button type="button" className="dsh-chat-shortcut-display" aria-label={label}
+          disabled={disabled} onClick={enter} onFocus={enter}>
+        {value ? <ShortcutKeys keys={keycaps}/> : t('请设置快捷键')}
+      </button>}
     </div>
   </div>
 }

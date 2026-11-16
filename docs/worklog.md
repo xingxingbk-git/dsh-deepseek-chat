@@ -6,6 +6,22 @@
 
 rc.3 把新会话按钮包进 newSessionRow 并由 `sidebar.session.action`（hoc）渲染；旧 adapter 按钮分支失效（兼容提示 + CHAT 按钮走 HARNESS）。修复：注册 `sidebar.session.action` HOC（需带官方 required `id`；CHAT 消费点击开官网新会话、HARNESS 透传、display:contents 不破布局）+ adapter rc.3 分支接管 newSessionRow 内按钮（DOM 兜底）。sidebar-022 70、sidebar-rows 53，全部门禁/构建40产物通过；候选 02dd23a0d4ea（247529bytes/48文件）已装 desktop。未提交/未推送。
 
+## 2026-11-16 快捷键编辑态隐藏前缀并去掉框外提示
+
+去掉框下方红色提示（提示仅在录制按钮内）；编辑态隐藏前缀+分割线、失焦恢复，避免撑宽；shortcut-capture 32 项；全部门禁/构建 39 产物；候选 929df9534e40（247232bytes/47文件）已装。未提交/未发布。
+
+## 2026-11-16 快捷键字段改矩形框 + 点击展开内联操作
+
+按反馈恢复矩形框布局（34px/12px 圆角/前缀+分割线），默认只显示键帽，点击后框内展开恢复默认/移除/录制；shortcut-capture 29、presentation 88；全部门禁/构建 39 产物；候选 33c7a9784dd7（247327bytes/47文件）已装。未提交/未发布。
+
+## 2026-11-16 快捷键输入组件对齐 DSH 风格
+
+捕获控件改为 DSH 风格键帽录制按钮：复用官方 ShortcutKeys（⌘⌥⇧← 符号）、26px/10px 圆角/12px 字号、恢复默认+移除内联操作、红边无效态；新增 shortcutKeycaps 纯函数与单测；重写 shortcut-capture fixture 28 项、presentation 87 项；全部门禁/构建 39 产物通过；候选 101e525c0b34（246970bytes/47文件）已装。未提交/未发布。
+
+## 2026-11-16 修复快捷键保存被文字标签校验拒绝
+
+client setSwitchPreference 对 shortcutChat/harness 误用 validSwitchLabel（≤10 宽）→ Meta+Alt+ArrowLeft 被拒。新增 validSwitchPreference 按字段分流（快捷键走 validShortcut、标签保留宽度限制等），client 改用；tests/shortcuts 增加偏好写入用例 + check-shortcuts 源码断言；全部门禁通过；候选 1bc0a499f37c（246730bytes/47文件）已装。未提交/未发布。
+
 ## 2026-11-14 发布 npm 0.2.30
 
 按顺序发布 0.2.30（侧栏不兼容提示改 DSH 系统级 Toast：新文案、黄色警告图标、6 秒停留+1 秒淡出、无按钮、CHAT/HARNESS 每次加载一次；删除旧品牌提示/设置卡片/持久化）：网页登录+2FA，registry 异步生效；公开 tarball 与正式包逐字节一致（246665bytes/47文件，SHA256 412bf5bf3ef7b517bcc9cd2832940561b49d7482e2a5c157aa878251f671f59f），latest/dist-tags=0.2.30；临时凭据 logout、目录清理、PTY 关闭。Git 未提交/未推送。

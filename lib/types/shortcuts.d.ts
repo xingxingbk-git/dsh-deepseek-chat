@@ -29,6 +29,7 @@ export declare function parseShortcut(value: unknown): ShortcutBinding | null;
 export declare function validShortcut(value: unknown): boolean;
 /** Stored names are physical; display swaps Meta to Cmd/Win per platform. */
 export declare function displayShortcut(value: string, platform?: ShortcutPlatform): string;
+export declare function shortcutKeycaps(value: string, platform?: ShortcutPlatform): readonly string[];
 export declare function matchesShortcut(event: ShortcutEventLike, value: string): boolean;
 /**
  * Modifiers the host, Chromium or the OS already own. Tab itself is allowed.

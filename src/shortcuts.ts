@@ -103,6 +103,27 @@ export function displayShortcut(value: string, platform: ShortcutPlatform = 'oth
   return parts.join('+')
 }
 
+/** Platform labels for one binding, matching DSH's keycap presentation. */
+const KEYCAP_LABELS: Readonly<Record<string, string>> = Object.freeze({
+  ArrowLeft:'←', ArrowRight:'→', ArrowUp:'↑', ArrowDown:'↓', Enter:'⏎', Escape:'Esc',
+  Space:'Space', Tab:'Tab', Backspace:'⌫', Delete:'Del', Insert:'Ins', Home:'Home', End:'End',
+  PageUp:'PgUp', PageDown:'PgDn',
+})
+const MAC_MODIFIER_LABELS: Readonly<Record<string, string>> = Object.freeze({ Meta:'⌘', Ctrl:'⌃', Alt:'⌥', Shift:'⇧' })
+const OTHER_MODIFIER_LABELS: Readonly<Record<string, string>> = Object.freeze({ Meta:'Win', Ctrl:'Ctrl', Alt:'Alt', Shift:'Shift' })
+export function shortcutKeycaps(value: string, platform: ShortcutPlatform = 'other'): readonly string[] {
+  const binding = parseShortcut(value)
+  if (!binding) return []
+  const labels = platform === 'mac' ? MAC_MODIFIER_LABELS : OTHER_MODIFIER_LABELS
+  const keys: string[] = []
+  if (binding.meta) keys.push(labels.Meta!)
+  if (binding.ctrl) keys.push(labels.Ctrl!)
+  if (binding.alt) keys.push(labels.Alt!)
+  if (binding.shift) keys.push(labels.Shift!)
+  keys.push(KEYCAP_LABELS[binding.key] ?? binding.key)
+  return keys
+}
+
 export function matchesShortcut(event: ShortcutEventLike, value: string): boolean {
   const binding = parseShortcut(value)
   const key = canonicalKey(event.key)
